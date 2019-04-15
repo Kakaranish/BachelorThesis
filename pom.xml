@@ -10,8 +10,13 @@
             <artifactId>jsch</artifactId>
             <version>0.1.55</version>
         </dependency>
-    </dependencies>
 
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>2.27.0</version>
+        </dependency>
+    </dependencies>
 
     <groupId>com.kakaranish</groupId>
     <artifactId>JSCH test</artifactId>
