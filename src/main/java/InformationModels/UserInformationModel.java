@@ -1,8 +1,7 @@
-package SystemInfo;
+package InformationModels;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public class UserInformationModel
 {

@@ -1,4 +1,4 @@
-package SystemInfo;
+package InformationModels;
 
 public class SwapInformationModel implements IInformationModel
 {
