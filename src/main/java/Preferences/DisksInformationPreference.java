@@ -7,7 +7,7 @@ public class DisksInformationPreference implements IPreference
 {
     public String GetCommandToExecute()
     {
-        return "df -h";
+        return "df";
     }
 
     public IInformationModel GetInformationModel(String commandExecutionResult)

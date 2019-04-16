@@ -6,11 +6,11 @@ import java.util.List;
 public class ProcessInformationModel
 {
     public String User;
-    public String PID;
-    public String CPU_Perentage;
-    public String Memory_Percentage;
-    public String VSZ;
-    public String RSS;
+    public long PID;
+    public double CPU_Perentage;
+    public double Memory_Percentage;
+    public long VSZ;
+    public long RSS;
     public String TTY;
     public String Stat;
     public String Start;
@@ -35,11 +35,11 @@ public class ProcessInformationModel
         commandFieldValue = commandFieldValue.trim();
 
         User = commandExecutionResultSplit.get(0);
-        PID = commandExecutionResultSplit.get(1);
-        CPU_Perentage = commandExecutionResultSplit.get(2);
-        Memory_Percentage = commandExecutionResultSplit.get(3);
-        VSZ = commandExecutionResultSplit.get(4);
-        RSS = commandExecutionResultSplit.get(5);
+        PID = Long.parseLong(commandExecutionResultSplit.get(1));
+        CPU_Perentage = Double.parseDouble(commandExecutionResultSplit.get(2));
+        Memory_Percentage = Double.parseDouble(commandExecutionResultSplit.get(3));
+        VSZ = Long.parseLong(commandExecutionResultSplit.get(4));
+        RSS = Long.parseLong(commandExecutionResultSplit.get(5));
         TTY = commandExecutionResultSplit.get(6);
         Stat = commandExecutionResultSplit.get(7);
         Start = commandExecutionResultSplit.get(8);

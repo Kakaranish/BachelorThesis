@@ -2,9 +2,9 @@ package InformationModels;
 
 public class SwapInformationModel implements IInformationModel
 {
-    public String Total;
-    public String Used;
-    public String Free;
+    public long Total;
+    public long Used;
+    public long Free;
 
     /*
         commandExecutionResult looks like:
@@ -17,8 +17,8 @@ public class SwapInformationModel implements IInformationModel
         commandExecutionResult = commandExecutionResult.replaceAll("\\s+", "\t");
         String[] commandExecutionResultSplit = commandExecutionResult.split("\t");
 
-        Total = commandExecutionResultSplit[1];
-        Used = commandExecutionResultSplit[2];
-        Free = commandExecutionResultSplit[3];
+        Total = Long.parseLong(commandExecutionResultSplit[1]);
+        Used = Long.parseLong(commandExecutionResultSplit[2]);
+        Free = Long.parseLong(commandExecutionResultSplit[3]);
     }
 }

@@ -6,10 +6,10 @@ import java.util.List;
 public class DiskInformationModel
 {
     public String FileSystem;
-    public String Size;
-    public String Used;
-    public String Available;
-    public String UsePercentage;
+    public long BlocksNumber;
+    public long Used;
+    public long Available;
+    public int UsePercentage;
     public String MountedOn;
 
     /*
@@ -23,11 +23,11 @@ public class DiskInformationModel
         commandExecutionResult = commandExecutionResult.replaceAll("\\s+","\t");
         List<String> commandExecutionResultSplit = Arrays.asList(commandExecutionResult.split("\t"));
 
-        FileSystem = commandExecutionResultSplit.get(1);
-        Size = commandExecutionResultSplit.get(2);
-        Used = commandExecutionResultSplit.get(3);
-        Available = commandExecutionResultSplit.get(3);
-        UsePercentage = commandExecutionResultSplit.get(4);
+        FileSystem = commandExecutionResultSplit.get(0);
+        BlocksNumber = Long.parseLong(commandExecutionResultSplit.get(1));
+        Used = Long.parseLong(commandExecutionResultSplit.get(2));
+        Available = Long.parseLong(commandExecutionResultSplit.get(3));
+        UsePercentage = Integer.parseInt(commandExecutionResultSplit.get(4).replaceAll("%",""));
         MountedOn = commandExecutionResultSplit.get(5);
     }
 }

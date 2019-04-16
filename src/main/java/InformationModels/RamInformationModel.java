@@ -2,12 +2,12 @@ package InformationModels;
 
 public class RamInformationModel implements IInformationModel
 {
-    public String Total;
-    public String Used;
-    public String Free;
-    public String Shared;
-    public String Buffers;
-    public String Cached;
+    public long Total;
+    public long Used;
+    public long Free;
+    public long Shared;
+    public long Buffers;
+    public long Cached;
 
     /*
         commandExecutionResult looks like:
@@ -20,11 +20,11 @@ public class RamInformationModel implements IInformationModel
         commandExecutionResult = commandExecutionResult.replaceAll("\\s+", "\t");
         String[] commandExecutionResultSplit = commandExecutionResult.split("\t");
 
-        Total = commandExecutionResultSplit[1];
-        Used = commandExecutionResultSplit[2];
-        Free = commandExecutionResultSplit[3];
-        Shared = commandExecutionResultSplit[4];
-        Buffers = commandExecutionResultSplit[5];
-        Cached = commandExecutionResultSplit[6];
+        Total = Long.parseLong(commandExecutionResultSplit[1]);
+        Used = Long.parseLong(commandExecutionResultSplit[2]);
+        Free = Long.parseLong(commandExecutionResultSplit[3]);
+        Shared = Long.parseLong(commandExecutionResultSplit[4]);
+        Buffers = Long.parseLong(commandExecutionResultSplit[5]);
+        Cached = Long.parseLong(commandExecutionResultSplit[6]);
     }
 }

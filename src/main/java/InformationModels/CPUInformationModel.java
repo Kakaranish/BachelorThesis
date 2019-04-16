@@ -2,7 +2,7 @@ package InformationModels;
 
 public class CPUInformationModel implements IInformationModel
 {
-    public String TotalCpu_Percentage;
+    public double CpuPercentage;
 
     /*
         commandExecutionResult looks like:
@@ -12,6 +12,6 @@ public class CPUInformationModel implements IInformationModel
     public CPUInformationModel(String commandExecutionResult)
     {
         commandExecutionResult = commandExecutionResult.trim();
-        TotalCpu_Percentage = commandExecutionResult;
+        CpuPercentage = Double.parseDouble(commandExecutionResult);
     }
 }
