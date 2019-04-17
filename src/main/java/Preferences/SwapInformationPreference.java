@@ -1,7 +1,7 @@
 package Preferences;
 
-import InformationModels.IInformationModel;
-import InformationModels.SwapInformationModel;
+import Models.Info.IInfo;
+import Models.Info.SwapInfo;
 
 public class SwapInformationPreference implements IPreference
 {
@@ -10,8 +10,8 @@ public class SwapInformationPreference implements IPreference
         return "free --kilo | grep Swap";
     }
 
-    public IInformationModel GetInformationModel(String commandExecutionResult)
+    public IInfo GetInformationModel(String commandExecutionResult)
     {
-        return new SwapInformationModel(commandExecutionResult);
+        return new SwapInfo(commandExecutionResult);
     }
 }

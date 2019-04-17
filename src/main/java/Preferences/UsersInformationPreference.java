@@ -1,7 +1,7 @@
 package Preferences;
 
-import InformationModels.IInformationModel;
-import InformationModels.UsersInformationModel;
+import Models.Info.IInfo;
+import Models.Info.UsersInfo;
 
 public class UsersInformationPreference implements IPreference
 {
@@ -10,8 +10,8 @@ public class UsersInformationPreference implements IPreference
         return "w";
     }
 
-    public IInformationModel GetInformationModel(String commandExecutionResult)
+    public IInfo GetInformationModel(String commandExecutionResult)
     {
-        return new UsersInformationModel(commandExecutionResult);
+        return new UsersInfo(commandExecutionResult);
     }
 }

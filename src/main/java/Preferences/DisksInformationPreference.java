@@ -1,7 +1,7 @@
 package Preferences;
 
-import InformationModels.DisksInformationModel;
-import InformationModels.IInformationModel;
+import Models.Info.DisksInfo;
+import Models.Info.IInfo;
 
 public class DisksInformationPreference implements IPreference
 {
@@ -10,8 +10,8 @@ public class DisksInformationPreference implements IPreference
         return "df";
     }
 
-    public IInformationModel GetInformationModel(String commandExecutionResult)
+    public IInfo GetInformationModel(String commandExecutionResult)
     {
-        return new DisksInformationModel(commandExecutionResult);
+        return new DisksInfo(commandExecutionResult);
     }
 }

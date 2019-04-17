@@ -1,9 +1,9 @@
 package Preferences;
 
-import InformationModels.IInformationModel;
+import Models.Info.IInfo;
 
 public interface IPreference
 {
     String GetCommandToExecute();
-    IInformationModel GetInformationModel(String commandExecutionResult);
+    IInfo GetInformationModel(String commandExecutionResult);
 }

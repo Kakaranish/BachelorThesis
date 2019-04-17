@@ -1,7 +1,7 @@
 package Preferences;
 
-import InformationModels.IInformationModel;
-import InformationModels.RamInformationModel;
+import Models.Info.IInfo;
+import Models.Info.RamInfo;
 
 public class RamInformationPreference implements IPreference
 {
@@ -10,8 +10,8 @@ public class RamInformationPreference implements IPreference
         return "free --kilo | grep Mem";
     }
 
-    public IInformationModel GetInformationModel(String commandExecutionResult)
+    public IInfo GetInformationModel(String commandExecutionResult)
     {
-        return new RamInformationModel(commandExecutionResult);
+        return new RamInfo(commandExecutionResult);
     }
 }

@@ -1,7 +1,7 @@
 package Preferences;
 
-import InformationModels.IInformationModel;
-import InformationModels.ProcessesInformationModel;
+import Models.Info.IInfo;
+import Models.Info.ProcessesInfo;
 
 public class ProcessesInformationPreference implements IPreference
 {
@@ -10,8 +10,8 @@ public class ProcessesInformationPreference implements IPreference
         return "ps aux";
     }
 
-    public IInformationModel GetInformationModel(String commandExecutionResult)
+    public IInfo GetInformationModel(String commandExecutionResult)
     {
-        return new ProcessesInformationModel(commandExecutionResult);
+        return new ProcessesInfo(commandExecutionResult);
     }
 }

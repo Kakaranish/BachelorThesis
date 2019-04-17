@@ -1,7 +1,7 @@
 package Preferences;
 
-import InformationModels.CPUInformationModel;
-import InformationModels.IInformationModel;
+import Models.Info.CPUInfo;
+import Models.Info.IInfo;
 
 public class CpuInformationPreference implements IPreference
 {
@@ -10,8 +10,8 @@ public class CpuInformationPreference implements IPreference
         return "grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage}'";
     }
 
-    public IInformationModel GetInformationModel(String commandExecutionResult)
+    public IInfo GetInformationModel(String commandExecutionResult)
     {
-        return new CPUInformationModel(commandExecutionResult);
+        return new CPUInfo(commandExecutionResult);
     }
 }
