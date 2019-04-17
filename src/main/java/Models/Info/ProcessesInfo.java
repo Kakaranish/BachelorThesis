@@ -1,4 +1,4 @@
-package InformationModels;
+package Models.Info;
 
 import java.util.ArrayList;
 import java.util.Arrays;

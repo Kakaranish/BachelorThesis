@@ -1,4 +1,4 @@
-package InformationModels;
+package Models.Info;
 
 public class CPUInfo implements IInfo
 {

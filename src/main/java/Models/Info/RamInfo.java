@@ -1,4 +1,4 @@
-package InformationModels;
+package Models.Info;
 
 public class RamInfo implements IInfo
 {

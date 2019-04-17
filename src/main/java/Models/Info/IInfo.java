@@ -1,6 +1,5 @@
-package InformationModels;
+package Models.Info;
 
 public interface IInfo
 {
-    
 }
