@@ -3,7 +3,7 @@ package Preferences;
 import Models.Info.IInfo;
 import Models.Info.RamInfo;
 
-public class RamInformationPreference implements IPreference
+public class RamInfoPrefrence implements IPreference
 {
     public String GetCommandToExecute()
     {

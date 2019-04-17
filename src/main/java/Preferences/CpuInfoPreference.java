@@ -3,7 +3,7 @@ package Preferences;
 import Models.Info.CPUInfo;
 import Models.Info.IInfo;
 
-public class CpuInformationPreference implements IPreference
+public class CpuInfoPreference implements IPreference
 {
     public String GetCommandToExecute()
     {

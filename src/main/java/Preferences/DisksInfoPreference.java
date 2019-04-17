@@ -3,7 +3,7 @@ package Preferences;
 import Models.Info.DisksInfo;
 import Models.Info.IInfo;
 
-public class DisksInformationPreference implements IPreference
+public class DisksInfoPreference implements IPreference
 {
     public String GetCommandToExecute()
     {

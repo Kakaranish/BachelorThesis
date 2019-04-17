@@ -3,7 +3,7 @@ package Preferences;
 import Models.Info.IInfo;
 import Models.Info.SwapInfo;
 
-public class SwapInformationPreference implements IPreference
+public class SwapInfoPreference implements IPreference
 {
     public String GetCommandToExecute()
     {

@@ -1,17 +1,17 @@
 package Preferences;
 
 import Models.Info.IInfo;
-import Models.Info.ProcessesInfo;
+import Models.Info.UsersInfo;
 
-public class ProcessesInformationPreference implements IPreference
+public class UsersInfoPrefercence implements IPreference
 {
     public String GetCommandToExecute()
     {
-        return "ps aux";
+        return "w";
     }
 
     public IInfo GetInformationModel(String commandExecutionResult)
     {
-        return new ProcessesInfo(commandExecutionResult);
+        return new UsersInfo(commandExecutionResult);
     }
 }
