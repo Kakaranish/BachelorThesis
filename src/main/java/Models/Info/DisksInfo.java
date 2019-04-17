@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class DisksInformationModel implements IInformationModel
+public class DisksInfo implements IInfo
 {
-    public List<DiskInformationModel> DisksInfo;
+    public List<DiskInfo> DisksInfo;
 
     /*
         commandExecutionResults looks like:
@@ -19,16 +19,16 @@ public class DisksInformationModel implements IInformationModel
 
     */
 
-    public DisksInformationModel(String commandExecutionResults)
+    public DisksInfo(String commandExecutionResults)
     {
-        DisksInfo = new ArrayList<DiskInformationModel>();
+        DisksInfo = new ArrayList<DiskInfo>();
         List<String> commandExecutionResultsSplit =
                 new ArrayList<String>(Arrays.asList(commandExecutionResults.split("\\n")));
         commandExecutionResultsSplit.remove(0);
 
         for (String result : commandExecutionResultsSplit)
         {
-            DisksInfo.add(new DiskInformationModel(result));
+            DisksInfo.add(new DiskInfo(result));
         }
     }
 }

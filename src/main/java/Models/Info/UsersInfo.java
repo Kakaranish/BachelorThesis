@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class UsersInformationModel implements IInformationModel
+public class UsersInfo implements IInfo
 {
-    public List<UserInformationModel> UsersInfo;
+    public List<UserInfo> UsersInfo;
 
     /*
         commandExecutionResults looks like:
@@ -16,9 +16,9 @@ public class UsersInformationModel implements IInformationModel
         root     pts/0    89-75-75-172.dyn 18:38    1.00s  0.02s  0.00s w
     */
 
-    public UsersInformationModel(String commandExecutionResults)
+    public UsersInfo(String commandExecutionResults)
     {
-        UsersInfo = new ArrayList<UserInformationModel>();
+        UsersInfo = new ArrayList<UserInfo>();
         List<String> commandExecutionResultsSplit =
                 new ArrayList<String>(Arrays.asList(commandExecutionResults.split("\\n")));
 
@@ -34,7 +34,7 @@ public class UsersInformationModel implements IInformationModel
 
         for (String result : commandExecutionResultsSplit)
         {
-            UsersInfo.add(new UserInformationModel(result));
+            UsersInfo.add(new UserInfo(result));
         }
     }
 }

@@ -1,6 +1,6 @@
 package InformationModels;
 
-public class RamInformationModel implements IInformationModel
+public class RamInfo implements IInfo
 {
     public long Total;
     public long Used;
@@ -14,7 +14,7 @@ public class RamInformationModel implements IInformationModel
         Mem:       2011984     215400    1796584          0      88300      69316
     */
 
-    public RamInformationModel(String commandExecutionResult)
+    public RamInfo(String commandExecutionResult)
     {
         commandExecutionResult = commandExecutionResult.trim();
         commandExecutionResult = commandExecutionResult.replaceAll("\\s+", "\t");

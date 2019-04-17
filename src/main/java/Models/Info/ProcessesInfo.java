@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class ProcessesInformationModel implements IInformationModel
+public class ProcessesInfo implements IInfo
 {
-    public List<ProcessInformationModel> processesInfo;
+    public List<ProcessInfo> processesInfo;
 
     /*
         commandExecutionResults looks like:
@@ -21,15 +21,15 @@ public class ProcessesInformationModel implements IInformationModel
         ... ETC
     */
 
-    public ProcessesInformationModel(String commandExecutionResults)
+    public ProcessesInfo(String commandExecutionResults)
     {
-        processesInfo = new ArrayList<ProcessInformationModel>();
+        processesInfo = new ArrayList<ProcessInfo>();
         List<String> commandExecutionResultsSplit = new ArrayList<String>(Arrays.asList(commandExecutionResults.split("\\n")));
         commandExecutionResultsSplit.remove(0);
 
         for (String result : commandExecutionResultsSplit)
         {
-            processesInfo.add(new ProcessInformationModel(  result));
+            processesInfo.add(new ProcessInfo(  result));
         }
     }
 }

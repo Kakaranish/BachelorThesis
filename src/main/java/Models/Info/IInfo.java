@@ -1,6 +1,6 @@
 package InformationModels;
 
-public interface IInformationModel
+public interface IInfo
 {
     
 }

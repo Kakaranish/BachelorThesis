@@ -1,6 +1,6 @@
 package InformationModels;
 
-public class CPUInformationModel implements IInformationModel
+public class CPUInfo implements IInfo
 {
     public double CpuPercentage;
 
@@ -9,7 +9,7 @@ public class CPUInformationModel implements IInformationModel
         1.43196%
     */
 
-    public CPUInformationModel(String commandExecutionResult)
+    public CPUInfo(String commandExecutionResult)
     {
         commandExecutionResult = commandExecutionResult.trim();
         CpuPercentage = Double.parseDouble(commandExecutionResult);

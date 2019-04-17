@@ -3,7 +3,7 @@ package InformationModels;
 import java.util.Arrays;
 import java.util.List;
 
-public class DiskInformationModel
+public class DiskInfo
 {
     public String FileSystem;
     public long BlocksNumber;
@@ -17,7 +17,7 @@ public class DiskInformationModel
         udev                                                     10M     0   10M   0% /dev
     */
 
-    public DiskInformationModel(String commandExecutionResult)
+    public DiskInfo(String commandExecutionResult)
     {
         commandExecutionResult = commandExecutionResult.trim();
         commandExecutionResult = commandExecutionResult.replaceAll("\\s+","\t");

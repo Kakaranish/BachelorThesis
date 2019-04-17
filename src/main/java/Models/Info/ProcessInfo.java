@@ -3,7 +3,7 @@ package InformationModels;
 import java.util.Arrays;
 import java.util.List;
 
-public class ProcessInformationModel
+public class ProcessInfo
 {
     public String User;
     public long PID;
@@ -22,7 +22,7 @@ public class ProcessInformationModel
         root         1  0.0  0.0  10652   832 ?        Ss   Apr13   0:02 init [2]
     */
 
-    public ProcessInformationModel(String commandExecutionResult)
+    public ProcessInfo(String commandExecutionResult)
     {
         commandExecutionResult = commandExecutionResult.trim();
         commandExecutionResult = commandExecutionResult.replaceAll("\\s+", "\t");
