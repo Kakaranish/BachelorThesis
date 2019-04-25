@@ -7,7 +7,7 @@ public class ProcessInfo
 {
     public String User;
     public long PID;
-    public double CPU_Perentage;
+    public double CPU_Percentage;
     public double Memory_Percentage;
     public long VSZ;
     public long RSS;
@@ -21,6 +21,10 @@ public class ProcessInfo
         commandExecutionResult looks like:
         root         1  0.0  0.0  10652   832 ?        Ss   Apr13   0:02 init [2]
     */
+
+    public ProcessInfo()
+    {
+    }
 
     public ProcessInfo(String commandExecutionResult)
     {
@@ -36,7 +40,7 @@ public class ProcessInfo
 
         User = commandExecutionResultSplit.get(0);
         PID = Long.parseLong(commandExecutionResultSplit.get(1));
-        CPU_Perentage = Double.parseDouble(commandExecutionResultSplit.get(2));
+        CPU_Percentage = Double.parseDouble(commandExecutionResultSplit.get(2));
         Memory_Percentage = Double.parseDouble(commandExecutionResultSplit.get(3));
         VSZ = Long.parseLong(commandExecutionResultSplit.get(4));
         RSS = Long.parseLong(commandExecutionResultSplit.get(5));

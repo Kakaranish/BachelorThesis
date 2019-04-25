@@ -1,5 +1,8 @@
 package Models.Info;
 
+import javax.persistence.Embeddable;
+
+@Embeddable
 public class RamInfo implements IInfo
 {
     public long Total;
@@ -13,6 +16,10 @@ public class RamInfo implements IInfo
         commandExecutionResult looks like:
         Mem:       2011984     215400    1796584          0      88300      69316
     */
+
+    public RamInfo()
+    {
+    }
 
     public RamInfo(String commandExecutionResult)
     {

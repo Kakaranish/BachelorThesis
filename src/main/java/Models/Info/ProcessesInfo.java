@@ -6,7 +6,7 @@ import java.util.List;
 
 public class ProcessesInfo implements IInfo
 {
-    public List<ProcessInfo> processesInfo;
+    public List<ProcessInfo> ProcessesInfo;
 
     /*
         commandExecutionResults looks like:
@@ -23,13 +23,13 @@ public class ProcessesInfo implements IInfo
 
     public ProcessesInfo(String commandExecutionResults)
     {
-        processesInfo = new ArrayList<ProcessInfo>();
+        ProcessesInfo = new ArrayList<ProcessInfo>();
         List<String> commandExecutionResultsSplit = new ArrayList<String>(Arrays.asList(commandExecutionResults.split("\\n")));
         commandExecutionResultsSplit.remove(0);
 
         for (String result : commandExecutionResultsSplit)
         {
-            processesInfo.add(new ProcessInfo(  result));
+            ProcessesInfo.add(new ProcessInfo(result));
         }
     }
 }

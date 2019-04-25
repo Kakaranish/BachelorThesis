@@ -20,7 +20,7 @@ public class UsersInfo implements IInfo
     {
         UsersInfo = new ArrayList<UserInfo>();
         List<String> commandExecutionResultsSplit =
-                new ArrayList<String>(Arrays.asList(commandExecutionResults.split("\\n")));
+                new ArrayList<String>(Arrays.asList(commandExecutionResults.split("\n")));
 
         /*
             We want to get rid of these two lines:

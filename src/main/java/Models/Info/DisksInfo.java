@@ -19,6 +19,10 @@ public class DisksInfo implements IInfo
 
     */
 
+    public DisksInfo()
+    {
+    }
+
     public DisksInfo(String commandExecutionResults)
     {
         DisksInfo = new ArrayList<DiskInfo>();

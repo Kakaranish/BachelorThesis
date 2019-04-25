@@ -7,7 +7,7 @@ public class UserInfo
 {
     public String User;
     public String TTY;
-    public String From;
+    public String FromWhere;
     public String SAT15;
     public String Idle;
     public String JCPU;
@@ -21,6 +21,10 @@ public class UserInfo
         or like this:
         root     pts/0    89-75-75-172.dyn 18:38    1.00s  0.02s  0.00s w
     */
+
+    public UserInfo()
+    {
+    }
 
     public UserInfo(String commandExecutionResult)
     {
@@ -38,7 +42,7 @@ public class UserInfo
 
         User = commandExecutionResultSplit.get(0);
         TTY = commandExecutionResultSplit.get(1);
-        From = commandExecutionResultSplit.get(2);
+        FromWhere = commandExecutionResultSplit.get(2);
         SAT15 = commandExecutionResultSplit.get(3);
         Idle = commandExecutionResultSplit.get(4);
         JCPU = commandExecutionResultSplit.get(5);

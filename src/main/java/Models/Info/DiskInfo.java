@@ -17,6 +17,10 @@ public class DiskInfo
         udev                                                     10M     0   10M   0% /dev
     */
 
+    public DiskInfo()
+    {
+    }
+
     public DiskInfo(String commandExecutionResult)
     {
         commandExecutionResult = commandExecutionResult.trim();
