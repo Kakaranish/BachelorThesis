@@ -11,10 +11,19 @@
         <property name="connection.url">jdbc:sqlite:mydb.db</property>
         <property name="connection.username"></property>
         <property name="connection.password"></property>
-
+        <property name=""></property>
         <property name="hibernate.hbm2ddl.auto">update</property>
 
 
-        <mapping class="Contact"/>
+        <mapping class="Temp.Contact"/>
+        <mapping class="Temp.ContactNumbers"/>
+        <mapping class="Entities.Logs.SwapLog"/>
+        <mapping class="Entities.Logs.CPULog"/>
+        <mapping class="Entities.Logs.RamLog"/>
+        <mapping class="Entities.Computer"/>
+        <mapping class="Entities.Logs.ProcessLog"/>
+        <mapping class="Entities.Logs.DiskLog"/>
+        <mapping class="Entities.Logs.UserLog"/>
+
     </session-factory>
 </hibernate-configuration>
