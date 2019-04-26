@@ -23,5 +23,4 @@ public class DatabaseManager
     {
         return _sessionFactory.openSession();
     }
-
 }
