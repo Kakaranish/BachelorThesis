@@ -3,7 +3,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Properties;
 
-class AppProperties
+public class AppProperties
 {
     private static String _appPropertiesFileName = "app.properties";
     private static final AppProperties _appProperties = new AppProperties();
