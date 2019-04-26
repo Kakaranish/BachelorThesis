@@ -5,7 +5,7 @@ import org.hibernate.cfg.Configuration;
 public class DatabaseManager
 {
     private SessionFactory _sessionFactory;
-    private static final DatabaseManager databaseManager = new DatabaseManager();
+    private static final DatabaseManager _databaseManager = new DatabaseManager();
 
     private DatabaseManager()
     {
@@ -14,9 +14,9 @@ public class DatabaseManager
 
         _sessionFactory = configuration.buildSessionFactory();
     }
-    public static DatabaseManager getInstance()
+    public static DatabaseManager GetInstance()
     {
-        return databaseManager;
+        return _databaseManager;
     }
 
     public Session GetSession()
