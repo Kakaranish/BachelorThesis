@@ -10,41 +10,55 @@ public class Computer
 {
     @Id
     @Column(nullable = false, unique = true)
-    public String Host;
+    private String Host;
 
     @ManyToOne
     @JoinColumn(referencedColumnName = "Username")
-    public User User;
+    private User User;
 
     private String Username;
-    private String Password; // Is hashed
+    private String Password; // Is encrypted
     private String SSHKey;
 
-    public int Timeout;
-    public int Port;
+    // TODO: Make lowercase
+    private int Timeout;
+    private int Port;
+
+    @Column(nullable = false)
     public Duration MaintainPeriod; // Every some time maintenance works will be performed
+
+    @Column(nullable = false)
     public Duration RequestInterval;
+
+    @Column(nullable = false)
     public Duration LogExpiration;
 
     public Computer()
     {
     }
 
-    public Computer(String host, User computerConfig)
-    {
-        Host = host;
-        User = computerConfig;
-        Username = computerConfig.Username;
-        Password = computerConfig.Password;
-        SSHKey = computerConfig.SSHKey;
-    }
-
-    public Computer(String host, String username, String password, String _SSHKey)
+    public Computer(String host, String username, String password, String _SSHKey, int timeout, int port, Duration maintainPeriod, Duration requestInterval, Duration logExpiration)
     {
         Host = host;
         Username = username;
         Password = password;
-        SSHKey = _SSHKey;
+        this.SSHKey = _SSHKey;
+        Timeout = timeout;
+        Port = port;
+        MaintainPeriod = maintainPeriod;
+        RequestInterval = requestInterval;
+        LogExpiration = logExpiration;
+    }
+
+    public Computer(String host, User user, int timeout, int port, Duration maintainPeriod, Duration requestInterval, Duration logExpiration)
+    {
+        Host = host;
+        User = user;
+        Timeout = timeout;
+        Port = port;
+        MaintainPeriod = maintainPeriod;
+        RequestInterval = requestInterval;
+        LogExpiration = logExpiration;
     }
 
     public String getUsername()
@@ -61,4 +75,40 @@ public class Computer
     {
         return User == null ? SSHKey : User.SSHKey;
     }
+
+    public String getHost()
+    {
+        return Host;
+    }
+
+    public Entities.User getUser()
+    {
+        return User;
+    }
+
+    public int getTimeout()
+    {
+        return Timeout;
+    }
+
+    public int getPort()
+    {
+        return Port;
+    }
+
+    public Duration getMaintainPeriod()
+    {
+        return MaintainPeriod;
+    }
+
+    public Duration getRequestInterval()
+    {
+        return RequestInterval;
+    }
+
+    public Duration getLogExpiration()
+    {
+        return LogExpiration;
+    }
+
 }
