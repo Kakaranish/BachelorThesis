@@ -1,6 +1,14 @@
 package Models.Info;
 
+import Entities.Computer;
+import Entities.Logs.BaseEntity;
+import Entities.Logs.CPULog;
+import Entities.Logs.SwapLog;
+
 import javax.persistence.Embeddable;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 @Embeddable
 public class SwapInfo implements IInfo
@@ -27,5 +35,13 @@ public class SwapInfo implements IInfo
         Total = Long.parseLong(commandExecutionResultSplit[1]);
         Used = Long.parseLong(commandExecutionResultSplit[2]);
         Free = Long.parseLong(commandExecutionResultSplit[3]);
+    }
+
+    public List<BaseEntity> ToLogList(Computer computer, Date timestamp)
+    {
+        List<BaseEntity> logList = new ArrayList<>();
+        logList.add(new SwapLog(computer, this, timestamp));
+
+        return logList;
     }
 }

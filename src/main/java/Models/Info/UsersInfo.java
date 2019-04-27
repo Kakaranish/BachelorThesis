@@ -1,7 +1,13 @@
 package Models.Info;
 
+import Entities.Computer;
+import Entities.Logs.BaseEntity;
+import Entities.Logs.ProcessLog;
+import Entities.Logs.UserLog;
+
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 public class UsersInfo implements IInfo
@@ -36,5 +42,16 @@ public class UsersInfo implements IInfo
         {
             UsersInfo.add(new UserInfo(result));
         }
+    }
+
+    public List<BaseEntity> ToLogList(Computer computer, Date timestamp)
+    {
+        List<BaseEntity> logList = new ArrayList<>();
+        for (UserInfo userInfo: UsersInfo)
+        {
+            logList.add(new UserLog(computer, userInfo, timestamp));
+        }
+
+        return logList;
     }
 }

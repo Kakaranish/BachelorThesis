@@ -1,7 +1,13 @@
 package Models.Info;
 
+import Entities.Computer;
+import Entities.Logs.BaseEntity;
+import Entities.Logs.DiskLog;
+import Entities.Logs.ProcessLog;
+
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 public class ProcessesInfo implements IInfo
@@ -31,5 +37,16 @@ public class ProcessesInfo implements IInfo
         {
             ProcessesInfo.add(new ProcessInfo(result));
         }
+    }
+
+    public List<BaseEntity> ToLogList(Computer computer, Date timestamp)
+    {
+        List<BaseEntity> logList = new ArrayList<>();
+        for (ProcessInfo processInfo: ProcessesInfo)
+        {
+            logList.add(new ProcessLog(computer, processInfo, timestamp));
+        }
+
+        return logList;
     }
 }

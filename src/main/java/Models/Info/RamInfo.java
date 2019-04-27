@@ -1,6 +1,14 @@
 package Models.Info;
 
+import Entities.Computer;
+import Entities.Logs.BaseEntity;
+import Entities.Logs.CPULog;
+import Entities.Logs.RamLog;
+
 import javax.persistence.Embeddable;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 @Embeddable
 public class RamInfo implements IInfo
@@ -33,5 +41,13 @@ public class RamInfo implements IInfo
         Shared = Long.parseLong(commandExecutionResultSplit[4]);
         Buffers = Long.parseLong(commandExecutionResultSplit[5]);
         Cached = Long.parseLong(commandExecutionResultSplit[6]);
+    }
+
+    public List<BaseEntity> ToLogList(Computer computer, Date timestamp)
+    {
+        List<BaseEntity> logList = new ArrayList<>();
+        logList.add(new RamLog(computer, this, timestamp));
+
+        return logList;
     }
 }
