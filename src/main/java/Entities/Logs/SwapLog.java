@@ -3,6 +3,7 @@ package Entities.Logs;
 import Entities.Computer;
 import Models.Info.SwapInfo;
 import javax.persistence.*;
+import java.util.Date;
 
 @Entity
 @Table(name = "SwapLogs")
@@ -17,9 +18,9 @@ public class SwapLog extends BaseEntity
         SwapInfo = swapInfo;
     }
 
-    public SwapLog(Computer computer, SwapInfo swapInfo, Long id)
+    public SwapLog(Computer computer, SwapInfo swapInfo, Date timestamp)
     {
-        super(computer, id);
+        super(computer, timestamp);
         SwapInfo = swapInfo;
     }
 }

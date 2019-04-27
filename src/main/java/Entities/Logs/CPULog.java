@@ -5,6 +5,7 @@ import Models.Info.CPUInfo;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.util.Date;
 
 @Entity
 @Table(name = "CPULogs")
@@ -19,9 +20,9 @@ public class CPULog extends BaseEntity
         CPUInfo = cpuInfo;
     }
 
-    public CPULog(Computer computer, CPUInfo cpuInfo, Long id)
+    public CPULog(Computer computer, CPUInfo cpuInfo, Date timestamp)
     {
-        super(computer, id);
+        super(computer, timestamp);
         CPUInfo = cpuInfo;
     }
 }

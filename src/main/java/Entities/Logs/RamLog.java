@@ -5,6 +5,7 @@ import Models.Info.RamInfo;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.util.Date;
 
 @Entity
 @Table(name = "RamLogs")
@@ -19,9 +20,9 @@ public class RamLog extends BaseEntity
         RamInfo = ramInfo;
     }
 
-    public RamLog(Computer computer, RamInfo ramInfo, Long id)
+    public RamLog(Computer computer, RamInfo ramInfo, Date timestamp)
     {
-        super(computer, id);
+        super(computer, timestamp);
         RamInfo = ramInfo;
     }
 }

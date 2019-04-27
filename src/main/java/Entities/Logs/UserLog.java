@@ -20,9 +20,9 @@ public class UserLog extends BaseEntity
         UserInfo = userInfo;
     }
 
-    public UserLog(Computer computer, UserInfo userInfo, Long id, Date timestamp)
+    public UserLog(Computer computer, UserInfo userInfo, Date timestamp)
     {
-        super(computer, id, timestamp);
+        super(computer, timestamp);
         UserInfo = userInfo;
     }
 }

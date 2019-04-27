@@ -26,16 +26,9 @@ public class BaseEntity
         Timestamp = new Date();
     }
 
-    public BaseEntity(Computer computer, Long id)
+    public BaseEntity(Computer computer, Date timestamp)
     {
-        Id = id;
-        Computer = computer;
-        Timestamp = new Date();
-    }
-
-    public BaseEntity(Computer computer, Long id, Date timestamp)
-    {
-        Id = id;
+        Id = null;
         Computer = computer;
         Timestamp = timestamp;
     }

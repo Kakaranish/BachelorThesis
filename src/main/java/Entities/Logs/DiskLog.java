@@ -22,9 +22,9 @@ public class DiskLog extends BaseEntity
         DiskInfo = diskInfo;
     }
 
-    public DiskLog(Computer computer, DiskInfo diskInfo, Long id, Date timestamp)
+    public DiskLog(Computer computer, DiskInfo diskInfo, Date timestamp)
     {
-        super(computer, id, timestamp);
+        super(computer, timestamp);
         DiskInfo = diskInfo;
     }
 }

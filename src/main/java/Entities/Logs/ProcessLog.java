@@ -20,9 +20,9 @@ public class ProcessLog extends BaseEntity
         ProcessInfo = processInfo;
     }
 
-    public ProcessLog(Computer computer, ProcessInfo processInfo, Long id, Date timestamp)
+    public ProcessLog(Computer computer, ProcessInfo processInfo, Date timestamp)
     {
-        super(computer, id, timestamp);
+        super(computer, timestamp);
         ProcessInfo = processInfo;
     }
 }
