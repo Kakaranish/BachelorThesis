@@ -14,12 +14,11 @@
         <property name=""></property>
         <property name="hibernate.hbm2ddl.auto">update</property>
 
-        <mapping class="Temp.Contact"/>
-        <mapping class="Temp.ContactNumbers"/>
         <mapping class="Entities.Logs.SwapLog"/>
         <mapping class="Entities.Logs.CPULog"/>
         <mapping class="Entities.Logs.RamLog"/>
         <mapping class="Entities.Computer"/>
+        <mapping class="Entities.User"/>
         <mapping class="Entities.Logs.ProcessLog"/>
         <mapping class="Entities.Logs.DiskLog"/>
         <mapping class="Entities.Logs.UserLog"/>

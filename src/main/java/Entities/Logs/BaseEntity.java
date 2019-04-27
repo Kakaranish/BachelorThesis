@@ -1,7 +1,6 @@
 package Entities.Logs;
 
 import Entities.Computer;
-
 import javax.persistence.*;
 import java.util.Date;
 
@@ -17,8 +16,8 @@ public class BaseEntity
     public Date Timestamp;
 
     @ManyToOne
-    @JoinColumn(name = "ComputerId")
-    public Entities.Computer Computer;
+    @JoinColumn(referencedColumnName = "Host")
+    public Computer Computer;
 
     public BaseEntity(Computer computer)
     {
