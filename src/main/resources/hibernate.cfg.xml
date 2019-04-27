@@ -15,7 +15,7 @@
         <property name="hibernate.hbm2ddl.auto">update</property>
 
         <mapping class="Entities.Logs.SwapLog"/>
-        <mapping class="Entities.Logs.CPULog"/>
+        <mapping class="Entities.Logs.CpuLog"/>
         <mapping class="Entities.Logs.RamLog"/>
         <mapping class="Entities.Computer"/>
         <mapping class="Entities.User"/>

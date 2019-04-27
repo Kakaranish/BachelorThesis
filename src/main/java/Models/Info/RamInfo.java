@@ -2,9 +2,7 @@ package Models.Info;
 
 import Entities.Computer;
 import Entities.Logs.BaseEntity;
-import Entities.Logs.CPULog;
 import Entities.Logs.RamLog;
-
 import javax.persistence.Embeddable;
 import java.util.ArrayList;
 import java.util.Date;

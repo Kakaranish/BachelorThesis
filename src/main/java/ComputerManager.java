@@ -8,7 +8,7 @@ import org.hibernate.dialect.Database;
 import java.util.Date;
 import java.util.List;
 
-public class ComputerManager implements Runnable
+public class ComputerManager extends Thread
 {
     private Computer _computer; // Needed encapsulation of computer class
     private SSHConnection _sshConnection;
@@ -52,7 +52,6 @@ public class ComputerManager implements Runnable
             }
             session.getTransaction().commit();
             session.close();
-
             try
             {
                 Thread.sleep(_computer.RequestInterval.toMillis());

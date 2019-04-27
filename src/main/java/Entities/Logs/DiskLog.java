@@ -2,8 +2,6 @@ package Entities.Logs;
 
 import Entities.Computer;
 import Models.Info.DiskInfo;
-import Models.Info.ProcessInfo;
-
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Table;

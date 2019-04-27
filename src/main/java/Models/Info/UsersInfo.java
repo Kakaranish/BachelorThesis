@@ -2,9 +2,7 @@ package Models.Info;
 
 import Entities.Computer;
 import Entities.Logs.BaseEntity;
-import Entities.Logs.ProcessLog;
 import Entities.Logs.UserLog;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;

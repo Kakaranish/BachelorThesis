@@ -1,6 +1,6 @@
 package Preferences;
 
-import Models.Info.CPUInfo;
+import Models.Info.CpuInfo;
 import Models.Info.IInfo;
 
 public class CpuInfoPreference implements IPreference
@@ -12,6 +12,6 @@ public class CpuInfoPreference implements IPreference
 
     public IInfo GetInformationModel(String commandExecutionResult)
     {
-        return new CPUInfo(commandExecutionResult);
+        return new CpuInfo(commandExecutionResult);
     }
 }
