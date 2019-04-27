@@ -1,6 +1,7 @@
 import com.jcraft.jsch.*;
 
 import java.io.*;
+import java.util.Properties;
 
 public class SSHConnection
 {
@@ -21,7 +22,7 @@ public class SSHConnection
             session = _jsch.getSession(username, host, port);
             session.setPassword(password);
 
-            java.util.Properties config = new java.util.Properties();
+            Properties config = new Properties();
             config.put("StrictHostKeyChecking", "no");
             session.setConfig(config);
 
@@ -49,7 +50,7 @@ public class SSHConnection
         return channel;
     }
 
-    public void OpenConnection(String username, String host, String password, int port, int timeout)
+    public void OpenConnection(String host, String username, String password, int port, int timeout)
             throws SSHConnectionException
     {
         try
