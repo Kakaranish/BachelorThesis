@@ -1,6 +1,6 @@
 package Entities.Logs;
 
-import Entities.Computer;
+import Entities.ComputerEntity;
 import Models.Info.DiskInfo;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -14,15 +14,15 @@ public class DiskLog extends BaseEntity
     @Embedded
     public DiskInfo DiskInfo;
 
-    public DiskLog(Computer computer, DiskInfo diskInfo)
+    public DiskLog(ComputerEntity computerEntity, DiskInfo diskInfo)
     {
-        super(computer);
+        super(computerEntity);
         DiskInfo = diskInfo;
     }
 
-    public DiskLog(Computer computer, DiskInfo diskInfo, Date timestamp)
+    public DiskLog(ComputerEntity computerEntity, DiskInfo diskInfo, Date timestamp)
     {
-        super(computer, timestamp);
+        super(computerEntity, timestamp);
         DiskInfo = diskInfo;
     }
 }

@@ -6,7 +6,7 @@ import java.time.Duration;
 
 @Entity
 @Table(name = "Computers")
-public class Computer
+public class ComputerEntity
 {
     @Id
     @Column(nullable = false, unique = true)
@@ -33,11 +33,11 @@ public class Computer
     @Column(nullable = false)
     public Duration LogExpiration;
 
-    public Computer()
+    public ComputerEntity()
     {
     }
 
-    public Computer(String host, String username, String password, String _SSHKey, int timeout, int port, Duration maintainPeriod, Duration requestInterval, Duration logExpiration)
+    public ComputerEntity(String host, String username, String password, String _SSHKey, int timeout, int port, Duration maintainPeriod, Duration requestInterval, Duration logExpiration)
     {
         Host = host;
         Username = username;
@@ -50,7 +50,7 @@ public class Computer
         LogExpiration = logExpiration;
     }
 
-    public Computer(String host, User user, int timeout, int port, Duration maintainPeriod, Duration requestInterval, Duration logExpiration)
+    public ComputerEntity(String host, User user, int timeout, int port, Duration maintainPeriod, Duration requestInterval, Duration logExpiration)
     {
         Host = host;
         User = user;

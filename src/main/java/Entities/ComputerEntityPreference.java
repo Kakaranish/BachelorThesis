@@ -6,25 +6,25 @@ import java.io.Serializable;
 @Entity
 @Table(name = "ComputersPreferences", uniqueConstraints = {@UniqueConstraint(columnNames = {"PreferenceId", "ComputerHost"})})
 
-public class ComputerPreference implements Serializable
+public class ComputerEntityPreference implements Serializable
 {
     @Id
     @ManyToOne
     @JoinColumn(name = "ComputerHost", referencedColumnName = "Host")
-    public Computer Computer;
+    public ComputerEntity ComputerEntity;
 
     @Id
     @ManyToOne
     @JoinColumn(name = "PreferenceId", referencedColumnName = "Id")
     public Preference Preference;
 
-    public ComputerPreference()
+    public ComputerEntityPreference()
     {
     }
 
-    public ComputerPreference(Computer computer, Preference preference)
+    public ComputerEntityPreference(ComputerEntity computerEntity, Preference preference)
     {
-        Computer = computer;
+        ComputerEntity = computerEntity;
         Preference = preference;
     }
 }

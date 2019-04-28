@@ -1,6 +1,6 @@
 package Models.Info;
 
-import Entities.Computer;
+import Entities.ComputerEntity;
 import Entities.Logs.BaseEntity;
 import Entities.Logs.ProcessLog;
 import java.util.ArrayList;
@@ -37,12 +37,12 @@ public class ProcessesInfo implements IInfo
         }
     }
 
-    public List<BaseEntity> ToLogList(Computer computer, Date timestamp)
+    public List<BaseEntity> ToLogList(ComputerEntity computerEntity, Date timestamp)
     {
         List<BaseEntity> logList = new ArrayList<>();
         for (ProcessInfo processInfo: ProcessesInfo)
         {
-            logList.add(new ProcessLog(computer, processInfo, timestamp));
+            logList.add(new ProcessLog(computerEntity, processInfo, timestamp));
         }
 
         return logList;

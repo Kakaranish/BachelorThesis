@@ -1,6 +1,6 @@
 package Entities.Logs;
 
-import Entities.Computer;
+import Entities.ComputerEntity;
 import Models.Info.ProcessInfo;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -14,15 +14,15 @@ public class ProcessLog extends BaseEntity
     @Embedded
     public ProcessInfo ProcessInfo;
 
-    public ProcessLog(Computer computer, ProcessInfo processInfo)
+    public ProcessLog(ComputerEntity computerEntity, ProcessInfo processInfo)
     {
-        super(computer);
+        super(computerEntity);
         ProcessInfo = processInfo;
     }
 
-    public ProcessLog(Computer computer, ProcessInfo processInfo, Date timestamp)
+    public ProcessLog(ComputerEntity computerEntity, ProcessInfo processInfo, Date timestamp)
     {
-        super(computer, timestamp);
+        super(computerEntity, timestamp);
         ProcessInfo = processInfo;
     }
 }

@@ -1,137 +1,97 @@
-import Entities.Computer;
-import Entities.Logs.BaseEntity;
-import Models.Info.IInfo;
+import Entities.ComputerEntity;
+import Entities.ComputerEntityPreference;
+import Entities.Preference;
 import Preferences.IPreference;
 import org.hibernate.Session;
-import java.util.Date;
+
+import javax.persistence.Query;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-public class ComputerManager extends Thread
+public class ComputerManager
 {
-    private Computer _computer; // Needed encapsulation of computer class
-    private SSHConnection _sshConnection;
-    private List<IPreference> _computerPreferences;
     private LogsManager _logsManager;
+    private List<Computer> _loadedComputers;
+    private List<Preference> _availablePreferences;
+    private List<Computer> _selectedComputers;
 
-    private boolean _isGathering = false;
-
-    public ComputerManager(LogsManager logsManager, Computer computer, List<IPreference> computerPreferences)
+    public ComputerManager()
+            throws ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            IllegalAccessException, InvocationTargetException
     {
-        _logsManager = logsManager;
-        _computer = computer;
-        _computerPreferences = computerPreferences;
-        _sshConnection = new SSHConnection();
+        _availablePreferences = GetAvailablePreferencesFromDb();
+        _loadedComputers = GetComputersFromDb();
+        _selectedComputers = new ArrayList<>(_loadedComputers);
     }
 
-    public void run()
+    // TODO: Add executing in new thread
+    public void StartGatheringDataForSelectedComputers()
+            throws ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            IllegalAccessException, InvocationTargetException
     {
-        boolean connectedWithComputer = OpenSSHConnectionWithComputer();
-        if(!connectedWithComputer)
+        _logsManager = new LogsManager(_selectedComputers);
+    }
+
+    private List<Preference> GetAvailablePreferencesFromDb()
+    {
+        Session session = DatabaseManager.GetInstance().GetSession();
+        session.beginTransaction();
+
+        String hql = "from Preference";
+        Query query = session.createQuery(hql);
+        List<Preference> preferences = query.getResultList();
+
+        session.close();
+        return preferences;
+    }
+
+    private List<Computer> GetComputersFromDb()
+            throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException,
+            InstantiationException, IllegalAccessException
+    {
+        List<Computer> computers = new ArrayList<>();
+
+        Map<ComputerEntity, List<ComputerEntityPreference>> grouped =
+                LoadComputerPreferencesFromDb().stream().collect(Collectors.groupingBy(cp -> cp.ComputerEntity));
+        for (Map.Entry<ComputerEntity, List<ComputerEntityPreference>> computerListEntry : grouped.entrySet())
         {
-            int retryNum = 0;
-            while(retryNum < _logsManager.NumOfRetries && !connectedWithComputer)
+            ComputerEntity computerEntity = computerListEntry.getKey();
+            List<IPreference> preferences = new ArrayList<>();
+            for (ComputerEntityPreference computerEntityPreference : computerListEntry.getValue())
             {
-                System.out.println("SSH Connection with " + _computer.getHost() + " failed.");
-                try
-                {
-                    Thread.sleep(_logsManager.Cooldown);
-                }
-                catch (InterruptedException e)
-                {
-                    CloseSSHConnectionWithComputer();
-                }
-                connectedWithComputer = OpenSSHConnectionWithComputer();
-
-                ++retryNum;
+                Preference preferenceEntity = computerEntityPreference.Preference;
+                IPreference preference = ConvertPreferenceEntityToIPreference(preferenceEntity);
+                preferences.add(preference);
             }
 
-            if(!connectedWithComputer)
-            {
-                _logsManager.GatheringSSHConnectionErrorCallback(this);
-                return;
-            }
+            computers.add(new Computer(computerEntity, preferences));
         }
 
-        _isGathering = true;
-        while(_isGathering)
-        {
-            //TODO: Callback when connection with db fails
-            Session session = DatabaseManager.GetInstance().GetSession();
-
-            session.beginTransaction();
-            Date timestamp = new Date();
-            for (IPreference computerPreference : _computerPreferences)
-            {
-                try
-                {
-                    //TODO: Callback when command execution fails
-                    String result = _sshConnection.ExecuteCommand(computerPreference.GetCommandToExecute());
-                    IInfo model = computerPreference.GetInformationModel(result);
-                    List<BaseEntity> logsToSave = model.ToLogList(_computer, timestamp);
-
-                    for (BaseEntity log : logsToSave)
-                    {
-                        session.save(log);
-                    }
-                }
-                catch (SSHConnectionException e)
-                {
-                    CloseSSHConnectionWithComputer();
-                    session.close();
-                    return;
-                }
-            }
-
-            session.getTransaction().commit();
-            session.close();
-
-            try
-            {
-                Thread.sleep(_computer.RequestInterval.toMillis());
-            }
-            catch (InterruptedException e)
-            {
-                _logsManager.GatheringStoppedCallback(this);
-                CloseSSHConnectionWithComputer();
-                return;
-            }
-        }
-        CloseSSHConnectionWithComputer();
-        _logsManager.GatheringStoppedCallback(this);
+        return computers;
     }
 
-    private boolean OpenSSHConnectionWithComputer()
+    private List<ComputerEntityPreference> LoadComputerPreferencesFromDb()
     {
-        try
-        {
-            String password = Encrypter.GetInstance().Decrypt(_computer.getPassword());
-            _sshConnection.OpenConnection(
-                    _computer.getHost(),
-                    _computer.getUsername(),
-                    password,
-                    _computer.getPort(),
-                    _computer.getTimeout()
-            );
-            return true;
-        }
-        catch (EncrypterException|SSHConnectionException e)
-        {
-            return false;
-        }
+        Session session = DatabaseManager.GetInstance().GetSession();
+        session.beginTransaction();
+
+        String hql = "from ComputerEntityPreference compPref";
+        Query query = session.createQuery(hql);
+        List preferences = query.getResultList();
+
+        session.close();
+        return  preferences;
     }
 
-    public void StartGatheringLogs()
+    private IPreference ConvertPreferenceEntityToIPreference(Preference preference)
+            throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException
     {
-        this.start();
-    }
-
-    public void StopGatheringLogs()
-    {
-        this.interrupt();
-    }
-
-    private void CloseSSHConnectionWithComputer()
-    {
-        _sshConnection.CloseConnection();
+        String iPreferenceClassName = preference.ClassName;
+        Class iPreferenceClass = Class.forName(iPreferenceClassName);
+        IPreference iPreference = (IPreference) iPreferenceClass.getConstructor().newInstance();
+        return iPreference;
     }
 }

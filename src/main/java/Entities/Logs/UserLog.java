@@ -1,6 +1,6 @@
 package Entities.Logs;
 
-import Entities.Computer;
+import Entities.ComputerEntity;
 import Models.Info.UserInfo;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -14,15 +14,15 @@ public class UserLog extends BaseEntity
     @Embedded
     public UserInfo UserInfo;
 
-    public UserLog(Computer computer, UserInfo userInfo)
+    public UserLog(ComputerEntity computerEntity, UserInfo userInfo)
     {
-        super(computer);
+        super(computerEntity);
         UserInfo = userInfo;
     }
 
-    public UserLog(Computer computer, UserInfo userInfo, Date timestamp)
+    public UserLog(ComputerEntity computerEntity, UserInfo userInfo, Date timestamp)
     {
-        super(computer, timestamp);
+        super(computerEntity, timestamp);
         UserInfo = userInfo;
     }
 }

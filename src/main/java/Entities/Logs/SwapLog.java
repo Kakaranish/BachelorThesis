@@ -1,6 +1,6 @@
 package Entities.Logs;
 
-import Entities.Computer;
+import Entities.ComputerEntity;
 import Models.Info.SwapInfo;
 import javax.persistence.*;
 import java.util.Date;
@@ -12,15 +12,15 @@ public class SwapLog extends BaseEntity
     @Embedded
     public SwapInfo SwapInfo;
 
-    public SwapLog(Computer computer, SwapInfo swapInfo)
+    public SwapLog(ComputerEntity computerEntity, SwapInfo swapInfo)
     {
-        super(computer);
+        super(computerEntity);
         SwapInfo = swapInfo;
     }
 
-    public SwapLog(Computer computer, SwapInfo swapInfo, Date timestamp)
+    public SwapLog(ComputerEntity computerEntity, SwapInfo swapInfo, Date timestamp)
     {
-        super(computer, timestamp);
+        super(computerEntity, timestamp);
         SwapInfo = swapInfo;
     }
 }

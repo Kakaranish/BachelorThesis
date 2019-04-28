@@ -1,6 +1,6 @@
 package Entities.Logs;
 
-import Entities.Computer;
+import Entities.ComputerEntity;
 import Models.Info.RamInfo;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -14,15 +14,15 @@ public class RamLog extends BaseEntity
     @Embedded
     public RamInfo RamInfo;
 
-    public RamLog(Computer computer, RamInfo ramInfo)
+    public RamLog(ComputerEntity computerEntity, RamInfo ramInfo)
     {
-        super(computer);
+        super(computerEntity);
         RamInfo = ramInfo;
     }
 
-    public RamLog(Computer computer, RamInfo ramInfo, Date timestamp)
+    public RamLog(ComputerEntity computerEntity, RamInfo ramInfo, Date timestamp)
     {
-        super(computer, timestamp);
+        super(computerEntity, timestamp);
         RamInfo = ramInfo;
     }
 }

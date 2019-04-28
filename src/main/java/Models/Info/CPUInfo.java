@@ -1,6 +1,6 @@
 package Models.Info;
 
-import Entities.Computer;
+import Entities.ComputerEntity;
 import Entities.Logs.BaseEntity;
 import Entities.Logs.CpuLog;
 import javax.persistence.Embeddable;
@@ -28,10 +28,10 @@ public class CpuInfo implements IInfo
         CpuPercentage = Double.parseDouble(commandExecutionResult);
     }
 
-    public List<BaseEntity> ToLogList(Computer computer, Date timestamp)
+    public List<BaseEntity> ToLogList(ComputerEntity computerEntity, Date timestamp)
     {
         List<BaseEntity> logList = new ArrayList<>();
-        logList.add(new CpuLog(computer, this, timestamp));
+        logList.add(new CpuLog(computerEntity, this, timestamp));
 
         return logList;
     }

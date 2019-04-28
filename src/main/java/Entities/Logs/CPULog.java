@@ -1,6 +1,6 @@
 package Entities.Logs;
 
-import Entities.Computer;
+import Entities.ComputerEntity;
 import Models.Info.CpuInfo;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -14,15 +14,15 @@ public class CpuLog extends BaseEntity
     @Embedded
     public CpuInfo CPUInfo;
 
-    public CpuLog(Computer computer, CpuInfo cpuInfo)
+    public CpuLog(ComputerEntity computerEntity, CpuInfo cpuInfo)
     {
-        super(computer);
+        super(computerEntity);
         CPUInfo = cpuInfo;
     }
 
-    public CpuLog(Computer computer, CpuInfo cpuInfo, Date timestamp)
+    public CpuLog(ComputerEntity computerEntity, CpuInfo cpuInfo, Date timestamp)
     {
-        super(computer, timestamp);
+        super(computerEntity, timestamp);
         CPUInfo = cpuInfo;
     }
 }
