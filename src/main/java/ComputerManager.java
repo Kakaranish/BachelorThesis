@@ -3,8 +3,6 @@ import Entities.Logs.BaseEntity;
 import Models.Info.IInfo;
 import Preferences.IPreference;
 import org.hibernate.Session;
-import org.hibernate.dialect.Database;
-
 import java.util.Date;
 import java.util.List;
 
@@ -13,20 +11,50 @@ public class ComputerManager extends Thread
     private Computer _computer; // Needed encapsulation of computer class
     private SSHConnection _sshConnection;
     private List<IPreference> _computerPreferences;
+    private LogsManager _logsManager;
 
-    public ComputerManager(Computer computer, List<IPreference> computerPreferences)
+    private boolean _isGathering = false;
+
+    public ComputerManager(LogsManager logsManager, Computer computer, List<IPreference> computerPreferences)
     {
-        _computer =  computer;
+        _logsManager = logsManager;
+        _computer = computer;
         _computerPreferences = computerPreferences;
         _sshConnection = new SSHConnection();
     }
 
-    //TODO: Add break condition
     public void run()
     {
-        OpenSSHConnectionWithComputer();
-        while(true)
+        boolean connectedWithComputer = OpenSSHConnectionWithComputer();
+        if(!connectedWithComputer)
         {
+            int retryNum = 0;
+            while(retryNum < _logsManager.NumOfRetries && !connectedWithComputer)
+            {
+                try
+                {
+                    Thread.sleep(_logsManager.Cooldown);
+                }
+                catch (InterruptedException e)
+                {
+                    e.printStackTrace();
+                }
+                connectedWithComputer = OpenSSHConnectionWithComputer();
+
+                ++retryNum;
+            }
+
+            if(!connectedWithComputer)
+            {
+                _logsManager.GatheringSSHConnectionErrorCallback(this);
+                return;
+            }
+        }
+
+        _isGathering = true;
+        while(_isGathering)
+        {
+            //TODO: Callback when connection with db fails
             Session session = DatabaseManager.GetInstance().GetSession();
 
             session.beginTransaction();
@@ -35,6 +63,7 @@ public class ComputerManager extends Thread
             {
                 try
                 {
+                    //TODO: Callback when command execution fails
                     String result = _sshConnection.ExecuteCommand(computerPreference.GetCommandToExecute());
                     IInfo model = computerPreference.GetInformationModel(result);
                     List<BaseEntity> logsToSave = model.ToLogList(_computer, timestamp);
@@ -47,11 +76,14 @@ public class ComputerManager extends Thread
                 catch (SSHConnectionException e)
                 {
                     CloseSSHConnectionWithComputer();
+                    session.close();
                     return;
                 }
             }
+
             session.getTransaction().commit();
             session.close();
+
             try
             {
                 Thread.sleep(_computer.RequestInterval.toMillis());
@@ -61,9 +93,11 @@ public class ComputerManager extends Thread
                 e.printStackTrace();
             }
         }
+        CloseSSHConnectionWithComputer();
+        _logsManager.GatheringStoppedCallback(this);
     }
 
-    private void OpenSSHConnectionWithComputer()
+    private boolean OpenSSHConnectionWithComputer()
     {
         try
         {
@@ -75,11 +109,17 @@ public class ComputerManager extends Thread
                     _computer.getPort(),
                     _computer.getTimeout()
             );
+            return true;
         }
         catch (EncrypterException|SSHConnectionException e)
         {
-            e.printStackTrace(); //TODO
+            return false;
         }
+    }
+
+    public void SetAsNotGathering()
+    {
+        _isGathering = false;
     }
 
     private void CloseSSHConnectionWithComputer()
