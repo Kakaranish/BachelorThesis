@@ -22,5 +22,7 @@
         <mapping class="Entities.Logs.ProcessLog"/>
         <mapping class="Entities.Logs.DiskLog"/>
         <mapping class="Entities.Logs.UserLog"/>
+        <mapping class="Entities.Preference"/>
+        <mapping class="Entities.ComputerPreference"/>
     </session-factory>
 </hibernate-configuration>
