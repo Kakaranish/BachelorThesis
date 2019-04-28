@@ -35,17 +35,17 @@ public class LogsManager
         // Run logs gathering for all computers
         for (ComputerManager computerManager : _computerManagers)
         {
-            StartGatheringLogsForComputerManager(computerManager);
+            computerManager.StartGatheringLogs();
         }
 
         try
         {
-            Thread.sleep(30000);
+            Thread.sleep(10000);
         } catch (InterruptedException e)
         {
             e.printStackTrace();
         }
-//        _computerManagers.get(0).SetAsNotGathering();
+        _computerManagers.get(0).StopGatheringLogs();
     }
 
     private List<Preference> GetAvailablePreferencesFromDb()
@@ -110,25 +110,15 @@ public class LogsManager
         return iPreference;
     }
 
-    private void StartGatheringLogsForComputerManager(ComputerManager computerManager)
-    {
-        computerManager.start();
-    }
-
     public void GatheringStoppedCallback(ComputerManager computerManager)
     {
+        // Placeholder
         System.out.println("Stopped");
     }
 
-
     public void GatheringSSHConnectionErrorCallback(ComputerManager computerManager)
     {
-
-    }
-
-    public void GatheringErrorCallback(ComputerManager computerManager)
-    {
-        System.out.println("Error");
+        System.out.println("Unable to connect with host.");
         _computerManagers.remove(computerManager);
     }
 }

@@ -31,13 +31,14 @@ public class ComputerManager extends Thread
             int retryNum = 0;
             while(retryNum < _logsManager.NumOfRetries && !connectedWithComputer)
             {
+                System.out.println("SSH Connection with " + _computer.getHost() + " failed.");
                 try
                 {
                     Thread.sleep(_logsManager.Cooldown);
                 }
                 catch (InterruptedException e)
                 {
-                    e.printStackTrace();
+                    CloseSSHConnectionWithComputer();
                 }
                 connectedWithComputer = OpenSSHConnectionWithComputer();
 
@@ -90,7 +91,9 @@ public class ComputerManager extends Thread
             }
             catch (InterruptedException e)
             {
-                e.printStackTrace();
+                _logsManager.GatheringStoppedCallback(this);
+                CloseSSHConnectionWithComputer();
+                return;
             }
         }
         CloseSSHConnectionWithComputer();
@@ -117,9 +120,14 @@ public class ComputerManager extends Thread
         }
     }
 
-    public void SetAsNotGathering()
+    public void StartGatheringLogs()
     {
-        _isGathering = false;
+        this.start();
+    }
+
+    public void StopGatheringLogs()
+    {
+        this.interrupt();
     }
 
     private void CloseSSHConnectionWithComputer()
