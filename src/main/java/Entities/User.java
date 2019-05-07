@@ -37,4 +37,22 @@ public class User
         Password = user.Password;
         SSHKey = user.SSHKey;
     }
+
+    public void CopyFrom(User user)
+    {
+        Username = user.Username;
+        Password = user.Password;
+        SSHKey = user.SSHKey;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        User otherUser = (User) obj;
+
+        return  this.Username.equals(otherUser.Username) &&
+                this.Password.equals(otherUser.Password) &&
+                this.SSHKey.equals(otherUser.SSHKey);
+
+    }
 }
