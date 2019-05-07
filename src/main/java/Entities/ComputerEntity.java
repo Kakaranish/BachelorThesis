@@ -14,7 +14,7 @@ public class ComputerEntity
 
     @ManyToOne
     @JoinColumn(referencedColumnName = "Username")
-    private User User;
+    public User User;
 
     private String Username;
     private String Password; // Is encrypted
@@ -37,7 +37,16 @@ public class ComputerEntity
     {
     }
 
-    public ComputerEntity(String host, String username, String password, String _SSHKey, int timeout, int port, Duration maintainPeriod, Duration requestInterval, Duration logExpiration)
+    public ComputerEntity(
+            String host,
+            String username,
+            String password,
+            String _SSHKey,
+            int timeout,
+            int port,
+            Duration maintainPeriod,
+            Duration requestInterval,
+            Duration logExpiration)
     {
         Host = host;
         Username = username;
@@ -50,7 +59,14 @@ public class ComputerEntity
         LogExpiration = logExpiration;
     }
 
-    public ComputerEntity(String host, User user, int timeout, int port, Duration maintainPeriod, Duration requestInterval, Duration logExpiration)
+    public ComputerEntity(
+            String host,
+            User user,
+            int timeout,
+            int port,
+            Duration maintainPeriod,
+            Duration requestInterval,
+            Duration logExpiration)
     {
         Host = host;
         User = user;
@@ -59,6 +75,63 @@ public class ComputerEntity
         MaintainPeriod = maintainPeriod;
         RequestInterval = requestInterval;
         LogExpiration = logExpiration;
+    }
+
+    // Copy constructor
+    public ComputerEntity(ComputerEntity computerEntity)
+    {
+        Username = computerEntity.Username;
+        Password = computerEntity.Password;
+        SSHKey = computerEntity.SSHKey;
+        User = computerEntity.User != null ? new User(computerEntity.User) : null;
+        Timeout = computerEntity.Timeout;
+        Port = computerEntity.Port;
+        MaintainPeriod = computerEntity.MaintainPeriod;
+        RequestInterval = computerEntity.RequestInterval;
+        LogExpiration = computerEntity.LogExpiration;
+    }
+
+    public void CopyFrom(ComputerEntity computerEntity)
+    {
+        Username = computerEntity.Username;
+        Password = computerEntity.Password;
+        SSHKey = computerEntity.SSHKey;
+        User = computerEntity.User;
+        Timeout = computerEntity.Timeout;
+        Port = computerEntity.Port;
+        MaintainPeriod = computerEntity.MaintainPeriod;
+        RequestInterval = computerEntity.RequestInterval;
+        LogExpiration = computerEntity.LogExpiration;
+    }
+
+    public void AssignUser(User user)
+    {
+        User = user;
+    }
+
+    public void RemoveUser(boolean clearComputerConnectionFields)
+    {
+        if(User == null)
+        {
+            return;
+        }
+        else
+        {
+            if(clearComputerConnectionFields)
+            {
+                Username = null;
+                Password = null;
+                SSHKey = null;
+            }
+            else
+            {
+                Username = User.Username;
+                Password = User.Password;
+                SSHKey = User.SSHKey;
+            }
+
+            User = null;
+        }
     }
 
     public String getUsername()
