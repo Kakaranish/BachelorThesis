@@ -13,7 +13,7 @@ public class Preference
     @Column(unique = true, nullable = false)
     public String ClassName;
 
-    public Preference()
+    private Preference()
     {
     }
 

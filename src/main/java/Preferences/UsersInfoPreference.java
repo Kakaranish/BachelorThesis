@@ -5,6 +5,11 @@ import Models.Info.UsersInfo;
 
 public class UsersInfoPreference implements IPreference
 {
+    public String GetClassName()
+    {
+        return "UserLog";
+    }
+
     public String GetCommandToExecute()
     {
         return "w";

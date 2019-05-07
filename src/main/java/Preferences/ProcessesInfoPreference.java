@@ -5,6 +5,11 @@ import Models.Info.ProcessesInfo;
 
 public class ProcessesInfoPreference implements IPreference
 {
+    public String GetClassName()
+    {
+        return "ProcessLog";
+    }
+
     public String GetCommandToExecute()
     {
         return "ps aux";
