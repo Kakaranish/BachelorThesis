@@ -80,7 +80,7 @@ public class ComputerManager
         }
         catch (PersistenceException e)
         {
-            throw new DatabaseException("Unable to save Computer in DB.");
+            throw new DatabaseException("Unable to add computer.");
         }
         finally
         {
@@ -98,7 +98,9 @@ public class ComputerManager
         try
         {
             session.beginTransaction();
-            UpdateComputerEntityInDb(computerToUpdate.ComputerEntity, newComputer.ComputerEntity, session);
+
+            computerToUpdate.ComputerEntity.CopyFrom(newComputer.ComputerEntity);
+            UpdateComputerEntityInDb(computerToUpdate.ComputerEntity, session);
             UpdateComputerPreferencesInDb(computerToUpdate, newComputer, session);
 
             session.getTransaction().commit();
@@ -115,10 +117,8 @@ public class ComputerManager
 
     public void UpdateComputerEntityInDb(
             ComputerEntity computerEntityToUpdate,
-            ComputerEntity newComputerEntity,
             Session session)
     {
-        computerEntityToUpdate.CopyFrom(newComputerEntity);
         session.update(computerEntityToUpdate);
     }
 
@@ -236,7 +236,7 @@ public class ComputerManager
 
         try
         {
-            logsMaintainer.RemoveLogsAssociatedWithComputerFromDb(computer, session);
+            logsMaintainer.RemoveAllLogsAssociatedWithComputerFromDb(computer, session);
             RemoveComputerPreferencesFromDb(computer, session);
             RemoveComputerEntityFromDb(computer.ComputerEntity, session);
 
@@ -305,6 +305,12 @@ public class ComputerManager
         }
     }
 
+    public void RemoveUserAssignmentFromComputer(Computer computer, Session session, boolean clearUserFields)
+    {
+            computer.ComputerEntity.RemoveUser(clearUserFields);
+            session.update(computer.ComputerEntity);
+    }
+
     // -----------------------------------------------------------------------------------------------------------------
     // -------------------------------------------------- MISC ---------------------------------------------------------
 
@@ -322,7 +328,7 @@ public class ComputerManager
         }
         catch (PersistenceException e)
         {
-            throw new DatabaseException("Unable to computer entities with preferences.");
+            throw new DatabaseException("Unable to get computer entities with preferences.");
         }
         finally
         {
@@ -424,7 +430,8 @@ public class ComputerManager
     public List<Computer> GetComputersAssociatedWithUser(User user)
     {
         List<Computer> results = _computers.stream()
-                .filter(c -> c.ComputerEntity.getUser().equals(user)).collect(Collectors.toList());
+                .filter(c -> c.ComputerEntity.User != null && c.ComputerEntity.getUser().equals(user))
+                .collect(Collectors.toList());
 
         return results;
     }
