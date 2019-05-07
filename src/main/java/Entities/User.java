@@ -29,4 +29,12 @@ public class User
         Password = password;
         SSHKey = _SSHKey;
     }
+
+    // Copy constructor
+    public User(User user)
+    {
+        Username = user.Username;
+        Password = user.Password;
+        SSHKey = user.SSHKey;
+    }
 }
