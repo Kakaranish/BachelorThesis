@@ -18,7 +18,7 @@ public class ComputerEntityPreference implements Serializable
     @JoinColumn(name = "PreferenceId", referencedColumnName = "Id")
     public Preference Preference;
 
-    public ComputerEntityPreference()
+    private ComputerEntityPreference()
     {
     }
 

@@ -33,7 +33,7 @@ public class ComputerEntity
     @Column(nullable = false)
     public Duration LogExpiration;
 
-    public ComputerEntity()
+    private ComputerEntity()
     {
     }
 

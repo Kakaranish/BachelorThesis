@@ -19,7 +19,7 @@ public class User
     @Column(nullable = false)
     public String SSHKey;
 
-    public User()
+    private User()
     {
     }
 
