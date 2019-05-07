@@ -8,7 +8,7 @@ public class Computer
 {
     public ComputerEntity ComputerEntity; // Needed encapsulation of computer class
     public List<IPreference> ComputerPreferences;
-    
+
     public Computer(Entities.ComputerEntity computerEntity, List<IPreference> computerPreferences)
     {
         ComputerEntity = computerEntity;
@@ -28,5 +28,14 @@ public class Computer
         {
             ComputerPreferences.add(computerPreference);
         }
+    }
+
+    public boolean IsComputerReadyForConnection()
+    {
+        return ComputerEntity.User != null || (
+                ComputerEntity.getUsername() != null &&
+                ComputerEntity.getPassword() != null &&
+                ComputerEntity.getSSHKey() != null
+        );
     }
 }
