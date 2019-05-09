@@ -1,13 +1,12 @@
-import Entities.ComputerEntity;
-import Entities.ComputerEntityPreference;
-import Entities.Preference;
-import Entities.User;
+import Entities.*;
 import Preferences.IPreference;
 import Preferences.NoPreference;
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 import java.lang.reflect.InvocationTargetException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -19,15 +18,15 @@ public class ComputerManager
 
     private List<Computer> _computers;
     private List<Preference> _availablePreferences;
-    private List<Computer> _selectedComputers;
+    private List<Classroom> _availableClassrooms;
 
     public ComputerManager()
             throws ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException, DatabaseException
     {
         _availablePreferences = GetAvailablePreferencesFromDb();
+        _availableClassrooms = GetAvailableClassroomsFromDb();
         _computers = GetComputersFromDb();
-        _selectedComputers = new ArrayList<>(_computers);
     }
 
     // TODO: Add executing in new thread
@@ -35,7 +34,7 @@ public class ComputerManager
             throws ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException
     {
-        _logsManager = new LogsManager(_selectedComputers);
+//        _logsManager = new LogsManager(_selectedComputers);
     }
 
     // -----------------------------------------------------------------------------------------------------------------
@@ -358,6 +357,28 @@ public class ComputerManager
         }
     }
 
+    private List<Classroom> GetAvailableClassroomsFromDb() throws DatabaseException
+    {
+        String hql = "from Classroom";
+        Session session = DatabaseManager.GetInstance().GetSession();
+
+        try
+        {
+            Query query = session.createQuery(hql);
+            List<Classroom> classrooms = query.getResultList();
+
+            return classrooms;
+        }
+        catch (PersistenceException e)
+        {
+            throw new DatabaseException("Unable to get available preferences.");
+        }
+        finally
+        {
+            session.close();
+        }
+    }
+
     private List<Computer> GetComputersFromDb()
             throws DatabaseException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException,
             InstantiationException, IllegalAccessException
@@ -414,6 +435,29 @@ public class ComputerManager
         return preference;
     }
 
+    public void SetLastMaintenanceToNow(Computer computer) throws DatabaseException
+    {
+        Session session = DatabaseManager.GetInstance().GetSession();
+
+        try
+        {
+            session.beginTransaction();
+
+            computer.ComputerEntity.LastMaintenance = new Timestamp(System.currentTimeMillis());
+            session.update(computer);
+
+            session.getTransaction().commit();
+        }
+        catch (HibernateException e)
+        {
+            throw new DatabaseException("Unable to update computer last maintenance.");
+        }
+        finally
+        {
+            session.close();
+        }
+    }
+
     // -----------------------------------------------------------------------------------------------------------------
     // -------------------------------------------------GETTERS --------------------------------------------------------
 
@@ -430,7 +474,7 @@ public class ComputerManager
     public List<Computer> GetComputersAssociatedWithUser(User user)
     {
         List<Computer> results = _computers.stream()
-                .filter(c -> c.ComputerEntity.User != null && c.ComputerEntity.getUser().equals(user))
+                .filter(c -> c.ComputerEntity.User != null && c.ComputerEntity.User.equals(user))
                 .collect(Collectors.toList());
 
         return results;
@@ -439,7 +483,26 @@ public class ComputerManager
     public Computer GetComputer(String host)
     {
         List<Computer> results = _computers.stream()
-                .filter(c -> c.ComputerEntity.getHost().equals(host)).collect(Collectors.toList());
+                .filter(c -> c.ComputerEntity.Host.equals(host)).collect(Collectors.toList());
         return results.isEmpty()? null : results.get(0);
+    }
+
+    public List<Classroom> GetAvailableClassrooms()
+    {
+        return _availableClassrooms;
+    }
+
+    public Classroom GetClassroom(String classroomName)
+    {
+        List<Classroom> results = _availableClassrooms.stream()
+                .filter(c -> c.Name.equals(classroomName)).collect(Collectors.toList());
+        return results.isEmpty()? null : results.get(0);
+    }
+
+    public List<Computer> GetSelectedComputers()
+    {
+        List<Computer> results = _computers.stream()
+                .filter(c -> c.ComputerEntity.IsSelected == true).collect(Collectors.toList());
+        return results;
     }
 }
