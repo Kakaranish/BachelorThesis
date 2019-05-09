@@ -33,9 +33,9 @@ public class Computer
     public boolean IsComputerReadyForConnection()
     {
         return ComputerEntity.User != null || (
-                ComputerEntity.getUsername() != null &&
-                ComputerEntity.getPassword() != null &&
-                ComputerEntity.getSSHKey() != null
+                ComputerEntity.Username != null &&
+                ComputerEntity.Password != null &&
+                ComputerEntity.SSHKey != null
         );
     }
 }
