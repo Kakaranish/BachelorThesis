@@ -1,9 +1,8 @@
 package Entities.Logs;
 
 import Entities.ComputerEntity;
-
 import javax.persistence.*;
-import java.util.Date;
+import java.sql.Timestamp;
 
 @MappedSuperclass
 public class BaseEntity
@@ -12,22 +11,24 @@ public class BaseEntity
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long Id;
 
-    @Column(columnDefinition="DATETIME")
-    @Temporal(TemporalType.TIMESTAMP)
-    public Date Timestamp;
+    public Timestamp Timestamp;
 
     @ManyToOne
     @JoinColumn(referencedColumnName = "Host")
     public ComputerEntity ComputerEntity;
 
+    protected BaseEntity()
+    {
+    }
+
     public BaseEntity(ComputerEntity computerEntity)
     {
         Id = null;
         ComputerEntity = computerEntity;
-        Timestamp = new Date();
+        Timestamp = new Timestamp(System.currentTimeMillis());
     }
 
-    public BaseEntity(ComputerEntity computerEntity, Date timestamp)
+    public BaseEntity(ComputerEntity computerEntity, Timestamp timestamp)
     {
         Id = null;
         ComputerEntity = computerEntity;
