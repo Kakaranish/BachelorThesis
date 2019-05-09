@@ -1,7 +1,7 @@
 package Entities;
 
 import javax.persistence.*;
-import java.net.UnknownServiceException;
+import java.sql.Timestamp;
 import java.time.Duration;
 
 @Entity
@@ -10,19 +10,23 @@ public class ComputerEntity
 {
     @Id
     @Column(nullable = false, unique = true)
-    private String Host;
+    public String Host;
 
     @ManyToOne
     @JoinColumn(referencedColumnName = "Username")
     public User User;
 
-    private String Username;
-    private String Password; // Is encrypted
-    private String SSHKey;
+    @ManyToOne
+    @JoinColumn(name = "ClassroomId", referencedColumnName = "Id")
+    public Classroom Classroom;
 
-    // TODO: Make lowercase
-    private int Timeout;
-    private int Port;
+    // User fields
+    public String Username;
+    public String Password; // Is encrypted
+    public String SSHKey;
+
+    public int Timeout;
+    public int Port;
 
     @Column(nullable = false)
     public Duration MaintainPeriod; // Every some time maintenance works will be performed
@@ -32,6 +36,10 @@ public class ComputerEntity
 
     @Column(nullable = false)
     public Duration LogExpiration;
+
+    public boolean IsSelected;
+
+    public Timestamp LastMaintenance;
 
     private ComputerEntity()
     {
@@ -46,7 +54,9 @@ public class ComputerEntity
             int port,
             Duration maintainPeriod,
             Duration requestInterval,
-            Duration logExpiration)
+            Duration logExpiration,
+            Classroom classroom,
+            boolean isSelected)
     {
         Host = host;
         Username = username;
@@ -57,6 +67,9 @@ public class ComputerEntity
         MaintainPeriod = maintainPeriod;
         RequestInterval = requestInterval;
         LogExpiration = logExpiration;
+        Classroom = classroom;
+        IsSelected = isSelected;
+        LastMaintenance = new Timestamp(System.currentTimeMillis());
     }
 
     public ComputerEntity(
@@ -66,7 +79,9 @@ public class ComputerEntity
             int port,
             Duration maintainPeriod,
             Duration requestInterval,
-            Duration logExpiration)
+            Duration logExpiration,
+            Classroom classroom,
+            boolean isSelected)
     {
         Host = host;
         User = user;
@@ -75,6 +90,9 @@ public class ComputerEntity
         MaintainPeriod = maintainPeriod;
         RequestInterval = requestInterval;
         LogExpiration = logExpiration;
+        Classroom = classroom;
+        IsSelected = isSelected;
+        LastMaintenance = new Timestamp(System.currentTimeMillis());
     }
 
     // Copy constructor
@@ -89,6 +107,8 @@ public class ComputerEntity
         MaintainPeriod = computerEntity.MaintainPeriod;
         RequestInterval = computerEntity.RequestInterval;
         LogExpiration = computerEntity.LogExpiration;
+        IsSelected = computerEntity.IsSelected;
+        LastMaintenance = computerEntity.LastMaintenance;
     }
 
     public void CopyFrom(ComputerEntity computerEntity)
@@ -102,6 +122,8 @@ public class ComputerEntity
         MaintainPeriod = computerEntity.MaintainPeriod;
         RequestInterval = computerEntity.RequestInterval;
         LogExpiration = computerEntity.LogExpiration;
+        IsSelected = computerEntity.IsSelected;
+        LastMaintenance = computerEntity.LastMaintenance;
     }
 
     public void AssignUser(User user)
@@ -109,7 +131,7 @@ public class ComputerEntity
         User = user;
     }
 
-    public void RemoveUser(boolean clearComputerConnectionFields)
+    public void RemoveUser(boolean clearUserFields)
     {
         if(User == null)
         {
@@ -117,7 +139,7 @@ public class ComputerEntity
         }
         else
         {
-            if(clearComputerConnectionFields)
+            if(clearUserFields)
             {
                 Username = null;
                 Password = null;
@@ -132,55 +154,5 @@ public class ComputerEntity
 
             User = null;
         }
-    }
-
-    public String getUsername()
-    {
-        return User == null ? Username : User.Username;
-    }
-
-    public String getPassword()
-    {
-        return User == null ? Password : User.Password;
-    }
-
-    public String getSSHKey()
-    {
-        return User == null ? SSHKey : User.SSHKey;
-    }
-
-    public String getHost()
-    {
-        return Host;
-    }
-
-    public Entities.User getUser()
-    {
-        return User;
-    }
-
-    public int getTimeout()
-    {
-        return Timeout;
-    }
-
-    public int getPort()
-    {
-        return Port;
-    }
-
-    public Duration getMaintainPeriod()
-    {
-        return MaintainPeriod;
-    }
-
-    public Duration getRequestInterval()
-    {
-        return RequestInterval;
-    }
-
-    public Duration getLogExpiration()
-    {
-        return LogExpiration;
     }
 }
