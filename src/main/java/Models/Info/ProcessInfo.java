@@ -22,7 +22,7 @@ public class ProcessInfo
         root         1  0.0  0.0  10652   832 ?        Ss   Apr13   0:02 init [2]
     */
 
-    public ProcessInfo()
+    private ProcessInfo()
     {
     }
 

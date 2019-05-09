@@ -3,9 +3,10 @@ package Models.Info;
 import Entities.ComputerEntity;
 import Entities.Logs.BaseEntity;
 import Entities.Logs.DiskLog;
+
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 public class DisksInfo implements IInfo
@@ -23,7 +24,7 @@ public class DisksInfo implements IInfo
 
     */
 
-    public DisksInfo()
+    private DisksInfo()
     {
     }
 
@@ -40,7 +41,7 @@ public class DisksInfo implements IInfo
         }
     }
 
-    public List<BaseEntity> ToLogList(ComputerEntity computerEntity, Date timestamp)
+    public List<BaseEntity> ToLogList(ComputerEntity computerEntity, Timestamp timestamp)
     {
         List<BaseEntity> logList = new ArrayList<>();
         for (DiskInfo diskInfo: DisksInfo)

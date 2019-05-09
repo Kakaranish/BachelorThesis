@@ -4,8 +4,8 @@ import Entities.ComputerEntity;
 import Entities.Logs.BaseEntity;
 import Entities.Logs.RamLog;
 import javax.persistence.Embeddable;
+import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Embeddable
@@ -23,7 +23,7 @@ public class RamInfo implements IInfo
         Mem:       2011984     215400    1796584          0      88300      69316
     */
 
-    public RamInfo()
+    private RamInfo()
     {
     }
 
@@ -41,7 +41,7 @@ public class RamInfo implements IInfo
         Cached = Long.parseLong(commandExecutionResultSplit[6]);
     }
 
-    public List<BaseEntity> ToLogList(ComputerEntity computerEntity, Date timestamp)
+    public List<BaseEntity> ToLogList(ComputerEntity computerEntity, Timestamp timestamp)
     {
         List<BaseEntity> logList = new ArrayList<>();
         logList.add(new RamLog(computerEntity, this, timestamp));

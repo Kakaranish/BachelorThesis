@@ -4,8 +4,8 @@ import Entities.ComputerEntity;
 import Entities.Logs.BaseEntity;
 import Entities.Logs.SwapLog;
 import javax.persistence.Embeddable;
+import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Embeddable
@@ -20,7 +20,7 @@ public class SwapInfo implements IInfo
         Swap:            0          0          0
     */
 
-    public SwapInfo()
+    private SwapInfo()
     {
     }
 
@@ -35,7 +35,7 @@ public class SwapInfo implements IInfo
         Free = Long.parseLong(commandExecutionResultSplit[3]);
     }
 
-    public List<BaseEntity> ToLogList(ComputerEntity computerEntity, Date timestamp)
+    public List<BaseEntity> ToLogList(ComputerEntity computerEntity, Timestamp timestamp)
     {
         List<BaseEntity> logList = new ArrayList<>();
         logList.add(new SwapLog(computerEntity, this, timestamp));

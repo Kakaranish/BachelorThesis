@@ -4,8 +4,8 @@ import Entities.ComputerEntity;
 import Entities.Logs.BaseEntity;
 import Entities.Logs.CpuLog;
 import javax.persistence.Embeddable;
+import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Embeddable
@@ -18,7 +18,7 @@ public class CpuInfo implements IInfo
         1.43196
     */
 
-    public CpuInfo()
+    private CpuInfo()
     {
     }
 
@@ -28,7 +28,7 @@ public class CpuInfo implements IInfo
         CpuPercentage = Double.parseDouble(commandExecutionResult);
     }
 
-    public List<BaseEntity> ToLogList(ComputerEntity computerEntity, Date timestamp)
+    public List<BaseEntity> ToLogList(ComputerEntity computerEntity, Timestamp timestamp)
     {
         List<BaseEntity> logList = new ArrayList<>();
         logList.add(new CpuLog(computerEntity, this, timestamp));

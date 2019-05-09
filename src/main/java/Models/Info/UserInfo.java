@@ -22,7 +22,7 @@ public class UserInfo
         root     pts/0    89-75-75-172.dyn 18:38    1.00s  0.02s  0.00s w
     */
 
-    public UserInfo()
+    private UserInfo()
     {
     }
 
