@@ -1,3 +1,6 @@
+import Entities.ComputerEntity;
+import org.hibernate.Session;
+
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,45 +12,73 @@ public class LogsManager
     public final int Cooldown =
             Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("Cooldown"));
 
-    private List<ComputerLogger> _computerLoggers;
+    private ComputerManager _computerManager;
+    private LogsMaintainer _logsMaintainer;
 
-    public LogsManager(List<Computer> computers)
-            throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException,
-            InstantiationException, IllegalAccessException
+
+    public LogsManager(ComputerManager computerManager)
     {
-        _computerLoggers = new ArrayList<>();
-        for (Computer computer : computers)
+        _computerManager = computerManager;
+
+        //TODO: Remove instantiating LogsManager from there
+        _logsMaintainer = new LogsMaintainer(computerManager);
+    }
+
+    public void StartGatheringLogs()
+    {
+        List<Computer> selectedComputers = _computerManager.GetSelectedComputers();
+
+        // Prepare computer loggers
+        List<ComputerLogger> selectedComputersLoggers = new ArrayList<>();
+        for (Computer selectedComputer : selectedComputers)
         {
-            _computerLoggers.add(new ComputerLogger(this, computer));
+            selectedComputersLoggers.add(new ComputerLogger(this, selectedComputer));
         }
 
-        // Create&Run MaintainManager
-
-        // Run logs gathering for all computerLoggers
-        for (ComputerLogger computerLogger : _computerLoggers)
+        // Run computer loggers
+        for (ComputerLogger computerLogger : selectedComputersLoggers)
         {
             computerLogger.StartGatheringLogs();
         }
-
-        try
-        {
-            Thread.sleep(10000);
-        } catch (InterruptedException e)
-        {
-            e.printStackTrace();
-        }
-        _computerLoggers.get(0).StopGatheringLogs();
     }
 
-    public void GatheringStoppedCallback(ComputerLogger computerLogger)
+    public void Callback_UnableToDecryptPassword(String host)
     {
-        // Placeholder
-        System.out.println("Stopped");
+        System.out.println("[FATAL ERROR] '" + host + "': Connection failed. Unable to decrypt password.");
     }
 
-    public void GatheringSSHConnectionErrorCallback(ComputerLogger computerLogger)
+    public void Callback_SSHConnectionAttemptFailed(String host)
     {
-        System.out.println("Unable to connect with host.");
-        _computerLoggers.remove(computerLogger);
+        System.out.println("[ERROR] '" + host + "': Attempt of SSH connection failed.");
+    }
+
+    public void Callback_UnableToConnectAfterRetries(String host)
+    {
+        System.out.println("[FATAL ERROR] '" + host + "': SSH connection failed. Max num of retries reached.");
+    }
+
+    public void Callback_LogGathered(String host)
+    {
+        System.out.println("[INFO] '" + host + "': Logs have been gathered.");
+    }
+
+    public void Callback_DatabaseConnectionAttemptFailed(String host)
+    {
+        System.out.println("[ERROR] '" + host + "': attempt of connection with database failed.");
+    }
+
+    public void Callback_DatabaseTransactionFailed(String host)
+    {
+        System.out.println("[FATAL ERROR] '" + host + "': Database transaction failed.");
+    }
+
+    public void Callback_ThreadInterrupted(String host)
+    {
+        System.out.println("[FATAL ERROR] '" + host + "': Thread has been interrupted.");
+    }
+
+    public void Callback_LogGatheringStopped(String host)
+    {
+        System.out.println("[INFO] '" + host + "': Logs gathering has been stopped.");
     }
 }
