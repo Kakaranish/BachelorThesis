@@ -1,7 +1,9 @@
-import Entities.ComputerEntity;
+import Entities.Classroom;
+import Entities.Logs.BaseEntity;
+import Preferences.IPreference;
 import org.hibernate.Session;
-
-import java.lang.reflect.InvocationTargetException;
+import javax.persistence.Query;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +42,67 @@ public class LogsManager
         {
             computerLogger.StartGatheringLogs();
         }
+    }
+
+    private List<BaseEntity> GetCertainTypeLogsForSingleComputer(
+            Computer computer, IPreference preference, Timestamp fromDate, Timestamp toDate, Session session)
+    {
+        String hql = "from " + preference.GetClassName() +
+                " t where t.Timestamp > " + fromDate + " and  t.Timestamp < " + toDate +
+                " t.ComputerEntity = :computerEntity";
+        Query query = session.createQuery(hql);
+        query.setParameter("computerEntity", computer.ComputerEntity);
+
+        List<BaseEntity> receivedLogs = query.getResultList();
+
+        return receivedLogs;
+    }
+
+    private List<BaseEntity> GetCertainTypeLogsForClassroom(
+            Classroom classroom, IPreference preference, Timestamp fromDate, Timestamp toDate, Session session)
+    {
+        String hql = "from " + preference.GetClassName() +
+                " t where t.Timestamp > " + fromDate + " and  t.Timestamp < " + toDate +
+                " t.ComputerEntity.Classroom = :classroom";
+        Query query = session.createQuery(hql);
+        query.setParameter("classroom", classroom);
+
+        List<BaseEntity> receivedLogs = query.getResultList();
+
+        return receivedLogs;
+    }
+
+    private List<BaseEntity> GetCertainTypeLogsForAllComputers(
+            IPreference preference, Timestamp fromDate, Timestamp toDate, Session session)
+    {
+        String hql = "from " + preference.GetClassName() +
+                " t where t.Timestamp > " + fromDate + " and  t.Timestamp < " + toDate;
+        Query query = session.createQuery(hql);
+
+        List<BaseEntity> receivedLogs = query.getResultList();
+
+        return receivedLogs;
+    }
+
+    private List<BaseEntity> GetCertainTypeLogsForSelectedComputers(
+            IPreference preference, Timestamp fromDate, Timestamp toDate,
+            ComputerManager computerManager, Session session)
+    {
+        List<BaseEntity> logsList = new ArrayList<>();
+
+        List<Computer> selectedComputers = computerManager.GetSelectedComputers();
+        for (Computer selectedComputer : selectedComputers)
+        {
+            String hql = "from " + preference.GetClassName() +
+                    " t where t.Timestamp > " + fromDate + " and  t.Timestamp < " + toDate +
+                    " t.ComputerEntity = :computerEntity";
+            Query query = session.createQuery(hql);
+            query.setParameter("computerEntity", selectedComputer.ComputerEntity);
+
+            logsList.addAll(query.getResultList());
+        }
+
+        return logsList;
     }
 
     public void Callback_UnableToDecryptPassword(String host)
