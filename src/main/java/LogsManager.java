@@ -1,4 +1,6 @@
 import Entities.Classroom;
+import Entities.ComputerEntity;
+import Entities.ComputerEntityPreference;
 import Entities.Logs.BaseEntity;
 import Preferences.IPreference;
 import org.hibernate.Session;
@@ -8,13 +10,13 @@ import javax.xml.crypto.Data;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class LogsManager
 {
-    public final int NumOfRetries =
-            Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("NumOfRetries"));
-    public final int Cooldown =
-            Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("Cooldown"));
+    public final int NumOfRetries = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("NumOfRetries"));
+    public final int Cooldown = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("Cooldown"));
 
     private ComputerManager _computerManager;
     private LogsMaintainer _logsMaintainer;
@@ -48,6 +50,14 @@ public class LogsManager
 
     // -----------------------------------------------------------------------------------------------------------------
     // ----------------------------------------------  GETTING LOGS  ---------------------------------------------------
+
+    public static Map<ComputerEntity, List<BaseEntity>> GetLogsGroupedByComputer(List<BaseEntity> logs)
+    {
+        Map<ComputerEntity, List<BaseEntity>> grouped =
+                logs.stream().collect(Collectors.groupingBy(l -> l.ComputerEntity));
+
+        return grouped;
+    }
 
     public List<BaseEntity> GetCertainTypeLogsForSingleComputer(
             Computer computer, IPreference preference, Timestamp fromDate, Timestamp toDate)
@@ -109,7 +119,7 @@ public class LogsManager
 
         try
         {
-            String hql = "from " + preference.GetClassName() + "t" +
+            String hql = "from " + preference.GetClassName() + " t" +
                     " where t.Timestamp > " + fromDate.getTime() + " and t.Timestamp < " + toDate.getTime();
             Query query = session.createQuery(hql);
 
