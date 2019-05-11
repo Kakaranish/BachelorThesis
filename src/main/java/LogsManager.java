@@ -2,7 +2,9 @@ import Entities.Classroom;
 import Entities.Logs.BaseEntity;
 import Preferences.IPreference;
 import org.hibernate.Session;
+import javax.persistence.PersistenceException;
 import javax.persistence.Query;
+import javax.xml.crypto.Data;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,66 +46,122 @@ public class LogsManager
         }
     }
 
-    private List<BaseEntity> GetCertainTypeLogsForSingleComputer(
-            Computer computer, IPreference preference, Timestamp fromDate, Timestamp toDate, Session session)
+    // -----------------------------------------------------------------------------------------------------------------
+    // ----------------------------------------------  GETTING LOGS  ---------------------------------------------------
+
+    public List<BaseEntity> GetCertainTypeLogsForSingleComputer(
+            Computer computer, IPreference preference, Timestamp fromDate, Timestamp toDate)
     {
-        String hql = "from " + preference.GetClassName() +
-                " t where t.Timestamp > " + fromDate + " and  t.Timestamp < " + toDate +
-                " t.ComputerEntity = :computerEntity";
-        Query query = session.createQuery(hql);
-        query.setParameter("computerEntity", computer.ComputerEntity);
+        Session session = DatabaseManager.GetInstance().GetSession();
 
-        List<BaseEntity> receivedLogs = query.getResultList();
-
-        return receivedLogs;
-    }
-
-    private List<BaseEntity> GetCertainTypeLogsForClassroom(
-            Classroom classroom, IPreference preference, Timestamp fromDate, Timestamp toDate, Session session)
-    {
-        String hql = "from " + preference.GetClassName() +
-                " t where t.Timestamp > " + fromDate + " and  t.Timestamp < " + toDate +
-                " t.ComputerEntity.Classroom = :classroom";
-        Query query = session.createQuery(hql);
-        query.setParameter("classroom", classroom);
-
-        List<BaseEntity> receivedLogs = query.getResultList();
-
-        return receivedLogs;
-    }
-
-    private List<BaseEntity> GetCertainTypeLogsForAllComputers(
-            IPreference preference, Timestamp fromDate, Timestamp toDate, Session session)
-    {
-        String hql = "from " + preference.GetClassName() +
-                " t where t.Timestamp > " + fromDate + " and  t.Timestamp < " + toDate;
-        Query query = session.createQuery(hql);
-
-        List<BaseEntity> receivedLogs = query.getResultList();
-
-        return receivedLogs;
-    }
-
-    private List<BaseEntity> GetCertainTypeLogsForSelectedComputers(
-            IPreference preference, Timestamp fromDate, Timestamp toDate,
-            ComputerManager computerManager, Session session)
-    {
-        List<BaseEntity> logsList = new ArrayList<>();
-
-        List<Computer> selectedComputers = computerManager.GetSelectedComputers();
-        for (Computer selectedComputer : selectedComputers)
+        try
         {
-            String hql = "from " + preference.GetClassName() +
-                    " t where t.Timestamp > " + fromDate + " and  t.Timestamp < " + toDate +
-                    " t.ComputerEntity = :computerEntity";
+            String hql = "from " + preference.GetClassName() + " t" +
+                    " where t.Timestamp > " + fromDate.getTime() + " and t.Timestamp < " + toDate.getTime() +
+                    " and t.ComputerEntity = :computerEntity";
             Query query = session.createQuery(hql);
-            query.setParameter("computerEntity", selectedComputer.ComputerEntity);
+            query.setParameter("computerEntity", computer.ComputerEntity);
 
-            logsList.addAll(query.getResultList());
+            List<BaseEntity> receivedLogs = query.getResultList();
+
+            return receivedLogs;
         }
-
-        return logsList;
+        catch (PersistenceException e)
+        {
+            throw new DatabaseException("Unable get certain type logs for single computer.");
+        }
+        finally
+        {
+            session.close();
+        }
     }
+
+    public List<BaseEntity> GetCertainTypeLogsForClassroom(
+            Classroom classroom, IPreference preference, Timestamp fromDate, Timestamp toDate)
+    {
+        Session session = DatabaseManager.GetInstance().GetSession();
+        try
+        {
+            String hql = "from " + preference.GetClassName() + " t" +
+                    " where t.Timestamp > " + fromDate.getTime() + " and t.Timestamp < " + toDate.getTime() +
+                    " and t.ComputerEntity.Classroom = :classroom";
+            Query query = session.createQuery(hql);
+            query.setParameter("classroom", classroom);
+
+            List<BaseEntity> receivedLogs = query.getResultList();
+
+            return receivedLogs;
+        }
+        catch (PersistenceException e)
+        {
+            throw new DatabaseException("Unable to get certain type logs for classroom.");
+        }
+        finally
+        {
+            session.close();
+        }
+    }
+
+    public List<BaseEntity> GetCertainTypeLogsForAllComputers(
+            IPreference preference, Timestamp fromDate, Timestamp toDate)
+    {
+        Session session = DatabaseManager.GetInstance().GetSession();
+
+        try
+        {
+            String hql = "from " + preference.GetClassName() + "t" +
+                    " where t.Timestamp > " + fromDate.getTime() + " and t.Timestamp < " + toDate.getTime();
+            Query query = session.createQuery(hql);
+
+            List<BaseEntity> receivedLogs = query.getResultList();
+
+            return receivedLogs;
+        }
+        catch (PersistenceException e)
+        {
+            throw new DatabaseException("Unable to get certain type logs for all computers.");
+        }
+        finally
+        {
+            session.close();
+        }
+    }
+
+    public List<BaseEntity> GetCertainTypeLogsForSelectedComputers(
+            IPreference preference, Timestamp fromDate, Timestamp toDate, ComputerManager computerManager)
+    {
+        Session session = DatabaseManager.GetInstance().GetSession();
+
+        try
+        {
+            List<BaseEntity> logsList = new ArrayList<>();
+
+            List<Computer> selectedComputers = computerManager.GetSelectedComputers();
+            for (Computer selectedComputer : selectedComputers)
+            {
+                String hql = "from " + preference.GetClassName() +" t" +
+                        " where t.Timestamp > " + fromDate.getTime() + " and  t.Timestamp < " + toDate.getTime() +
+                        " and t.ComputerEntity = :computerEntity";
+                Query query = session.createQuery(hql);
+                query.setParameter("computerEntity", selectedComputer.ComputerEntity);
+
+                logsList.addAll(query.getResultList());
+            }
+
+            return logsList;
+        }
+        catch (PersistenceException e)
+        {
+            throw new DatabaseException("Unable to get certain type logs for selected computers.");
+        }
+        finally
+        {
+            session.close();
+        }
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+    // -------------------------------------------------  CALLBACKS  ---------------------------------------------------
 
     public void Callback_UnableToDecryptPassword(String host)
     {
