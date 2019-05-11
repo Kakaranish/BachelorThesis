@@ -8,7 +8,7 @@ import javax.persistence.Table;
 import java.sql.Timestamp;
 
 @Entity
-@Table(name = "CPULogs")
+@Table(name = "CpuLogs")
 public class CpuLog extends BaseEntity
 {
     @Embedded
