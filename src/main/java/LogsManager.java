@@ -1,12 +1,10 @@
 import Entities.Classroom;
 import Entities.ComputerEntity;
-import Entities.ComputerEntityPreference;
 import Entities.Logs.BaseEntity;
 import Preferences.IPreference;
 import org.hibernate.Session;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
-import javax.xml.crypto.Data;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
