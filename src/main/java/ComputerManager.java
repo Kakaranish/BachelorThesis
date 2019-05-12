@@ -1,6 +1,5 @@
 import Entities.*;
 import Preferences.IPreference;
-import Preferences.NoPreference;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import javax.persistence.PersistenceException;
@@ -9,7 +8,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ComputerManager
@@ -17,15 +15,9 @@ public class ComputerManager
     private LogsManager _logsManager;
 
     private List<Computer> _computers;
-    private List<Preference> _availablePreferences;
-    private List<Classroom> _availableClassrooms;
 
-    public ComputerManager()
-            throws ClassNotFoundException, NoSuchMethodException, InstantiationException,
-            IllegalAccessException, InvocationTargetException, DatabaseException
+    public ComputerManager() throws DatabaseException
     {
-        _availablePreferences = GetAvailablePreferencesFromDb();
-        _availableClassrooms = GetAvailableClassroomsFromDb();
         _computers = GetComputersFromDb();
     }
 
@@ -44,13 +36,6 @@ public class ComputerManager
     {
         try
         {
-            if(computer.ComputerPreferences == null || computer.ComputerPreferences.isEmpty())
-            {
-                computer.ComputerPreferences = new ArrayList<IPreference>(){{
-                    add(new NoPreference());
-                }};
-            }
-
             AddComputerToDb(computer);
             _computers.add(computer);
         }
@@ -67,13 +52,9 @@ public class ComputerManager
 
         try
         {
+            computer.ComputerEntity.Preferences =
+                    Utilities.ConvertListOfIPreferencesToPreferences(computer.Preferences);
             session.save(computer.ComputerEntity);
-
-            for (IPreference iPreference : computer.ComputerPreferences)
-            {
-                session.save(new ComputerEntityPreference(computer.ComputerEntity,
-                        ConvertIPreferenceToEntityPreference(iPreference)));
-            }
 
             session.getTransaction().commit();
         }
@@ -90,7 +71,8 @@ public class ComputerManager
     // -----------------------------------------------------------------------------------------------------------------
     // ------------------------------------------------ UPDATE ---------------------------------------------------------
 
-    public void UpdateComputer(Computer computerToUpdate, Computer newComputer) throws  DatabaseException
+    public void UpdateComputer(Computer computerToUpdate, ComputerEntity newComputerEntity)
+            throws DatabaseException
     {
         Session session = DatabaseManager.GetInstance().GetSession();
 
@@ -98,9 +80,11 @@ public class ComputerManager
         {
             session.beginTransaction();
 
-            computerToUpdate.ComputerEntity.CopyFrom(newComputer.ComputerEntity);
+            computerToUpdate.ComputerEntity.CopyFrom(newComputerEntity);
             UpdateComputerEntityInDb(computerToUpdate.ComputerEntity, session);
-            UpdateComputerPreferencesInDb(computerToUpdate, newComputer, session);
+
+            computerToUpdate.Preferences =
+                    Utilities.ConvertListOfPreferencesToIPreferences(newComputerEntity.Preferences);
 
             session.getTransaction().commit();
         }
@@ -119,62 +103,6 @@ public class ComputerManager
             Session session)
     {
         session.update(computerEntityToUpdate);
-    }
-
-    // -----------------------------------------------------------------------------------------------------------------
-    // -------------------------------------------- PREFERENCES --------------------------------------------------------
-
-    private void UpdateComputerPreferencesInDb(
-            Computer computerToUpdate,
-            Computer newComputer,
-            Session session)
-    {
-        RemoveComputerPreferences(computerToUpdate, session);
-
-        if(newComputer.ComputerPreferences == null || newComputer.ComputerPreferences.isEmpty())
-        {
-            session.save( new ComputerEntityPreference(
-                    computerToUpdate.ComputerEntity , ConvertIPreferenceToEntityPreference(new NoPreference())));
-            computerToUpdate.ComputerPreferences.add(new NoPreference());
-        }
-        else
-        {
-            AssignPreferencesToComputer(computerToUpdate, newComputer.ComputerPreferences, session);
-        }
-    }
-
-    private void AssignPreferencesToComputer(Computer computer, List<IPreference> preferences, Session session)
-    {
-        AssignPreferencesToComputerInDb(computer, preferences, session);
-        for (IPreference preference : preferences)
-        {
-            computer.ComputerPreferences.add(preference);
-        }
-    }
-
-    private void AssignPreferencesToComputerInDb(Computer computer, List<IPreference> preferences, Session session)
-    {
-        for (IPreference preference : preferences)
-        {
-            session.save(new ComputerEntityPreference(computer.ComputerEntity,
-                    ConvertIPreferenceToEntityPreference(preference)));
-        }
-    }
-
-    public void RemoveComputerPreferences(Computer computer, Session session)
-    {
-        RemoveComputerPreferencesFromDb(computer, session);
-        computer.ComputerPreferences.clear();
-    }
-
-    public void RemoveComputerPreferencesFromDb(Computer computer, Session session)
-    {
-        List<IPreference> preferences = computer.ComputerPreferences;
-        for (IPreference preference : preferences)
-        {
-            session.remove(new ComputerEntityPreference(computer.ComputerEntity,
-                    ConvertIPreferenceToEntityPreference(preference)));
-        }
     }
 
     // -----------------------------------------------------------------------------------------------------------------
@@ -200,7 +128,6 @@ public class ComputerManager
 
         try
         {
-            RemoveComputerPreferencesFromDb(computer, session);
             RemoveComputerEntityFromDb(computer.ComputerEntity, session);
 
             session.getTransaction().commit();
@@ -236,7 +163,6 @@ public class ComputerManager
         try
         {
             logsMaintainer.RemoveAllLogsAssociatedWithComputerFromDb(computer, session);
-            RemoveComputerPreferencesFromDb(computer, session);
             RemoveComputerEntityFromDb(computer.ComputerEntity, session);
 
             session.getTransaction().commit();
@@ -273,7 +199,7 @@ public class ComputerManager
         }
         catch (PersistenceException e)
         {
-            throw new DatabaseException("Unable to Assign User to Computer.");
+            throw new DatabaseException("Unable to assign user to Computer.");
         }
         finally
         {
@@ -296,7 +222,7 @@ public class ComputerManager
         }
         catch (PersistenceException e)
         {
-            throw new DatabaseException("Unable to Assign User to Computer.");
+            throw new DatabaseException("Unable to remove user from Computer.");
         }
         finally
         {
@@ -313,144 +239,53 @@ public class ComputerManager
     // -----------------------------------------------------------------------------------------------------------------
     // -------------------------------------------------- MISC ---------------------------------------------------------
 
-    private List<ComputerEntityPreference> GetComputersEntitiesWithPreferencesFromDb() throws DatabaseException
-    {
-        String hql = "from ComputerEntityPreference compPref";
-        Session session = DatabaseManager.GetInstance().GetSession();
-
-        try
-        {
-            Query query = session.createQuery(hql);
-            List preferences = query.getResultList();
-
-            return  preferences;
-        }
-        catch (PersistenceException e)
-        {
-            throw new DatabaseException("Unable to get computer entities with preferences.");
-        }
-        finally
-        {
-            session.close();
-        }
-    }
-
-    private List<Preference> GetAvailablePreferencesFromDb() throws DatabaseException
-    {
-        String hql = "from Preference";
-        Session session = DatabaseManager.GetInstance().GetSession();
-
-        try
-        {
-            Query query = session.createQuery(hql);
-            List<Preference> preferences = query.getResultList();
-
-            return preferences;
-        }
-        catch (PersistenceException e)
-        {
-            throw new DatabaseException("Unable to get available preferences.");
-        }
-        finally
-        {
-            session.close();
-        }
-    }
-
-    private List<Classroom> GetAvailableClassroomsFromDb() throws DatabaseException
-    {
-        String hql = "from Classroom";
-        Session session = DatabaseManager.GetInstance().GetSession();
-
-        try
-        {
-            Query query = session.createQuery(hql);
-            List<Classroom> classrooms = query.getResultList();
-
-            return classrooms;
-        }
-        catch (PersistenceException e)
-        {
-            throw new DatabaseException("Unable to get available preferences.");
-        }
-        finally
-        {
-            session.close();
-        }
-    }
-
-    private List<Computer> GetComputersFromDb()
-            throws DatabaseException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException,
-            InstantiationException, IllegalAccessException
+    private List<Computer> GetComputersFromDb() throws DatabaseException
     {
         List<Computer> computers = new ArrayList<>();
 
         try
         {
-            Map<ComputerEntity, List<ComputerEntityPreference>> grouped =
-                    GetComputersEntitiesWithPreferencesFromDb()
-                            .stream().collect(Collectors.groupingBy(cp -> cp.ComputerEntity));
+            List<ComputerEntity> computerEntities = GetComputerEntitiesFromDb();
 
-            for (Map.Entry<ComputerEntity, List<ComputerEntityPreference>> computerListEntry : grouped.entrySet())
+            for (ComputerEntity computerEntity : computerEntities)
             {
-                ComputerEntity computerEntity = computerListEntry.getKey();
-                List<IPreference> preferences = new ArrayList<>();
-                for (ComputerEntityPreference computerEntityPreference : computerListEntry.getValue())
+                List<IPreference> computerIPreferences = new ArrayList<>();
+
+                for (Preference preference : computerEntity.Preferences)
                 {
-                    Preference preferenceEntity = computerEntityPreference.Preference;
-                    IPreference preference = ConvertPreferenceEntityToIPreference(preferenceEntity);
-                    preferences.add(preference);
+                    IPreference iPreference =
+                            Utilities.ConvertPreferenceEntityToIPreference(preference);
+                    computerIPreferences.add(iPreference);
                 }
 
-                computers.add(new Computer(computerEntity, preferences));
+                computers.add(new Computer(computerEntity, computerIPreferences));
             }
 
             return computers;
         }
         catch (DatabaseException e)
         {
-            DatabaseException ex = new DatabaseException("Unable get computers.");
+            DatabaseException ex = new DatabaseException("Unable get computers from db.");
             ex.initCause(e);
             throw ex;
         }
     }
 
-    private IPreference ConvertPreferenceEntityToIPreference(Preference preference)
-            throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
-            InvocationTargetException, InstantiationException
+    private List<ComputerEntity> GetComputerEntitiesFromDb() throws DatabaseException
     {
-        String iPreferenceClassName = preference.ClassName;
-        Class iPreferenceClass = Class.forName(iPreferenceClassName);
-        IPreference iPreference = (IPreference) iPreferenceClass.getConstructor().newInstance();
-        return iPreference;
-    }
-
-    private Preference ConvertIPreferenceToEntityPreference(IPreference iPreference)
-    {
-        String className = iPreference.getClass().getName();
-        List<Preference> preferences =
-                _availablePreferences.stream().filter(p -> p.ClassName.equals(className)).collect(Collectors.toList());
-
-        Preference preference = preferences.get(0);
-        return preference;
-    }
-
-    public void SetLastMaintenanceToNow(Computer computer) throws DatabaseException
-    {
+        String hql = "from ComputerEntity";
         Session session = DatabaseManager.GetInstance().GetSession();
 
         try
         {
-            session.beginTransaction();
+            Query query = session.createQuery(hql);
+            List computers = query.getResultList();
 
-            computer.ComputerEntity.LastMaintenance = new Timestamp(System.currentTimeMillis());
-            session.update(computer);
-
-            session.getTransaction().commit();
+            return  computers;
         }
-        catch (HibernateException e)
+        catch (PersistenceException e)
         {
-            throw new DatabaseException("Unable to update computer last maintenance.");
+            throw new DatabaseException("Unable to get computer entities from db.");
         }
         finally
         {
@@ -466,9 +301,11 @@ public class ComputerManager
         return _computers;
     }
 
-    public List<Preference> GetAvailablePreferences()
+    public Computer GetComputer(String host)
     {
-        return _availablePreferences;
+        List<Computer> results = _computers.stream()
+                .filter(c -> c.ComputerEntity.Host.equals(host)).collect(Collectors.toList());
+        return results.isEmpty()? null : results.get(0);
     }
 
     public List<Computer> GetComputersAssociatedWithUser(User user)
@@ -478,25 +315,6 @@ public class ComputerManager
                 .collect(Collectors.toList());
 
         return results;
-    }
-
-    public Computer GetComputer(String host)
-    {
-        List<Computer> results = _computers.stream()
-                .filter(c -> c.ComputerEntity.Host.equals(host)).collect(Collectors.toList());
-        return results.isEmpty()? null : results.get(0);
-    }
-
-    public List<Classroom> GetAvailableClassrooms()
-    {
-        return _availableClassrooms;
-    }
-
-    public Classroom GetClassroom(String classroomName)
-    {
-        List<Classroom> results = _availableClassrooms.stream()
-                .filter(c -> c.Name.equals(classroomName)).collect(Collectors.toList());
-        return results.isEmpty()? null : results.get(0);
     }
 
     public List<Computer> GetSelectedComputers()

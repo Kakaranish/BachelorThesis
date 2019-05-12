@@ -55,12 +55,14 @@ public class UsersManager
     // -----------------------------------------------------------------------------------------------------------------
     // -------------------------------------------------- UPDATE -------------------------------------------------------
 
-    public void UpdateUser(User userToUpdate, User newUser, ComputerManager computerManager) throws DatabaseException
+    public void UpdateUser(User userToUpdate, User newUser, ComputerManager computerManager)
+            throws DatabaseException
     {
         try
         {
-            User updatedUser = UpdateUserInDb(userToUpdate, newUser, computerManager);
-            List<Computer> computersAssociatedWithUser = computerManager.GetComputersAssociatedWithUser(userToUpdate);
+            User updatedUser = UpdateUserInDb(userToUpdate, newUser, computerManager); // TODO: Check what I wanted todo here
+            List<Computer> computersAssociatedWithUser =
+                    computerManager.GetComputersAssociatedWithUser(userToUpdate);
             UpdateUserFieldLocallyInComputersAssociatedWithUser(computersAssociatedWithUser, userToUpdate);
         }
         catch (DatabaseException e)
@@ -69,7 +71,8 @@ public class UsersManager
         }
     }
 
-    private User UpdateUserInDb(User userToUpdate, User newUser, ComputerManager computerManager) throws DatabaseException
+    private User UpdateUserInDb(User userToUpdate, User newUser, ComputerManager computerManager)
+            throws DatabaseException
     {
         Session session = DatabaseManager.GetInstance().GetSession();
 
@@ -105,7 +108,8 @@ public class UsersManager
     // -----------------------------------------------------------------------------------------------------------------
     // -------------------------------------------------- REMOVE -------------------------------------------------------
 
-    public void RemoveUser(User user, ComputerManager computerManager, boolean clearUserFields) throws DatabaseException
+    public void RemoveUser(User user, ComputerManager computerManager, boolean clearUserFields)
+            throws DatabaseException
     {
         try
         {
@@ -117,7 +121,8 @@ public class UsersManager
         }
     }
 
-    public void RemoveUserFromDb(User user, ComputerManager computerManager, boolean clearUserFields) throws DatabaseException
+    public void RemoveUserFromDb(User user, ComputerManager computerManager, boolean clearUserFields)
+            throws DatabaseException
     {
         Session session = DatabaseManager.GetInstance().GetSession();
 

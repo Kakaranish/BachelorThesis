@@ -7,26 +7,26 @@ import java.util.List;
 public class Computer
 {
     public ComputerEntity ComputerEntity; // Needed encapsulation of computer class
-    public List<IPreference> ComputerPreferences;
+    public List<IPreference> Preferences;
 
     public Computer(Entities.ComputerEntity computerEntity, List<IPreference> computerPreferences)
     {
         ComputerEntity = computerEntity;
-        ComputerPreferences = computerPreferences;
+        Preferences = computerPreferences;
     }
 
     public Computer(Computer computer)
     {
         ComputerEntity = new ComputerEntity(computer.ComputerEntity);
 
-        if(ComputerPreferences == null)
+        if(Preferences == null)
         {
-            ComputerPreferences = new ArrayList<>();
+            Preferences = new ArrayList<>();
         }
 
-        for (IPreference computerPreference : computer.ComputerPreferences)
+        for (IPreference computerPreference : computer.Preferences)
         {
-            ComputerPreferences.add(computerPreference);
+            Preferences.add(computerPreference);
         }
     }
 

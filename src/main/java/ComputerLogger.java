@@ -1,7 +1,6 @@
 import Entities.Logs.BaseEntity;
 import Models.Info.IInfo;
 import Preferences.IPreference;
-import Preferences.NoPreference;
 import org.hibernate.Session;
 import javax.persistence.PersistenceException;
 import java.sql.Timestamp;
@@ -71,13 +70,8 @@ public class ComputerLogger extends Thread
             {
                 session.beginTransaction();
                 Timestamp timestamp = new Timestamp (System.currentTimeMillis());
-                for (IPreference computerPreference : _computer.ComputerPreferences)
+                for (IPreference computerPreference : _computer.Preferences)
                 {
-                    if(computerPreference instanceof NoPreference)
-                    {
-                        continue;
-                    }
-
                     try
                     {
                         String result = _sshConnection.ExecuteCommand(computerPreference.GetCommandToExecute());

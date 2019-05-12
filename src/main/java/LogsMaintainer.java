@@ -1,9 +1,6 @@
-import Entities.Logs.BaseEntity;
 import Preferences.IPreference;
-import Preferences.NoPreference;
+import Preferences.Preferences;
 import org.hibernate.Session;
-import org.hibernate.dialect.Database;
-
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 import java.sql.Timestamp;
@@ -23,7 +20,6 @@ public class LogsMaintainer extends Thread
             Computer = computer;
             TimeToMaintain = timeToMaintain;
         }
-
     }
     private ComputerManager _computerManager;
     private boolean _isMaintaining;
@@ -69,6 +65,7 @@ public class LogsMaintainer extends Thread
                 while(computersToMaintain.isEmpty() == false)
                 {
                     Computer computerToMaintain = computersToMaintain.remove();
+
                     MaintainComputer(computerToMaintain);
 
                     System.out.println("[INFO] '"
@@ -97,20 +94,19 @@ public class LogsMaintainer extends Thread
 
     public void MaintainComputer(Computer computer)
     {
-        // Perform maintenance
+        if (computer.Preferences == null || computer.Preferences.isEmpty())
+        {
+            return;
+        }
 
         long logExpiration = computer.ComputerEntity.LogExpiration.toMillis();
         Session session = DatabaseManager.GetInstance().GetSession();
+
         try
         {
             session.beginTransaction();
-            for (IPreference computerPreference : computer.ComputerPreferences)
+            for (IPreference computerPreference : computer.Preferences)
             {
-                if(computerPreference instanceof NoPreference)
-                {
-                    continue;
-                }
-
                 Long now = System.currentTimeMillis();
 
                 String hql = "delete from " + computerPreference.GetClassName() + " t "+
@@ -136,7 +132,7 @@ public class LogsMaintainer extends Thread
         // Set computer last maintenance time to now
         Computer newComputer = new Computer(computer);
         newComputer.ComputerEntity.LastMaintenance = new Timestamp(System.currentTimeMillis());
-        _computerManager.UpdateComputer(computer, newComputer);
+        _computerManager.UpdateComputer(computer, newComputer.ComputerEntity);
     }
 
 
@@ -155,7 +151,7 @@ public class LogsMaintainer extends Thread
         {
             session.beginTransaction();
 
-            List<IPreference>  computerPreferences = computer.ComputerPreferences;
+            List<IPreference>  computerPreferences = computer.Preferences;
 
             for (IPreference computerPreference : computerPreferences)
             {
@@ -181,15 +177,15 @@ public class LogsMaintainer extends Thread
 
     public void RemoveAllLogsAssociatedWithComputerFromDb(Computer computer, Session session)
     {
-        List<IPreference>  computerPreferences = computer.ComputerPreferences;
-
-        for (IPreference computerPreference : computerPreferences)
+        for (IPreference computerPreference : Preferences.AllPreferencesList)
         {
             String hql = "delete from " +
                     computerPreference.GetClassName() +
                     " t where t.ComputerEntity = :computerEntity";
             Query query = session.createQuery(hql);
             query.setParameter("computerEntity", computer.ComputerEntity);
+
+            query.executeUpdate();
         }
     }
 
