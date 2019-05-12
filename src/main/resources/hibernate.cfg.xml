@@ -23,7 +23,6 @@
         <mapping class="Entities.Logs.UserLog"/>
         <mapping class="Entities.Preference"/>
         <mapping class="Entities.ComputerEntity"/>
-        <mapping class="Entities.ComputerEntityPreference"/>
         <mapping class="Entities.Classroom"/>
     </session-factory>
 </hibernate-configuration>
