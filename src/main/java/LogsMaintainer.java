@@ -151,15 +151,14 @@ public class LogsMaintainer extends Thread
         {
             session.beginTransaction();
 
-            List<IPreference>  computerPreferences = computer.Preferences;
-
-            for (IPreference computerPreference : computerPreferences)
+            for (IPreference computerPreference : Preferences.AllPreferencesList)
             {
                 String hql = "delete from " +
                         computerPreference.GetClassName() +
                         " t where t.ComputerEntity = :computerEntity";
                 Query query = session.createQuery(hql);
                 query.setParameter("computerEntity", computer.ComputerEntity);
+
                 query.executeUpdate();
             }
 

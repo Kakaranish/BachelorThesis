@@ -148,7 +148,7 @@ public class LogsManager
             for (Computer selectedComputer : selectedComputers)
             {
                 String hql = "from " + preference.GetClassName() +" t" +
-                        " where t.Timestamp > " + fromDate.getTime() + " and  t.Timestamp < " + toDate.getTime() +
+                        " where t.Timestamp > " + fromDate.getTime() + " and t.Timestamp < " + toDate.getTime() +
                         " and t.ComputerEntity = :computerEntity";
                 Query query = session.createQuery(hql);
                 query.setParameter("computerEntity", selectedComputer.ComputerEntity);
