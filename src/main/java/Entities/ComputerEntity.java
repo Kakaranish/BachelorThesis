@@ -3,6 +3,7 @@ package Entities;
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.time.Duration;
+import java.util.List;
 
 @Entity
 @Table(name = "Computers")
@@ -13,7 +14,7 @@ public class ComputerEntity
     public String Host;
 
     @ManyToOne
-    @JoinColumn(referencedColumnName = "Username")
+    @JoinColumn(name = "User_Username", referencedColumnName = "Username")
     public User User;
 
     @ManyToOne
@@ -40,6 +41,14 @@ public class ComputerEntity
     public boolean IsSelected;
 
     public Timestamp LastMaintenance;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "ComputerEntity_Preference",
+            joinColumns = { @JoinColumn(name = "Computer_Host", referencedColumnName = "Host") },
+            inverseJoinColumns = { @JoinColumn(name = "Preference_Id", referencedColumnName = "Id") }
+    )
+    public List<Preference> Preferences;
 
     private ComputerEntity()
     {
@@ -109,6 +118,7 @@ public class ComputerEntity
         LogExpiration = computerEntity.LogExpiration;
         IsSelected = computerEntity.IsSelected;
         LastMaintenance = computerEntity.LastMaintenance;
+        Preferences = computerEntity.Preferences;
     }
 
     public void CopyFrom(ComputerEntity computerEntity)
@@ -124,6 +134,7 @@ public class ComputerEntity
         LogExpiration = computerEntity.LogExpiration;
         IsSelected = computerEntity.IsSelected;
         LastMaintenance = computerEntity.LastMaintenance;
+        Preferences = computerEntity.Preferences;
     }
 
     public void AssignUser(User user)
