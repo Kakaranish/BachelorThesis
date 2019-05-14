@@ -17,8 +17,13 @@ public class UsersManager
     // -----------------------------------------------------------------------------------------------------------------
     // --------------------------------------------------- ADD ---------------------------------------------------------
 
-    public void AddUser(User user) throws DatabaseException
+    public void AddUser(User user) throws DatabaseException, IllegalArgumentException
     {
+        if (UserWithGivenUsernameExists(user.Username))
+        {
+            throw new IllegalArgumentException("Unable to add user. User with same username exists.");
+        }
+
         try
         {
             AddUserToDb(user);
@@ -56,13 +61,19 @@ public class UsersManager
     // -------------------------------------------------- UPDATE -------------------------------------------------------
 
     public void UpdateUser(User userToUpdate, User newUser, ComputerManager computerManager)
-            throws DatabaseException
+            throws DatabaseException, IllegalArgumentException
     {
+        if (userToUpdate.Username.equals(newUser.Username) == false
+                && UserWithGivenUsernameExists(userToUpdate.Username))
+        {
+            throw new IllegalArgumentException("Unable to update user. User with same username exists.");
+        }
+
         try
         {
             List<Computer> computersAssociatedWithUser =
                     computerManager.GetComputersAssociatedWithUser(userToUpdate);
-            
+
             UpdateUserInDb(userToUpdate, newUser, computerManager);
             UpdateUserFieldLocallyInComputersAssociatedWithUser(computersAssociatedWithUser, userToUpdate);
         }
@@ -180,5 +191,12 @@ public class UsersManager
         List<User> results = _users.stream()
                 .filter(u -> u.Username.equals(username)).collect(Collectors.toList());
         return results.isEmpty()? null : results.get(0);
+    }
+
+    private boolean UserWithGivenUsernameExists(String username)
+    {
+        User receivedUser = GetUser(username);
+
+        return receivedUser != null;
     }
 }
