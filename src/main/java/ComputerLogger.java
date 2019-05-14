@@ -32,7 +32,7 @@ public class ComputerLogger extends Thread
                 int retryNum = 0;
                 while(retryNum < _logsManager.NumOfRetries && !connectedWithComputer)
                 {
-                    _logsManager.Callback_SSHConnectionAttemptFailed(_computer.ComputerEntity.Host);
+                    _logsManager.Callback_SSHConnectionAttemptFailed(this);
 
                     try
                     {
@@ -49,14 +49,14 @@ public class ComputerLogger extends Thread
 
                 if(!connectedWithComputer)
                 {
-                    _logsManager.Callback_UnableToConnectAfterRetries(_computer.ComputerEntity.Host);
+                    _logsManager.Callback_UnableToConnectAfterRetries(this);
                     return;
                 }
             }
         }
         catch (IllegalArgumentException e)
         {
-            _logsManager.Callback_UnableToDecryptPassword(_computer.ComputerEntity.Host);
+            _logsManager.Callback_UnableToDecryptPassword(this);
             return;
         }
 
@@ -118,7 +118,7 @@ public class ComputerLogger extends Thread
         }
 
         CloseSSHConnectionWithComputer();
-        _logsManager.Callback_LogGatheringStopped(_computer.ComputerEntity.Host);
+        _logsManager.Callback_LogGatheringStopped(this); //TODO: Add interruption
     }
 
     private boolean OpenSSHConnectionWithComputer() throws IllegalArgumentException
@@ -154,5 +154,10 @@ public class ComputerLogger extends Thread
     private void CloseSSHConnectionWithComputer()
     {
         _sshConnection.CloseConnection();
+    }
+
+    public final Computer GetComputer()
+    {
+        return _computer;
     }
 }
