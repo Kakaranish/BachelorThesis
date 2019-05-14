@@ -16,33 +16,50 @@ public class LogsManager
     public final int NumOfRetries = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("NumOfRetries"));
     public final int Cooldown = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("Cooldown"));
 
-    private ComputerManager _computerManager;
-    private LogsMaintainer _logsMaintainer;
+    private List<ComputerLogger> _gatheredComputers;
 
-
-    public LogsManager(ComputerManager computerManager)
+    public LogsManager()
     {
-        _computerManager = computerManager;
-
-        //TODO: Remove instantiating LogsManager from there
-        _logsMaintainer = new LogsMaintainer(computerManager);
     }
 
-    public void StartGatheringLogs()
+    public void StartGatheringLogs(List<Computer> selectedComputers)
     {
-        List<Computer> selectedComputers = _computerManager.GetSelectedComputers();
-
-        // Prepare computer loggers
-        List<ComputerLogger> selectedComputersLoggers = new ArrayList<>();
-        for (Computer selectedComputer : selectedComputers)
+        List<ComputerLogger> computersToGather = new ArrayList<>();
+        for (Computer computerToGather : selectedComputers)
         {
-            selectedComputersLoggers.add(new ComputerLogger(this, selectedComputer));
+            computersToGather.add(new ComputerLogger(this, computerToGather));
         }
 
-        // Run computer loggers
-        for (ComputerLogger computerLogger : selectedComputersLoggers)
+        for (ComputerLogger computerLogger : computersToGather)
         {
             computerLogger.StartGatheringLogs();
+        }
+        _gatheredComputers = computersToGather;;
+    }
+
+    public void StopGatheringLogsForAllComputerLoggers()
+    {
+        for (ComputerLogger gatheredComputer : _gatheredComputers)
+        {
+            gatheredComputer.StopGatheringLogs();
+        }
+
+        _gatheredComputers = null;
+
+        System.out.println("[INFO] Gathering logs for all computers has been stopped.");
+    }
+
+    public void StopGatheringLogsForSingleComputerLogger(ComputerLogger computerLogger)
+    {
+        computerLogger.StopGatheringLogs();
+
+        _gatheredComputers.remove(computerLogger);
+
+        if(_gatheredComputers.isEmpty())
+        {
+            _gatheredComputers = null;
+            String host = computerLogger.GetComputer().ComputerEntity.Host;
+            System.out.println("[INFO] Gathering logs for '" + host + "' has been stopped.");
         }
     }
 
@@ -171,19 +188,26 @@ public class LogsManager
     // -----------------------------------------------------------------------------------------------------------------
     // -------------------------------------------------  CALLBACKS  ---------------------------------------------------
 
-    public void Callback_UnableToDecryptPassword(String host)
+    public void Callback_UnableToDecryptPassword(ComputerLogger computerLogger)
     {
+        String host = computerLogger.GetComputer().ComputerEntity.Host;
         System.out.println("[FATAL ERROR] '" + host + "': Connection failed. Unable to decrypt password.");
+        _gatheredComputers.remove(computerLogger);
     }
 
-    public void Callback_SSHConnectionAttemptFailed(String host)
+    public void Callback_SSHConnectionAttemptFailed(ComputerLogger computerLogger)
     {
+
+        String host = computerLogger.GetComputer().ComputerEntity.Host;
         System.out.println("[ERROR] '" + host + "': Attempt of SSH connection failed.");
+        _gatheredComputers.remove(computerLogger);
     }
 
-    public void Callback_UnableToConnectAfterRetries(String host)
+    public void Callback_UnableToConnectAfterRetries(ComputerLogger computerLogger)
     {
+        String host = computerLogger.GetComputer().ComputerEntity.Host;
         System.out.println("[FATAL ERROR] '" + host + "': SSH connection failed. Max num of retries reached.");
+        _gatheredComputers.remove(computerLogger);
     }
 
     public void Callback_LogGathered(String host)
@@ -206,8 +230,10 @@ public class LogsManager
         System.out.println("[FATAL ERROR] '" + host + "': Thread has been interrupted.");
     }
 
-    public void Callback_LogGatheringStopped(String host)
+    public void Callback_LogGatheringStopped(ComputerLogger computerLogger)
     {
+        String host = computerLogger.GetComputer().ComputerEntity.Host;
         System.out.println("[INFO] '" + host + "': Logs gathering has been stopped.");
+        _gatheredComputers.remove(computerLogger);
     }
 }
