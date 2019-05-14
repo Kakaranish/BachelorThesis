@@ -10,21 +10,24 @@ import java.util.List;
 public class ComputerEntity
 {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    public Integer Id;
+
     @Column(nullable = false, unique = true)
     public String Host;
 
     @ManyToOne
-    @JoinColumn(name = "User_Username", referencedColumnName = "Username")
+    @JoinColumn(name = "User_Username", referencedColumnName = "Id")
     public User User;
 
     @ManyToOne
-    @JoinColumn(name = "ClassroomId", referencedColumnName = "Id")
+    @JoinColumn(name = "Classroom_Id", referencedColumnName = "Id")
     public Classroom Classroom;
 
-    // User fields
-    public String Username;
-    public String Password; // Is encrypted
-    public String SSHKey;
+    // User data fields
+    private String Username;
+    private String Password; // Is encrypted
+    private String SSHKey;
 
     public int Timeout;
     public int Port;
@@ -45,7 +48,7 @@ public class ComputerEntity
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "ComputerEntity_Preference",
-            joinColumns = { @JoinColumn(name = "Computer_Host", referencedColumnName = "Host") },
+            joinColumns = { @JoinColumn(name = "Computer_Id", referencedColumnName = "Id") },
             inverseJoinColumns = { @JoinColumn(name = "Preference_Id", referencedColumnName = "Id") }
     )
     public List<Preference> Preferences;
@@ -165,5 +168,20 @@ public class ComputerEntity
 
             User = null;
         }
+    }
+
+    public String GetUsername()
+    {
+        return User == null ? Username : User.Username;
+    }
+
+    public String GetPassword()
+    {
+        return User == null ? Password : User.Password;
+    }
+
+    public String GetSSHKey()
+    {
+        return User == null ? SSHKey : User.SSHKey;
     }
 }

@@ -1,15 +1,15 @@
 package Entities;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "Users")
 public class User
 {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    public Integer Id;
+
     @Column(unique = true, nullable = false)
     public String Username;
 
@@ -33,6 +33,7 @@ public class User
     // Copy constructor
     public User(User user)
     {
+        Id = user.Id;
         Username = user.Username;
         Password = user.Password;
         SSHKey = user.SSHKey;
@@ -40,6 +41,7 @@ public class User
 
     public void CopyFrom(User user)
     {
+        Id = user.Id;
         Username = user.Username;
         Password = user.Password;
         SSHKey = user.SSHKey;

@@ -60,9 +60,10 @@ public class UsersManager
     {
         try
         {
-            User updatedUser = UpdateUserInDb(userToUpdate, newUser, computerManager); // TODO: Check what I wanted todo here
             List<Computer> computersAssociatedWithUser =
                     computerManager.GetComputersAssociatedWithUser(userToUpdate);
+            
+            UpdateUserInDb(userToUpdate, newUser, computerManager);
             UpdateUserFieldLocallyInComputersAssociatedWithUser(computersAssociatedWithUser, userToUpdate);
         }
         catch (DatabaseException e)
@@ -71,7 +72,7 @@ public class UsersManager
         }
     }
 
-    private User UpdateUserInDb(User userToUpdate, User newUser, ComputerManager computerManager)
+    private void UpdateUserInDb(User userToUpdate, User newUser, ComputerManager computerManager)
             throws DatabaseException
     {
         Session session = DatabaseManager.GetInstance().GetSession();
@@ -84,8 +85,6 @@ public class UsersManager
             session.update(userToUpdate);
 
             session.getTransaction().commit();
-
-            return userToUpdate;
         }
         catch (PersistenceException e)
         {

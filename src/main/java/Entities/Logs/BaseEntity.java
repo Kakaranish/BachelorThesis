@@ -14,7 +14,7 @@ public class BaseEntity
     public Timestamp Timestamp;
 
     @ManyToOne
-    @JoinColumn(referencedColumnName = "Host")
+    @JoinColumn(name = "Computer_Id", referencedColumnName = "Id")
     public ComputerEntity ComputerEntity;
 
     protected BaseEntity()

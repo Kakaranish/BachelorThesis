@@ -125,10 +125,10 @@ public class ComputerLogger extends Thread
     {
         try
         {
-            String password = Encrypter.GetInstance().Decrypt(_computer.ComputerEntity.Password);
+            String password = Encrypter.GetInstance().Decrypt(_computer.ComputerEntity.GetPassword());
             _sshConnection.OpenConnection(
                     _computer.ComputerEntity.Host,
-                    _computer.ComputerEntity.Username,
+                    _computer.ComputerEntity.GetUsername(),
                     password,
                     _computer.ComputerEntity.Port,
                     _computer.ComputerEntity.Timeout

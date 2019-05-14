@@ -48,13 +48,14 @@ public class ComputerManager
     private void AddComputerToDb(Computer computer) throws DatabaseException
     {
         Session session = DatabaseManager.GetInstance().GetSession();
-        session.beginTransaction();
 
         try
         {
+            session.beginTransaction();
+
+            session.save(computer.ComputerEntity);
             computer.ComputerEntity.Preferences =
                     Utilities.ConvertListOfIPreferencesToPreferences(computer.Preferences);
-            session.save(computer.ComputerEntity);
 
             session.getTransaction().commit();
         }

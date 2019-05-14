@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+    <session-factory>
+        <property name="show_sql">false</property>
+        <property name="format_sql">true</property>
+        <property name="dialect">org.hibernate.dialect.SQLiteDialect</property>
+        <property name="connection.driver_class">org.sqlite.JDBC</property>
+        <property name="connection.url">jdbc:sqlite:mydb.db</property>
+        <property name="connection.username"></property>
+        <property name="connection.password"></property>
+        <property name=""></property>
+        <property name="hibernate.hbm2ddl.auto">update</property>
+
+        <mapping class="Entities.Logs.SwapLog"/>
+        <mapping class="Entities.Logs.CpuLog"/>
+        <mapping class="Entities.Logs.RamLog"/>
+        <mapping class="Entities.User"/>
+        <mapping class="Entities.Logs.ProcessLog"/>
+        <mapping class="Entities.Logs.DiskLog"/>
+        <mapping class="Entities.Logs.UserLog"/>
+        <mapping class="Entities.Preference"/>
+        <mapping class="Entities.ComputerEntity"/>
+        <mapping class="Entities.Classroom"/>
+    </session-factory>
+</hibernate-configuration>
