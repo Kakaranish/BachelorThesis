@@ -17,7 +17,7 @@ public class ComputerEntity
     public String Host;
 
     @ManyToOne
-    @JoinColumn(name = "User_Username", referencedColumnName = "Id")
+    @JoinColumn(name = "User_Id", referencedColumnName = "Id")
     public User User;
 
     @ManyToOne
