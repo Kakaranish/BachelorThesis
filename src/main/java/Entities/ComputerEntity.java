@@ -140,6 +140,20 @@ public class ComputerEntity
         Preferences = computerEntity.Preferences;
     }
 
+    public void ResetConnectionDataFields()
+    {
+        SSH_Username = null;
+        SSH_EncryptedPassword = null;
+        SSH_Key = null;
+    }
+
+    public void SetConnectionDataFields(String _SSH_Username, String _SSH_EncryptedPassword, String _SSH_Key)
+    {
+        SSH_Username = _SSH_Username;
+        SSH_EncryptedPassword = _SSH_EncryptedPassword;
+        SSH_Key = _SSH_Key;
+    }
+
     public void AssignUser(User user)
     {
         User = user;
@@ -183,5 +197,20 @@ public class ComputerEntity
     public String GetSSHKey()
     {
         return User == null ? SSH_Key : User.SSH_Key;
+    }
+
+    public String GetUsernameConnectionField()
+    {
+        return SSH_Username;
+    }
+
+    public String GetEncryptedPasswordConnectionField()
+    {
+        return SSH_EncryptedPassword;
+    }
+
+    public String GetSSHKeyConnectionField()
+    {
+        return SSH_Key;
     }
 }
