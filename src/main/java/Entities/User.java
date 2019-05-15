@@ -3,48 +3,54 @@ package Entities;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "Users")
+@Table(name = "Users", uniqueConstraints = {@UniqueConstraint(columnNames = {"DisplayedUsername", "SSH_Username"})})
 public class User
 {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Integer Id;
 
-    @Column(unique = true, nullable = false)
-    public String Username;
+    @Column(nullable = false)
+    public String DisplayedUsername;
 
     @Column(nullable = false)
-    public String Password;
+    public String SSH_Username;
 
     @Column(nullable = false)
-    public String SSHKey;
+    public String SSH_EncryptedPassword;
+
+    @Column(nullable = false)
+    public String SSH_Key;
 
     private User()
     {
     }
 
-    public User(String username, String password, String _SSHKey)
+    public User(String displayedUsername, String _SSH_Username, String _SSH_EncryptedPassword, String _SSH_Key)
     {
-        Username = username;
-        Password = password;
-        SSHKey = _SSHKey;
+        DisplayedUsername = displayedUsername;
+        SSH_Username = _SSH_Username;
+        SSH_EncryptedPassword = _SSH_EncryptedPassword;
+        SSH_Key = _SSH_Key;
     }
 
     // Copy constructor
     public User(User user)
     {
         Id = user.Id;
-        Username = user.Username;
-        Password = user.Password;
-        SSHKey = user.SSHKey;
+        DisplayedUsername = user.DisplayedUsername;
+        SSH_Username = user.SSH_Username;
+        SSH_EncryptedPassword = user.SSH_EncryptedPassword;
+        SSH_Key = user.SSH_Key;
     }
 
     public void CopyFrom(User user)
     {
         Id = user.Id;
-        Username = user.Username;
-        Password = user.Password;
-        SSHKey = user.SSHKey;
+        DisplayedUsername = user.DisplayedUsername;
+        SSH_Username = user.SSH_Username;
+        SSH_EncryptedPassword = user.SSH_EncryptedPassword;
+        SSH_Key = user.SSH_Key;
     }
 
     @Override
@@ -52,9 +58,9 @@ public class User
     {
         User otherUser = (User) obj;
 
-        return  this.Username.equals(otherUser.Username) &&
-                this.Password.equals(otherUser.Password) &&
-                this.SSHKey.equals(otherUser.SSHKey);
-
+        return  DisplayedUsername.equals(otherUser.DisplayedUsername) &&
+                SSH_Username.equals(otherUser.SSH_Username) &&
+                SSH_EncryptedPassword.equals(otherUser.SSH_EncryptedPassword) &&
+                SSH_Key.equals(otherUser.SSH_Key);
     }
 }

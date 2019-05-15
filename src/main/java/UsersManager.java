@@ -19,9 +19,9 @@ public class UsersManager
 
     public void AddUser(User user) throws DatabaseException, IllegalArgumentException
     {
-        if (UserWithGivenUsernameExists(user.Username))
+        if (UserExists(user.DisplayedUsername, user.SSH_Username))
         {
-            throw new IllegalArgumentException("Unable to add user. User with same username exists.");
+            throw new IllegalArgumentException("Unable to add user. User with same DisplayedUsername & SSH_Username exists.");
         }
 
         try
@@ -49,7 +49,7 @@ public class UsersManager
         }
         catch (PersistenceException e)
         {
-            throw new DatabaseException("Unable to add User to DB.");
+            throw new DatabaseException("Unable to add user to db.");
         }
         finally
         {
@@ -60,13 +60,15 @@ public class UsersManager
     // -----------------------------------------------------------------------------------------------------------------
     // -------------------------------------------------- UPDATE -------------------------------------------------------
 
+    // userToUpdate.DisplayedUsername.equals(newUser.DisplayedUsername) == false -> DisplayedUsername zmienia się
     public void UpdateUser(User userToUpdate, User newUser, ComputerManager computerManager)
             throws DatabaseException, IllegalArgumentException
     {
-        if (userToUpdate.Username.equals(newUser.Username) == false
-                && UserWithGivenUsernameExists(userToUpdate.Username))
+        if ((userToUpdate.DisplayedUsername.equals(newUser.DisplayedUsername) == false ||
+                userToUpdate.SSH_Username.equals(newUser.SSH_Username) == false) &&
+                UserExists(newUser.DisplayedUsername, newUser.SSH_Username))
         {
-            throw new IllegalArgumentException("Unable to update user. User with same username exists.");
+            throw new IllegalArgumentException("Unable to update user. User with same DisplayerUsername & SSH_Key exists.");
         }
 
         try
@@ -186,16 +188,19 @@ public class UsersManager
         }
     }
 
-    public User GetUser(String username)
+    public User GetUser(String displayedUsername, String SSH_Username)
     {
         List<User> results = _users.stream()
-                .filter(u -> u.Username.equals(username)).collect(Collectors.toList());
+                .filter(u ->
+                        u.DisplayedUsername.equals(displayedUsername) &&
+                        u.SSH_Username.equals(SSH_Username)
+                ).collect(Collectors.toList());
         return results.isEmpty()? null : results.get(0);
     }
 
-    private boolean UserWithGivenUsernameExists(String username)
+    private boolean UserExists(String displayedUsername, String SSH_Username)
     {
-        User receivedUser = GetUser(username);
+        User receivedUser = GetUser(displayedUsername, SSH_Username);
 
         return receivedUser != null;
     }

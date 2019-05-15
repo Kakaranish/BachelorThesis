@@ -27,7 +27,7 @@ public class ComputerLogger extends Thread
         {
             boolean connectedWithComputer = OpenSSHConnectionWithComputer();
 
-            if(!connectedWithComputer)
+            if(connectedWithComputer == false)
             {
                 int retryNum = 0;
                 while(retryNum < _logsManager.NumOfRetries && !connectedWithComputer)
@@ -125,7 +125,7 @@ public class ComputerLogger extends Thread
     {
         try
         {
-            String password = Encrypter.GetInstance().Decrypt(_computer.ComputerEntity.GetPassword());
+            String password = Encrypter.GetInstance().Decrypt(_computer.ComputerEntity.GetEncryptedPassword());
             _sshConnection.OpenConnection(
                     _computer.ComputerEntity.Host,
                     _computer.ComputerEntity.GetUsername(),

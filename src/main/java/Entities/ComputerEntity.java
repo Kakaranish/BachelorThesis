@@ -24,10 +24,10 @@ public class ComputerEntity
     @JoinColumn(name = "Classroom_Id", referencedColumnName = "Id")
     public Classroom Classroom;
 
-    // User data fields
-    private String Username;
-    private String Password; // Is encrypted
-    private String SSHKey;
+    // SSH connection data fields
+    private String SSH_Username;
+    private String SSH_EncryptedPassword; // Is encrypted
+    private String SSH_Key;
 
     public int Timeout;
     public int Port;
@@ -59,9 +59,9 @@ public class ComputerEntity
 
     public ComputerEntity(
             String host,
-            String username,
-            String password,
-            String _SSHKey,
+            String _SSH_Username,
+            String _SSH_EncryptedPassword,
+            String _SSH_Key,
             int timeout,
             int port,
             Duration maintainPeriod,
@@ -71,9 +71,9 @@ public class ComputerEntity
             boolean isSelected)
     {
         Host = host;
-        Username = username;
-        Password = password;
-        this.SSHKey = _SSHKey;
+        SSH_Username = _SSH_Username;
+        SSH_EncryptedPassword = _SSH_EncryptedPassword;
+        SSH_Key = _SSH_Key;
         Timeout = timeout;
         Port = port;
         MaintainPeriod = maintainPeriod;
@@ -110,9 +110,9 @@ public class ComputerEntity
     // Copy constructor
     public ComputerEntity(ComputerEntity computerEntity)
     {
-        Username = computerEntity.Username;
-        Password = computerEntity.Password;
-        SSHKey = computerEntity.SSHKey;
+        SSH_Username = computerEntity.SSH_Username;
+        SSH_EncryptedPassword = computerEntity.SSH_EncryptedPassword;
+        SSH_Key = computerEntity.SSH_Key;
         User = computerEntity.User != null ? new User(computerEntity.User) : null;
         Timeout = computerEntity.Timeout;
         Port = computerEntity.Port;
@@ -126,9 +126,9 @@ public class ComputerEntity
 
     public void CopyFrom(ComputerEntity computerEntity)
     {
-        Username = computerEntity.Username;
-        Password = computerEntity.Password;
-        SSHKey = computerEntity.SSHKey;
+        SSH_Username = computerEntity.SSH_Username;
+        SSH_EncryptedPassword = computerEntity.SSH_EncryptedPassword;
+        SSH_Key = computerEntity.SSH_Key;
         User = computerEntity.User;
         Timeout = computerEntity.Timeout;
         Port = computerEntity.Port;
@@ -155,15 +155,15 @@ public class ComputerEntity
         {
             if(clearUserFields)
             {
-                Username = null;
-                Password = null;
-                SSHKey = null;
+                SSH_Username = null;
+                SSH_EncryptedPassword = null;
+                SSH_Key = null;
             }
             else
             {
-                Username = User.Username;
-                Password = User.Password;
-                SSHKey = User.SSHKey;
+                SSH_Username = User.SSH_Username;
+                SSH_EncryptedPassword = User.SSH_EncryptedPassword;
+                SSH_Key = User.SSH_Key;
             }
 
             User = null;
@@ -172,16 +172,16 @@ public class ComputerEntity
 
     public String GetUsername()
     {
-        return User == null ? Username : User.Username;
+        return User == null ? SSH_Username : User.SSH_Username;
     }
 
-    public String GetPassword()
+    public String GetEncryptedPassword()
     {
-        return User == null ? Password : User.Password;
+        return User == null ? SSH_EncryptedPassword : User.SSH_EncryptedPassword;
     }
 
     public String GetSSHKey()
     {
-        return User == null ? SSHKey : User.SSHKey;
+        return User == null ? SSH_Key : User.SSH_Key;
     }
 }
