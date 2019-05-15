@@ -22,7 +22,7 @@ public class LogsMaintainer extends Thread
         }
     }
     private ComputerManager _computerManager;
-    private boolean _isMaintaining;
+    private boolean _isMaintaining = false;
 
 
     public LogsMaintainer(ComputerManager computerManager)
@@ -30,9 +30,31 @@ public class LogsMaintainer extends Thread
         _computerManager = computerManager;
     }
 
-    public void StartMaintainingLogs() throws InterruptedException
+    public void StartMaintainingLogs()
     {
-        this.run();
+        if(_isMaintaining == true)
+        {
+            throw new RuntimeException("Unable to start maintaining logs. Other maintainer currently is working.");
+        }
+
+        System.out.println("[INFO] Logs maintainer started work.");
+        _isMaintaining = true;
+
+        this.start();
+    }
+
+    public void StopMaintainingLogs() throws RuntimeException
+    {
+        if(_isMaintaining == false)
+        {
+            throw new RuntimeException("Unable to stop maintaining logs. No maintainer is working.");
+        }
+
+        this.interrupt();
+
+        _isMaintaining = false;
+
+        System.out.println("[INFO] Logs maintainer stopped work.");
     }
 
     public void run()
@@ -133,14 +155,6 @@ public class LogsMaintainer extends Thread
         Computer newComputer = new Computer(computer);
         newComputer.ComputerEntity.LastMaintenance = new Timestamp(System.currentTimeMillis());
         _computerManager.UpdateComputer(computer, newComputer.ComputerEntity);
-    }
-
-
-
-    // TODO: Consider what todo while sleep (preferred interruption)
-    public void StopMaintainingLogs()
-    {
-        _isMaintaining = false;
     }
 
     public void RemoveAllLogsAssociatedWithComputers(Computer computer) throws DatabaseException
