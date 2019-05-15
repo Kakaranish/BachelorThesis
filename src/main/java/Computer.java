@@ -32,10 +32,8 @@ public class Computer
 
     public boolean IsComputerReadyForConnection()
     {
-        return ComputerEntity.User != null || (
-                ComputerEntity.Username != null &&
-                ComputerEntity.Password != null &&
-                ComputerEntity.SSHKey != null
-        );
+        return  ComputerEntity.GetUsername() != null &&
+                ComputerEntity.GetEncryptedPassword()!= null &&
+                ComputerEntity.GetSSHKey() != null;
     }
 }

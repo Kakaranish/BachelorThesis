@@ -60,15 +60,17 @@ public class UsersManager
     // -----------------------------------------------------------------------------------------------------------------
     // -------------------------------------------------- UPDATE -------------------------------------------------------
 
-    // userToUpdate.DisplayedUsername.equals(newUser.DisplayedUsername) == false -> DisplayedUsername zmienia się
     public void UpdateUser(User userToUpdate, User newUser, ComputerManager computerManager)
             throws DatabaseException, IllegalArgumentException
     {
-        if ((userToUpdate.DisplayedUsername.equals(newUser.DisplayedUsername) == false ||
-                userToUpdate.SSH_Username.equals(newUser.SSH_Username) == false) &&
-                UserExists(newUser.DisplayedUsername, newUser.SSH_Username))
+        if(UserWithSameDisplayedUsernameAndSSHUsernameExists(userToUpdate, newUser))
         {
             throw new IllegalArgumentException("Unable to update user. User with same DisplayerUsername & SSH_Key exists.");
+        }
+
+        if(newUser.SomeDataConnectionFieldsAreEmpty())
+        {
+            throw new IllegalArgumentException("Unable to update user. Some fields are empty.");
         }
 
         try
@@ -161,6 +163,13 @@ public class UsersManager
         {
             session.close();
         }
+    }
+
+    private boolean UserWithSameDisplayedUsernameAndSSHUsernameExists(User userToUpdate, User newUser)
+    {
+        return (userToUpdate.DisplayedUsername.equals(newUser.DisplayedUsername) == false ||
+                userToUpdate.SSH_Username.equals(newUser.SSH_Username) == false) &&
+                UserExists(newUser.DisplayedUsername, newUser.SSH_Username);
     }
 
     // -----------------------------------------------------------------------------------------------------------------

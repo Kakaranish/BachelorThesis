@@ -75,6 +75,22 @@ public class ComputerManager
     public void UpdateComputer(Computer computerToUpdate, ComputerEntity newComputerEntity)
             throws DatabaseException
     {
+        if(CanComputerEntityBeUpdated(computerToUpdate.ComputerEntity, newComputerEntity) == false)
+        {
+            throw new IllegalArgumentException("Unable to update computer. Provided user and data connection fields are empty ");
+        }
+
+        if(computerToUpdate.ComputerEntity == newComputerEntity)
+        {
+            return;
+        }
+
+        if(newComputerEntity.User != null)
+        {
+            newComputerEntity.ResetConnectionDataFields();
+        }
+
+
         Session session = DatabaseManager.GetInstance().GetSession();
 
         try
@@ -292,6 +308,29 @@ public class ComputerManager
         {
             session.close();
         }
+    }
+
+    public boolean CanComputerEntityBeUpdated(ComputerEntity computerEntityToUpdate, ComputerEntity newComputerEntity)
+    {
+        if(IsUserToReset(computerEntityToUpdate, newComputerEntity) &&
+            AreSomeConnectionDataFieldsEmpty(newComputerEntity))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean IsUserToReset(ComputerEntity computerEntityToUpdate, ComputerEntity newComputerEntity)
+    {
+        return computerEntityToUpdate.User != null && newComputerEntity.User == null;
+    }
+
+    private boolean AreSomeConnectionDataFieldsEmpty(ComputerEntity computerEntityToUpdate)
+    {
+        return  computerEntityToUpdate.GetUsernameConnectionField() == null ||
+                computerEntityToUpdate.GetEncryptedPasswordConnectionField() == null ||
+                computerEntityToUpdate.GetSSHKeyConnectionField() == null;
     }
 
     // -----------------------------------------------------------------------------------------------------------------
