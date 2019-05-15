@@ -12,8 +12,6 @@ import java.util.stream.Collectors;
 
 public class ComputerManager
 {
-    private LogsManager _logsManager;
-
     private List<Computer> _computers;
 
     public ComputerManager() throws DatabaseException
