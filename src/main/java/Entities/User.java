@@ -53,6 +53,14 @@ public class User
         SSH_Key = user.SSH_Key;
     }
 
+    public boolean SomeDataConnectionFieldsAreEmpty()
+    {
+        return  DisplayedUsername == null ||
+                SSH_Username == null ||
+                SSH_EncryptedPassword == null ||
+                SSH_Key == null;
+    }
+
     @Override
     public boolean equals(Object obj)
     {
