@@ -21,14 +21,6 @@ public class ComputerManager
         _computers = GetComputersFromDb();
     }
 
-    // TODO: Add executing in new thread
-    public void StartGatheringDataForSelectedComputers()
-            throws ClassNotFoundException, NoSuchMethodException, InstantiationException,
-            IllegalAccessException, InvocationTargetException
-    {
-//        _logsManager = new LogsManager(_selectedComputers);
-    }
-
     // -----------------------------------------------------------------------------------------------------------------
     // -------------------------------------------------- ADD ----------------------------------------------------------
 
@@ -201,51 +193,6 @@ public class ComputerManager
 
     // -----------------------------------------------------------------------------------------------------------------
     // ------------------------------------------------ USER -----------------------------------------------------------
-
-    public void AssignUserToComputer(Computer computer, User user) throws DatabaseException
-    {
-        Session session = DatabaseManager.GetInstance().GetSession();
-        session.beginTransaction();
-
-        try
-        {
-            computer.ComputerEntity.AssignUser(user);
-            session.update(computer.ComputerEntity);
-
-            session.getTransaction().commit();
-        }
-        catch (PersistenceException e)
-        {
-            throw new DatabaseException("Unable to assign user to Computer.");
-        }
-        finally
-        {
-            session.close();
-        }
-    }
-
-    public void RemoveUserAssignmentFromComputer(Computer computer, boolean clearComputerConnectionFields)
-            throws DatabaseException
-    {
-        Session session = DatabaseManager.GetInstance().GetSession();
-        session.beginTransaction();
-
-        try
-        {
-            computer.ComputerEntity.RemoveUser(clearComputerConnectionFields);
-            session.update(computer.ComputerEntity);
-
-            session.getTransaction().commit();
-        }
-        catch (PersistenceException e)
-        {
-            throw new DatabaseException("Unable to remove user from Computer.");
-        }
-        finally
-        {
-            session.close();
-        }
-    }
 
     public void RemoveUserAssignmentFromComputer(Computer computer, Session session, boolean clearUserFields)
     {
