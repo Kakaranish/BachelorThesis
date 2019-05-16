@@ -80,7 +80,7 @@ public class ComputerLogger extends Thread
             }
             catch (PersistenceException e)
             {
-                _logsGatherer.Callback_DatabaseTransactionFailed(_computer.ComputerEntity.Host);
+                _logsGatherer.Callback_DatabaseTransactionFailed(this);
 
                 sshConnection.CloseConnection();
                 return;

@@ -1,8 +1,6 @@
 package Healthcheck.LogsManagement;
 
 import Healthcheck.Computer;
-import Healthcheck.LogsManagement.LogsGatherer;
-import Healthcheck.LogsManagement.LogsMaintainer;
 import Healthcheck.Utilities;
 
 import java.util.List;
@@ -18,7 +16,7 @@ public class LogsManager
         _logsMaintainer = logsMaintainer;
     }
 
-    public void StartWork(List<Computer> selectedComputers) throws LogsException
+    public void StartWork(List<Computer> selectedComputers) throws LogsException, NothingToDoException
     {
         _logsGatherer.StartGatheringLogs(selectedComputers);
 
@@ -28,11 +26,21 @@ public class LogsManager
         }
         catch (InterruptedException e)
         {
-            throw new LogsException("Thread sleep was interrupted in LogsManager.");
+            throw new LogsException("[FATAL ERROR] Thread sleep was interrupted in LogsManager.");
         }
 
-        _logsMaintainer.StartMaintainingLogs(_logsGatherer.GetGatheredComputers());
-
         List<Computer> gatheredComputers = _logsGatherer.GetGatheredComputers();
+        if(gatheredComputers.isEmpty())
+        {
+            _logsGatherer.StopGatheringLogsForAllComputerLoggers();
+            throw new NothingToDoException("[INFO] No computers to logs gathering & maintaining.");
+        }
+
+        _logsMaintainer.StartMaintainingLogs(gatheredComputers);
+    }
+
+    public void StopWork()
+    {
+        // TODO
     }
 }
