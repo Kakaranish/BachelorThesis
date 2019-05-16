@@ -14,15 +14,15 @@
         <property name=""></property>
         <property name="hibernate.hbm2ddl.auto">update</property>
 
-        <mapping class="Entities.Logs.SwapLog"/>
-        <mapping class="Entities.Logs.CpuLog"/>
-        <mapping class="Entities.Logs.RamLog"/>
-        <mapping class="Entities.User"/>
-        <mapping class="Entities.Logs.ProcessLog"/>
-        <mapping class="Entities.Logs.DiskLog"/>
-        <mapping class="Entities.Logs.UserLog"/>
-        <mapping class="Entities.Preference"/>
-        <mapping class="Entities.ComputerEntity"/>
-        <mapping class="Entities.Classroom"/>
+        <mapping class="Healthcheck.Entities.Logs.SwapLog"/>
+        <mapping class="Healthcheck.Entities.Logs.CpuLog"/>
+        <mapping class="Healthcheck.Entities.Logs.RamLog"/>
+        <mapping class="Healthcheck.Entities.User"/>
+        <mapping class="Healthcheck.Entities.Logs.ProcessLog"/>
+        <mapping class="Healthcheck.Entities.Logs.DiskLog"/>
+        <mapping class="Healthcheck.Entities.Logs.UserLog"/>
+        <mapping class="Healthcheck.Entities.Preference"/>
+        <mapping class="Healthcheck.Entities.ComputerEntity"/>
+        <mapping class="Healthcheck.Entities.Classroom"/>
     </session-factory>
 </hibernate-configuration>
