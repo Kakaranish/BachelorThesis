@@ -22,7 +22,7 @@ public class LogsMaintainer extends Thread
         }
     }
     private ComputerManager _computerManager;
-    private boolean _isMaintaining = false;
+    private volatile boolean _isMaintaining = false;
 
 
     public LogsMaintainer(ComputerManager computerManager)
@@ -30,31 +30,32 @@ public class LogsMaintainer extends Thread
         _computerManager = computerManager;
     }
 
-    public void StartMaintainingLogs()
+    public void StartMaintainingLogs() throws LogsMaintainerException
     {
         if(_isMaintaining == true)
         {
-            throw new RuntimeException("Unable to start maintaining logs. Other maintainer currently is working.");
+            throw new LogsMaintainerException("Unable to start maintaining logs. Other maintainer currently is working.");
         }
 
         System.out.println("[INFO] Logs maintainer started work.");
+
         _isMaintaining = true;
 
         this.start();
     }
 
-    public void StopMaintainingLogs() throws RuntimeException
+    public void StopMaintainingLogs() throws LogsMaintainerException
     {
         if(_isMaintaining == false)
         {
-            throw new RuntimeException("Unable to stop maintaining logs. No maintainer is working.");
+            throw new LogsMaintainerException("Unable to stop maintaining logs. No maintainer is working.");
         }
 
-        this.interrupt();
+        System.out.println("[INFO] Logs maintainer stopped work.");
 
         _isMaintaining = false;
 
-        System.out.println("[INFO] Logs maintainer stopped work.");
+        this.interrupt();
     }
 
     public void run()
@@ -104,7 +105,7 @@ public class LogsMaintainer extends Thread
                 }
                 catch (InterruptedException e)
                 {
-                    e.printStackTrace();
+                    return;
                 }
 
                 MaintainComputer(computerWithLowestTimeToMaintain.Computer);
