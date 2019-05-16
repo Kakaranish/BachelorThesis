@@ -11,6 +11,7 @@ import javax.persistence.Query;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.ArrayDeque;
+import java.util.List;
 
 public class LogsMaintainer extends Thread
 {
@@ -25,39 +26,42 @@ public class LogsMaintainer extends Thread
             TimeToMaintain = timeToMaintain;
         }
     }
+
+    private List<Computer> _gatheredComputers;
     private ComputerManager _computerManager;
     private volatile boolean _isMaintaining = false;
-
 
     public LogsMaintainer(ComputerManager computerManager)
     {
         _computerManager = computerManager;
     }
 
-    public void StartMaintainingLogs() throws LogsMaintainerException
+    public void StartMaintainingLogs(List<Computer> gatheredComputers) throws LogsException
     {
         if(_isMaintaining == true)
         {
-            throw new LogsMaintainerException("Unable to start maintaining logs. Other maintainer currently is working.");
+            throw new LogsException("Unable to start maintaining logs. Other maintainer currently is working.");
         }
 
         System.out.println("[INFO] Logs maintainer started work.");
 
         _isMaintaining = true;
+        _gatheredComputers = gatheredComputers;
 
         this.start();
     }
 
-    public void StopMaintainingLogs() throws LogsMaintainerException
+    public void StopMaintainingLogs() throws LogsException
     {
         if(_isMaintaining == false)
         {
-            throw new LogsMaintainerException("Unable to stop maintaining logs. No maintainer is working.");
+            throw new LogsException("Unable to stop maintaining logs. No maintainer is working.");
         }
 
         System.out.println("[INFO] Logs maintainer stopped work.");
 
         _isMaintaining = false;
+        _gatheredComputers = null;
 
         this.interrupt();
     }
@@ -71,7 +75,7 @@ public class LogsMaintainer extends Thread
             ArrayDeque<Computer> computersToMaintain = new ArrayDeque<>();
             ComputerAndTimeToMaintainPair computerWithLowestTimeToMaintain = null;
 
-            for (Computer computer : _computerManager.GetSelectedComputers())
+            for (Computer computer : _gatheredComputers)
             {
                 long computerTimeToMaintenance = GetComputerTimeToMaintenance(computer);
 
@@ -95,14 +99,15 @@ public class LogsMaintainer extends Thread
 
                     MaintainComputer(computerToMaintain);
 
-                    System.out.println("[INFO] '"
-                            + computerToMaintain.ComputerEntity.Host + "' was maintained.");
+                    String host = computerToMaintain.ComputerEntity.Host;
+                    System.out.println("[INFO] '" + host + "' was maintained.");
                 }
             }
             else
             {
-                System.out.println("[INFO] Waiting for next maintenence " +
-                        Duration.ofMillis(computerWithLowestTimeToMaintain.TimeToMaintain).toSeconds() + "s");
+                long timeToNextMaintain = Duration.ofMillis(computerWithLowestTimeToMaintain.TimeToMaintain).toSeconds();
+                System.out.println("[INFO] Next maintenance wil be taken in " + timeToNextMaintain + "s");
+
                 try
                 {
                     Thread.sleep(computerWithLowestTimeToMaintain.TimeToMaintain);
@@ -113,8 +118,8 @@ public class LogsMaintainer extends Thread
                 }
 
                 MaintainComputer(computerWithLowestTimeToMaintain.Computer);
-                System.out.println("[INFO] '"
-                        + computerWithLowestTimeToMaintain.Computer.ComputerEntity.Host + "' was maintained.");
+                String host = computerWithLowestTimeToMaintain.Computer.ComputerEntity.Host;
+                System.out.println("[INFO] '" + host+ "' was maintained.");
             }
         }
     }
@@ -149,7 +154,8 @@ public class LogsMaintainer extends Thread
         }
         catch (PersistenceException e)
         {
-            throw new DatabaseException("Unable to maintain computer logs.");
+            String host = computer.ComputerEntity.Host;
+            throw new DatabaseException("[ERROR] Unable to maintain '" + host + "' logs.");
         }
         finally
         {

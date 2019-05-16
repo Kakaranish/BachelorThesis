@@ -1,18 +1,16 @@
 package Healthcheck.LogsManagement;
 
 import Healthcheck.Computer;
-import Healthcheck.LogsManagement.ComputerLogger;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class LogsGatherer
 {
-    private List<ComputerLogger> _computersToGatherLogs;
+    private List<ComputerLogger> _gatheredComputers;
 
     public LogsGatherer()
     {
-
     }
 
     public void StartGatheringLogs(List<Computer> selectedComputers)
@@ -23,34 +21,22 @@ public class LogsGatherer
             computersToGather.add(new ComputerLogger(this, computerToGather));
         }
 
-        _computersToGatherLogs = computersToGather;
+        _gatheredComputers = computersToGather;
 
-        for (ComputerLogger computerLogger : _computersToGatherLogs)
+        for (ComputerLogger computerLogger : _gatheredComputers)
         {
             computerLogger.StartGatheringLogs();
         }
-
-        //        for (Healthcheck.LogsManagement.ComputerLogger computerLogger : _computersToGatherLogs)
-        //        {
-        //            try
-        //            {
-        //                computerLogger.join();
-        //            }
-        //            catch (InterruptedException e)
-        //            {
-        //                e.printStackTrace();
-        //            }
-        //        }
     }
 
     public void StopGatheringLogsForAllComputerLoggers()
     {
-        for (ComputerLogger gatheredComputer : _computersToGatherLogs)
+        for (ComputerLogger gatheredComputer : _gatheredComputers)
         {
             gatheredComputer.StopGatheringLogs();
         }
 
-        _computersToGatherLogs = null;
+        _gatheredComputers = null;
 
         System.out.println("[INFO] Gathering logs for all computers has been stopped.");
     }
@@ -59,11 +45,11 @@ public class LogsGatherer
     {
         computerLogger.StopGatheringLogs();
 
-        _computersToGatherLogs.remove(computerLogger);
+        _gatheredComputers.remove(computerLogger);
 
-        if(_computersToGatherLogs.isEmpty())
+        if(_gatheredComputers.isEmpty())
         {
-            _computersToGatherLogs = null;
+            _gatheredComputers = null;
             String host = computerLogger.GetComputer().ComputerEntity.Host;
             System.out.println("[INFO] Gathering logs for '" + host + "' has been stopped.");
         }
@@ -110,5 +96,20 @@ public class LogsGatherer
     {
         String host = computerLogger.GetComputer().ComputerEntity.Host;
         System.out.println("[FATAL ERROR] '" + host + "': SSH connection failed. Thread sleep interrupted.");
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+    // --------------------------------------------------- GETTERS -----------------------------------------------------
+
+    public List<Computer> GetGatheredComputers()
+    {
+        List<Computer> gatheredComputers = new ArrayList<>();
+
+        for (ComputerLogger gatheredComputer : _gatheredComputers)
+        {
+            gatheredComputers.add(gatheredComputer.GetComputer());
+        }
+
+        return gatheredComputers;
     }
 }

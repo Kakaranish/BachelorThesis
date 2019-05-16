@@ -16,9 +16,6 @@ import java.util.List;
 
 public class ComputerLogger extends Thread
 {
-    public static final int NumOfRetries = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("NumOfRetries"));
-    public static final int Cooldown = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("Cooldown"));
-
     private Computer _computer;
     private LogsGatherer _logsGatherer;
 
@@ -139,13 +136,13 @@ public class ComputerLogger extends Thread
         {
             // Retries
             int retryNum = 1;
-            while(retryNum <= NumOfRetries)
+            while(retryNum <= Utilities.NumOfRetries)
             {
                 try
                 {
                     _logsGatherer.Callback_SSHConnectionAttemptFailed(this);
 
-                    Thread.sleep(Cooldown);
+                    Thread.sleep(Utilities.Cooldown);
 
                     sshConnection.OpenConnection(
                             computer.ComputerEntity.Host,
