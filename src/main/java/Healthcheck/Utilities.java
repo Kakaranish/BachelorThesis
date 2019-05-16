@@ -14,6 +14,10 @@ import java.util.stream.Collectors;
 
 public class Utilities
 {
+    public static final int NumOfRetries = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("NumOfRetries"));
+
+    public static final int Cooldown = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("Cooldown"));
+
     public static final List<Preference> AvailablePreferences = GetAvailablePreferencesFromDb();
 
     public static final List<Classroom> AvailableClassrooms = GetAvailableClassroomsFromDb();
