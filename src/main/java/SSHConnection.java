@@ -13,43 +13,7 @@ public class SSHConnection
         _jsch = new JSch();
     }
 
-    private Session GetSession(String username, String host, String password, int port, int timeout)
-            throws SSHConnectionException
-    {
-        Session session;
-        try
-        {
-            session = _jsch.getSession(username, host, port);
-            session.setPassword(password);
-
-            Properties config = new Properties();
-            config.put("StrictHostKeyChecking", "no");
-            session.setConfig(config);
-
-            session.connect(timeout);
-        }
-        catch (JSchException ex)
-        {
-            throw new SSHConnectionException("Unable to get session.");
-        }
-        return session;
-    }
-
-    private Channel GetChannel(int timeout, String type) throws SSHConnectionException
-    {
-        Channel channel;
-        try
-        {
-            channel = _session.openChannel(type);
-        }
-        catch (JSchException ex)
-        {
-            throw new SSHConnectionException("Unable to get channel.");
-        }
-
-        return channel;
-    }
-
+    // TODO: Open connection when SSH_Key is provided
     public void OpenConnection(String host, String username, String password, int port, int timeout)
             throws SSHConnectionException
     {
@@ -131,5 +95,42 @@ public class SSHConnection
         }
 
         return result;
+    }
+
+    private Session GetSession(String username, String host, String password, int port, int timeout)
+            throws SSHConnectionException
+    {
+        Session session;
+        try
+        {
+            session = _jsch.getSession(username, host, port);
+            session.setPassword(password);
+
+            Properties config = new Properties();
+            config.put("StrictHostKeyChecking", "no");
+            session.setConfig(config);
+
+            session.connect(timeout);
+        }
+        catch (JSchException ex)
+        {
+            throw new SSHConnectionException("Unable to get session.");
+        }
+        return session;
+    }
+
+    private Channel GetChannel(int timeout, String type) throws SSHConnectionException
+    {
+        Channel channel;
+        try
+        {
+            channel = _session.openChannel(type);
+        }
+        catch (JSchException ex)
+        {
+            throw new SSHConnectionException("Unable to get channel.");
+        }
+
+        return channel;
     }
 }

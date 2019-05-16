@@ -1,4 +1,4 @@
-public class SSHConnectionException extends RuntimeException
+public class SSHConnectionException extends Exception
 {
     public SSHConnectionException(String s)
     {

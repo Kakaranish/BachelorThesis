@@ -74,7 +74,7 @@ public class Encrypter
            byte[] utf8 = _decipher.doFinal(dec);
            return new String(utf8, "UTF8");
        }
-       catch (BadPaddingException|UnsupportedEncodingException|IllegalBlockSizeException e)
+       catch (BadPaddingException|UnsupportedEncodingException|IllegalBlockSizeException|IllegalArgumentException e)
        {
            throw new EncrypterException("Decryption failed.");
        }
