@@ -8,73 +8,50 @@ import java.util.List;
 
 public class ComputerLogger extends Thread
 {
+    public static final int NumOfRetries = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("NumOfRetries"));
+    public static final int Cooldown = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("Cooldown"));
+
     private Computer _computer;
-    private LogsManager _logsManager;
-    private SSHConnection _sshConnection;
+    private LogsGatherer _logsGatherer;
 
-    private boolean _isGathering = false;
-
-    public ComputerLogger(LogsManager logsManager, Computer computer)
+    public ComputerLogger(LogsGatherer logsManager, Computer computer)
     {
         _computer = computer;
-        _logsManager = logsManager;
-        _sshConnection = new SSHConnection();
+        _logsGatherer = logsManager;
+    }
+
+    public void StartGatheringLogs()
+    {
+        this.start();
+    }
+
+    public void StopGatheringLogs()
+    {
+        this.interrupt();
     }
 
     public void run()
     {
-        try
+        SSHConnection sshConnection = ConnectWithComputerUsingRetryPolicy(_computer);
+        if(sshConnection == null)
         {
-            boolean connectedWithComputer = OpenSSHConnectionWithComputer();
-
-            if(connectedWithComputer == false)
-            {
-                int retryNum = 0;
-                while(retryNum < _logsManager.NumOfRetries && !connectedWithComputer)
-                {
-                    _logsManager.Callback_SSHConnectionAttemptFailed(this);
-
-                    try
-                    {
-                        Thread.sleep(_logsManager.Cooldown);
-                    }
-                    catch (InterruptedException e)
-                    {
-                        CloseSSHConnectionWithComputer();
-                    }
-                    connectedWithComputer = OpenSSHConnectionWithComputer();
-
-                    ++retryNum;
-                }
-
-                if(!connectedWithComputer)
-                {
-                    _logsManager.Callback_UnableToConnectAfterRetries(this);
-                    return;
-                }
-            }
-        }
-        catch (IllegalArgumentException e)
-        {
-            _logsManager.Callback_UnableToDecryptPassword(this);
             return;
         }
 
-        Session session;
-        _isGathering = true;
-        while(_isGathering)
+        Session session = null;
+        while(true)
         {
             session = DatabaseManager.GetInstance().GetSession();
-
             try
             {
                 session.beginTransaction();
+
                 Timestamp timestamp = new Timestamp (System.currentTimeMillis());
                 for (IPreference computerPreference : _computer.Preferences)
                 {
                     try
                     {
-                        String result = _sshConnection.ExecuteCommand(computerPreference.GetCommandToExecute());
+                        String result = sshConnection.ExecuteCommand(computerPreference.GetCommandToExecute());
                         IInfo model = computerPreference.GetInformationModel(result);
                         List<BaseEntity> logsToSave = model.ToLogList(_computer.ComputerEntity, timestamp);
 
@@ -85,19 +62,22 @@ public class ComputerLogger extends Thread
                     }
                     catch (SSHConnectionException e)
                     {
-                        CloseSSHConnectionWithComputer();
+                        _logsGatherer.Callback_SSHConnectionExecuteCommandFailed(this);
+
+                        sshConnection.CloseConnection();
                         session.close();
                         return;
                     }
                 }
-                _logsManager.Callback_LogGathered(_computer.ComputerEntity.Host);
+                _logsGatherer.Callback_LogGathered(_computer.ComputerEntity.Host);
 
                 session.getTransaction().commit();
             }
             catch (PersistenceException e)
             {
-                CloseSSHConnectionWithComputer();
-                _logsManager.Callback_DatabaseTransactionFailed(_computer.ComputerEntity.Host);
+                _logsGatherer.Callback_DatabaseTransactionFailed(_computer.ComputerEntity.Host);
+
+                sshConnection.CloseConnection();
                 return;
             }
             finally
@@ -111,49 +91,79 @@ public class ComputerLogger extends Thread
             }
             catch (InterruptedException e)
             {
-                CloseSSHConnectionWithComputer();
-                _logsManager.Callback_ThreadInterrupted(_computer.ComputerEntity.Host);
+                _logsGatherer.Callback_ThreadSleepInterrupted(this);
+
+                sshConnection.CloseConnection();
                 return;
             }
         }
-
-        CloseSSHConnectionWithComputer();
-        _logsManager.Callback_LogGatheringStopped(this); //TODO: Add interruption
     }
 
-    private boolean OpenSSHConnectionWithComputer() throws IllegalArgumentException
+    private SSHConnection ConnectWithComputerUsingRetryPolicy(Computer computer)
     {
+        String decryptedPassword;
         try
         {
-            String password = Encrypter.GetInstance().Decrypt(_computer.ComputerEntity.GetEncryptedPassword());
-            _sshConnection.OpenConnection(
-                    _computer.ComputerEntity.Host,
-                    _computer.ComputerEntity.GetUsername(),
-                    password,
-                    _computer.ComputerEntity.Port,
-                    _computer.ComputerEntity.Timeout
-            );
-            return true;
+            decryptedPassword = Encrypter.GetInstance().Decrypt(computer.ComputerEntity.GetEncryptedPassword());
         }
-        catch (EncrypterException|SSHConnectionException e)
+        catch (EncrypterException e)
         {
-            return false;
+            _logsGatherer.Callback_UnableToDecryptPassword(this);
+
+            return null;
         }
-    }
 
-    public void StartGatheringLogs()
-    {
-        this.start();
-    }
+        SSHConnection sshConnection = new SSHConnection();
+        try
+        {
+            // First SSHConnection attempt
+            sshConnection.OpenConnection(
+                    computer.ComputerEntity.Host,
+                    computer.ComputerEntity.GetUsername(),
+                    decryptedPassword,
+                    computer.ComputerEntity.Port,
+                    computer.ComputerEntity.Timeout
+            );
 
-    public void StopGatheringLogs()
-    {
-        this.interrupt();
-    }
+            return sshConnection;
+        }
+        catch (SSHConnectionException|IllegalArgumentException e)
+        {
+            // Retries
+            int retryNum = 1;
+            while(retryNum <= NumOfRetries)
+            {
+                try
+                {
+                    _logsGatherer.Callback_SSHConnectionAttemptFailed(this);
 
-    private void CloseSSHConnectionWithComputer()
-    {
-        _sshConnection.CloseConnection();
+                    Thread.sleep(Cooldown);
+
+                    sshConnection.OpenConnection(
+                            computer.ComputerEntity.Host,
+                            computer.ComputerEntity.GetUsername(),
+                            decryptedPassword,
+                            computer.ComputerEntity.Port,
+                            computer.ComputerEntity.Timeout
+                    );
+
+                    return sshConnection;
+                }
+                catch (SSHConnectionException ex)
+                {
+                    ++retryNum;
+                }
+                catch (InterruptedException ex)
+                {
+                    sshConnection.CloseConnection();
+                    _logsGatherer.Callback_ThreadSleepInterrupted(this);
+                    return null;
+                }
+            }
+
+            _logsGatherer.Callback_UnableToConnectAfterRetries(this);
+            return null;
+        }
     }
 
     public final Computer GetComputer()
