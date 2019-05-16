@@ -124,7 +124,7 @@ public class ComputerLogger extends Thread
         SSHConnection sshConnection = new SSHConnection();
         try
         {
-            // First Healthcheck.SSHConnectionManagement.SSHConnection attempt
+            // First SSHConnection attempt
             sshConnection.OpenConnection(
                     computer.ComputerEntity.Host,
                     computer.ComputerEntity.GetUsername(),
@@ -169,7 +169,7 @@ public class ComputerLogger extends Thread
                 }
             }
 
-            _logsGatherer.Callback_UnableToConnectAfterRetries(this);
+            _logsGatherer.Callback_SSHConnectionFailedAfterRetries(this);
             return null;
         }
     }

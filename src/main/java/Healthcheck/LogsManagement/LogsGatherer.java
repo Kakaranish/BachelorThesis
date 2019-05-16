@@ -76,32 +76,29 @@ public class LogsGatherer
     {
         String host = computerLogger.GetComputer().ComputerEntity.Host;
         System.out.println("[FATAL ERROR] '" + host + "': Connection failed. Unable to decrypt password.");
-        //        _gatheredComputers.remove(computerLogger);
     }
 
     public void Callback_SSHConnectionAttemptFailed(ComputerLogger computerLogger)
     {
-
         String host = computerLogger.GetComputer().ComputerEntity.Host;
         System.out.println("[ERROR] '" + host + "': Attempt of SSH connection failed.");
-        _computersToGatherLogs.remove(computerLogger);
     }
 
-    public void Callback_UnableToConnectAfterRetries(ComputerLogger computerLogger)
+    public void Callback_SSHConnectionFailedAfterRetries(ComputerLogger computerLogger)
     {
         String host = computerLogger.GetComputer().ComputerEntity.Host;
         System.out.println("[FATAL ERROR] '" + host + "': SSH connection failed. Max num of retries reached.");
-        _computersToGatherLogs.remove(computerLogger);
+    }
+
+    public void Callback_SSHConnectionExecuteCommandFailed(ComputerLogger computerLogger)
+    {
+        String host = computerLogger.GetComputer().ComputerEntity.Host;
+        System.out.println("[FATAL ERROR] '" + host + "': SSH connection execute command failed.");
     }
 
     public void Callback_LogGathered(String host)
     {
         System.out.println("[INFO] '" + host + "': Logs have been gathered.");
-    }
-
-    public void Callback_DatabaseConnectionAttemptFailed(String host)
-    {
-        System.out.println("[ERROR] '" + host + "': attempt of connection with database failed.");
     }
 
     public void Callback_DatabaseTransactionFailed(String host)
@@ -113,18 +110,5 @@ public class LogsGatherer
     {
         String host = computerLogger.GetComputer().ComputerEntity.Host;
         System.out.println("[FATAL ERROR] '" + host + "': SSH connection failed. Thread sleep interrupted.");
-    }
-
-    public void Callback_SSHConnectionExecuteCommandFailed(ComputerLogger computerLogger)
-    {
-        String host = computerLogger.GetComputer().ComputerEntity.Host;
-        System.out.println("[FATAL ERROR] '" + host + "': SSH connection execute command failed.");
-    }
-
-    public void Callback_LogGatheringStopped(ComputerLogger computerLogger)
-    {
-        String host = computerLogger.GetComputer().ComputerEntity.Host;
-        System.out.println("[INFO] '" + host + "': Logs gathering has been stopped.");
-        _computersToGatherLogs.remove(computerLogger);
     }
 }
