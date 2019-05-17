@@ -11,6 +11,7 @@ import javax.persistence.Query;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.List;
 
 public class LogsMaintainer extends Thread
@@ -27,20 +28,40 @@ public class LogsMaintainer extends Thread
         }
     }
 
-    private List<Computer> _gatheredComputers;
     private ComputerManager _computerManager;
+
+    private List<Computer> _gatheredComputers;
     private volatile boolean _isMaintaining = false;
 
     public LogsMaintainer(ComputerManager computerManager)
     {
         _computerManager = computerManager;
+
+        _gatheredComputers = new ArrayList<>();
+    }
+
+    public void StopMaintainingLogsForSingleComputer(Computer computer) throws LogsException
+    {
+        if(_isMaintaining == false)
+        {
+            String host = computer.ComputerEntity.Host;
+            throw new LogsException("[FATAL ERROR] Unable to stop maintaining logs for '" + host + "'. No maintainer is working.");
+        }
+
+        if(_gatheredComputers.contains(computer) == false)
+        {
+            String host = computer.ComputerEntity.Host;
+            throw new LogsException("[FATAL ERROR] Unable to stop maintaining logs for '" + host + "'. Host isn't maintained.");
+        }
+
+        _gatheredComputers.remove(computer);
     }
 
     public void StartMaintainingLogs(List<Computer> gatheredComputers) throws LogsException
     {
         if(_isMaintaining == true)
         {
-            throw new LogsException("Unable to start maintaining logs. Other maintainer currently is working.");
+            throw new LogsException("[FATAL ERROR] Unable to start maintaining logs. Other maintainer currently is working.");
         }
 
         System.out.println("[INFO] Logs maintainer started work.");
@@ -55,7 +76,7 @@ public class LogsMaintainer extends Thread
     {
         if(_isMaintaining == false)
         {
-            throw new LogsException("Unable to stop maintaining logs. No maintainer is working.");
+            throw new LogsException("[FATAL ERROR] Unable to stop maintaining logs. No maintainer is working.");
         }
 
         System.out.println("[INFO] Logs maintainer stopped work.");
@@ -75,7 +96,7 @@ public class LogsMaintainer extends Thread
             ArrayDeque<Computer> computersToMaintain = new ArrayDeque<>();
             ComputerAndTimeToMaintainPair computerWithLowestTimeToMaintain = null;
 
-            for (Computer computer : _gatheredComputers)
+            for (Computer computer : Utilities.GetComputersWithSetPreferences(_gatheredComputers))
             {
                 long computerTimeToMaintenance = GetComputerTimeToMaintenance(computer);
 
@@ -106,15 +127,16 @@ public class LogsMaintainer extends Thread
             else
             {
                 long timeToNextMaintain = Duration.ofMillis(computerWithLowestTimeToMaintain.TimeToMaintain).toSeconds();
-                System.out.println("[INFO] Next maintenance wil be taken in " + timeToNextMaintain + "s");
+                System.out.println("[INFO] Next maintenance will be taken in " + timeToNextMaintain + "s");
 
                 try
                 {
                     Thread.sleep(computerWithLowestTimeToMaintain.TimeToMaintain);
                 }
-                catch (InterruptedException e)
+                catch (InterruptedException|IllegalArgumentException e)
                 {
-                    return;
+                    e.printStackTrace();
+                    System.out.println(e.getMessage());
                 }
 
                 MaintainComputer(computerWithLowestTimeToMaintain.Computer);
@@ -126,11 +148,6 @@ public class LogsMaintainer extends Thread
 
     public void MaintainComputer(Computer computer)
     {
-        if (computer.Preferences == null || computer.Preferences.isEmpty())
-        {
-            return;
-        }
-
         long logExpiration = computer.ComputerEntity.LogExpiration.toMillis();
         Session session = DatabaseManager.GetInstance().GetSession();
 
@@ -155,7 +172,7 @@ public class LogsMaintainer extends Thread
         catch (PersistenceException e)
         {
             String host = computer.ComputerEntity.Host;
-            throw new DatabaseException("[ERROR] Unable to maintain '" + host + "' logs.");
+            throw new DatabaseException("[FATAL ERROR] Unable to maintain '" + host + "' logs.");
         }
         finally
         {
@@ -191,7 +208,7 @@ public class LogsMaintainer extends Thread
         }
         catch (PersistenceException e)
         {
-            throw new DatabaseException("Unable te remove all logs associated with computer");
+            throw new DatabaseException("[FATAL ERROR] Unable te remove all logs associated with computer");
         }
         finally
         {
