@@ -35,8 +35,6 @@ public class ComputerLogger extends Thread
         this.interrupt();
     }
 
-
-
     public void run()
     {
         if(_computer.Preferences.isEmpty())
@@ -51,25 +49,23 @@ public class ComputerLogger extends Thread
             return;
         }
 
-        Session session = null;
         while(true)
         {
             Timestamp timestamp = new Timestamp (System.currentTimeMillis());
 
-            session = DatabaseManager.GetInstance().GetSession();
-
+            Session session = DatabaseManager.GetInstance().GetSession();
             for (IPreference computerPreference : _computer.Preferences)
             {
-                session.beginTransaction();
-
                 List<BaseEntity> logsToSave =
                         GetLogsForGivenPreferenceTypeWithRetryPolicy(sshConnection, computerPreference, timestamp);
                 if(logsToSave == null)
                 {
                     sshConnection.CloseConnection();
+                    session.close();
                     return;
                 }
 
+                session.beginTransaction();
                 for (BaseEntity log : logsToSave)
                 {
                     session.save(log);
@@ -83,8 +79,8 @@ public class ComputerLogger extends Thread
                     return;
                 }
             }
-
             session.close();
+
             _logsGatherer.Callback_LogGathered(_computer.ComputerEntity.Host);
 
             try
