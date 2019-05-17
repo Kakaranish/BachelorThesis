@@ -35,8 +35,16 @@ public class ComputerLogger extends Thread
         this.interrupt();
     }
 
+
+
     public void run()
     {
+        if(_computer.Preferences.isEmpty())
+        {
+            _logsGatherer.Callback_ComputerHasNoPreferences(this);
+            return;
+        }
+
         SSHConnection sshConnection = ConnectWithComputerUsingRetryPolicy(_computer);
         if(sshConnection == null)
         {
@@ -46,49 +54,38 @@ public class ComputerLogger extends Thread
         Session session = null;
         while(true)
         {
+            Timestamp timestamp = new Timestamp (System.currentTimeMillis());
+
             session = DatabaseManager.GetInstance().GetSession();
-            try
+
+            for (IPreference computerPreference : _computer.Preferences)
             {
                 session.beginTransaction();
 
-                Timestamp timestamp = new Timestamp (System.currentTimeMillis());
-                for (IPreference computerPreference : _computer.Preferences)
+                List<BaseEntity> logsToSave =
+                        GetLogsForGivenPreferenceTypeWithRetryPolicy(sshConnection, computerPreference, timestamp);
+                if(logsToSave == null)
                 {
-                    try
-                    {
-                        String result = sshConnection.ExecuteCommand(computerPreference.GetCommandToExecute());
-                        IInfo model = computerPreference.GetInformationModel(result);
-                        List<BaseEntity> logsToSave = model.ToLogList(_computer.ComputerEntity, timestamp);
-
-                        for (BaseEntity log : logsToSave)
-                        {
-                            session.save(log);
-                        }
-                    }
-                    catch (SSHConnectionException e)
-                    {
-                        _logsGatherer.Callback_SSHConnectionExecuteCommandFailed(this);
-
-                        sshConnection.CloseConnection();
-                        session.close();
-                        return;
-                    }
+                    sshConnection.CloseConnection();
+                    return;
                 }
-                _logsGatherer.Callback_LogGathered(_computer.ComputerEntity.Host);
 
-                session.getTransaction().commit();
-            }
-            catch (PersistenceException e)
-            {
-                _logsGatherer.Callback_DatabaseTransactionFailed(this);
+                for (BaseEntity log : logsToSave)
+                {
+                    session.save(log);
+                }
 
-                sshConnection.CloseConnection();
-                return;
+                boolean databaseTransactionSucceed = CommitTransactionWithRetryPolicy(session);
+                if(databaseTransactionSucceed == false)
+                {
+                    session.close();
+                    sshConnection.CloseConnection();
+                    return;
+                }
             }
-            finally
-            {
-                session.close();
-            }
+
+            session.close();
+            _logsGatherer.Callback_LogGathered(_computer.ComputerEntity.Host);
 
             try
             {
@@ -121,7 +118,7 @@ public class ComputerLogger extends Thread
         SSHConnection sshConnection = new SSHConnection();
         try
         {
-            // First SSHConnection attempt
+            // First attempt
             sshConnection.OpenConnection(
                     computer.ComputerEntity.Host,
                     computer.ComputerEntity.GetUsername(),
@@ -154,7 +151,7 @@ public class ComputerLogger extends Thread
 
                     return sshConnection;
                 }
-                catch (SSHConnectionException ex)
+                catch (SSHConnectionException|IllegalArgumentException ex)
                 {
                     ++retryNum;
                 }
@@ -169,6 +166,94 @@ public class ComputerLogger extends Thread
             _logsGatherer.Callback_SSHConnectionFailedAfterRetries(this);
             return null;
         }
+    }
+
+    private List<BaseEntity> GetLogsForGivenPreferenceTypeWithRetryPolicy(
+            SSHConnection sshConnection, IPreference computerIPreference, Timestamp timestamp)
+    {
+        try
+        {
+            // First attempt
+            String sshResultNotProcessed = sshConnection.ExecuteCommand(computerIPreference.GetCommandToExecute());
+            IInfo model = computerIPreference.GetInformationModel(sshResultNotProcessed);
+            List<BaseEntity> logs = model.ToLogList(_computer.ComputerEntity, timestamp);
+
+            return logs;
+        }
+        catch (SSHConnectionException e)
+        {
+            // Retries
+            int retryNum = 1;
+            while(retryNum <= Utilities.NumOfRetries)
+            {
+                try
+                {
+                    _logsGatherer.Callback_SSHConnectionExecuteCommandAttemptFailed(this);
+
+                    Thread.sleep(Utilities.Cooldown);
+
+                    String sshResultNotProcessed = sshConnection.ExecuteCommand(computerIPreference.GetCommandToExecute());
+                    IInfo model = computerIPreference.GetInformationModel(sshResultNotProcessed);
+                    List<BaseEntity> logs = model.ToLogList(_computer.ComputerEntity, timestamp);
+
+                    return logs;
+                }
+                catch (SSHConnectionException ex)
+                {
+                    ++retryNum;
+                }
+                catch (InterruptedException ex)
+                {
+                    sshConnection.CloseConnection();
+                    _logsGatherer.Callback_ThreadSleepInterrupted(this);
+                    return null;
+                }
+            }
+
+            _logsGatherer.Callback_SSHConnectionExecuteCommandFailedAfterRetries(this);
+            return null;
+        }
+    }
+
+    private boolean CommitTransactionWithRetryPolicy(Session session)
+    {
+        try
+        {
+            // First attempt
+            session.getTransaction().commit();
+
+            return true;
+        }
+        catch (PersistenceException e)
+        {
+            // Retries
+            int retryNum = 1;
+            while (retryNum <= Utilities.NumOfRetries)
+            {
+                try
+                {
+                    _logsGatherer.Callback_DatabaseTransactionCommitAttemptFailed(this);
+
+                    Thread.sleep(Utilities.Cooldown);
+
+                    session.getTransaction().commit();
+
+                    return true;
+                }
+                catch (PersistenceException ex)
+                {
+                    ++retryNum;
+                }
+                catch (InterruptedException ex)
+                {
+                    _logsGatherer.Callback_ThreadSleepInterrupted(this);
+                    return false;
+                }
+            }
+        }
+
+        _logsGatherer.Callback_DatabaseTransactionCommitFailedAfterRetries(this);
+        return false;
     }
 
     public final Computer GetComputer()
