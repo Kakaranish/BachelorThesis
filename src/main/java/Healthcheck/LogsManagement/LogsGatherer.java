@@ -82,7 +82,8 @@ public class LogsGatherer
 
         String host = computerLogger.GetComputer().ComputerEntity.Host;
         String callbackMessage = "[FATAL ERROR] '" + host + "': SSH connection failed. Thread sleep interrupted.";
-        _logsManager.Callback_ConnectionWithComputerHasBeenBroken(computerLogger.GetComputer(), callbackMessage);
+
+        _logsManager.Callback_ConnectionWithComputerHasBeenBroken(computerLogger.GetComputer(), callbackMessage); // TODO: ?
     }
 
     public void Callback_DatabaseTransactionCommitAttemptFailed(ComputerLogger computerLogger)
@@ -90,7 +91,7 @@ public class LogsGatherer
         RemoveComputerFromGatheredComputers(computerLogger);
 
         String host = computerLogger.GetComputer().ComputerEntity.Host;
-        String callbackMessage = "[FATAL ERROR] '" + host + "': DatabaseManagement transaction commit attempt failed.";
+        String callbackMessage = "[ERROR] '" + host + "': DatabaseManagement transaction commit attempt failed.";
     }
 
     public void Callback_DatabaseTransactionCommitFailedAfterRetries(ComputerLogger computerLogger)
@@ -100,7 +101,7 @@ public class LogsGatherer
         String host = computerLogger.GetComputer().ComputerEntity.Host;
         String callbackMessage = "[FATAL ERROR] '" + host + "': DatabaseManagement transaction commit failed after retries.";
 
-        _logsManager.Callback_ConnectionWithComputerHasBeenBroken(computerLogger.GetComputer(), callbackMessage);
+        _logsManager.Callback_ConnectionWithComputerHasBeenBroken(computerLogger.GetComputer(), callbackMessage); // TODO: ?
     }
 
     public void Callback_SSHConnectionExecuteCommandAttemptFailed(ComputerLogger computerLogger)

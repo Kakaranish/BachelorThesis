@@ -10,9 +10,9 @@ import Healthcheck.Preferences.IPreference;
 import Healthcheck.SSHConnectionManagement.SSHConnection;
 import Healthcheck.SSHConnectionManagement.SSHConnectionException;
 import org.hibernate.Session;
-import javax.persistence.PersistenceException;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Random;
 
 public class ComputerLogger extends Thread
 {
@@ -53,7 +53,6 @@ public class ComputerLogger extends Thread
         {
             Timestamp timestamp = new Timestamp (System.currentTimeMillis());
 
-            Session session = DatabaseManager.GetInstance().GetSession();
             for (IPreference computerPreference : _computer.Preferences)
             {
                 List<BaseEntity> logsToSave =
@@ -61,25 +60,21 @@ public class ComputerLogger extends Thread
                 if(logsToSave == null)
                 {
                     sshConnection.CloseConnection();
-                    session.close();
                     return;
                 }
 
-                session.beginTransaction();
+                Session session = DatabaseManager.GetInstance().GetSession();
                 for (BaseEntity log : logsToSave)
                 {
-                    session.save(log);
-                }
 
-                boolean databaseTransactionSucceed = CommitTransactionWithRetryPolicy(session);
-                if(databaseTransactionSucceed == false)
-                {
-                    session.close();
-                    sshConnection.CloseConnection();
-                    return;
+                    boolean logSaved = SaveLogToSessionWithRetryPolicy(session, log);
+                    if (logSaved == false)
+                    {
+                        return;
+                    }
                 }
+                session.close();
             }
-            session.close();
 
             _logsGatherer.Callback_LogGathered(_computer.ComputerEntity.Host);
 
@@ -113,7 +108,6 @@ public class ComputerLogger extends Thread
 
         try
         {
-            // First attempt
             SSHConnection sshConnection = new SSHConnection();
             sshConnection.OpenConnection(
                     computer.ComputerEntity.Host,
@@ -129,6 +123,58 @@ public class ComputerLogger extends Thread
         {
             _logsGatherer.Callback_SSHConnectionFailed(this);
             return null;
+        }
+    }
+
+    private boolean SaveLogToSessionWithRetryPolicy(Session session, BaseEntity log)
+    {
+        try
+        {
+            // First attempt
+            session.beginTransaction();
+            session.save(log);
+            session.flush();
+            session.getTransaction().commit();
+
+            return true;
+        }
+        catch (Exception e)
+        {
+            session.getTransaction().rollback();
+            _logsGatherer.Callback_DatabaseTransactionCommitAttemptFailed(this);
+
+            // Retries
+            int retryNum = 1;
+            while(retryNum <= Utilities.LogSaveNumOfRetries)
+            {
+                try
+                {
+                    Thread.sleep(Utilities.LogSaveRetryCooldown
+                            + new Random().ints(0,45).findFirst().getAsInt());
+
+                    session.beginTransaction();
+                    session.save(log);
+                    session.flush();
+                    session.getTransaction().commit();
+
+                    return true;
+                }
+                catch (InterruptedException ex)
+                {
+                    _logsGatherer.Callback_ThreadSleepInterrupted(this);
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    session.getTransaction().rollback();
+                    ++retryNum;
+
+                    _logsGatherer.Callback_DatabaseTransactionCommitAttemptFailed(this);
+                }
+            }
+
+            _logsGatherer.Callback_DatabaseTransactionCommitFailedAfterRetries(this);
+            return false;
         }
     }
 
@@ -177,47 +223,6 @@ public class ComputerLogger extends Thread
             _logsGatherer.Callback_SSHConnectionExecuteCommandFailedAfterRetries(this);
             return null;
         }
-    }
-
-    private boolean CommitTransactionWithRetryPolicy(Session session)
-    {
-        try
-        {
-            // First attempt
-            session.getTransaction().commit();
-
-            return true;
-        }
-        catch (PersistenceException e)
-        {
-            // Retries
-            int retryNum = 1;
-            while (retryNum <= Utilities.NumOfRetries)
-            {
-                try
-                {
-                    _logsGatherer.Callback_DatabaseTransactionCommitAttemptFailed(this);
-
-                    Thread.sleep(Utilities.Cooldown);
-
-                    session.getTransaction().commit();
-
-                    return true;
-                }
-                catch (PersistenceException ex)
-                {
-                    ++retryNum;
-                }
-                catch (InterruptedException ex)
-                {
-                    _logsGatherer.Callback_ThreadSleepInterrupted(this);
-                    return false;
-                }
-            }
-        }
-
-        _logsGatherer.Callback_DatabaseTransactionCommitFailedAfterRetries(this);
-        return false;
     }
 
     public final Computer GetComputer()

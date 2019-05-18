@@ -20,6 +20,10 @@ public class Utilities
 
     public static final int SSH_Timeout = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("SSH_Timeout"));
 
+    public static final int LogSaveNumOfRetries = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("LogSaveNumOfRetries"));
+
+    public static final int LogSaveRetryCooldown= Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("LogSaveRetryCooldown"));
+
     public static final List<Preference> AvailablePreferences = GetAvailablePreferencesFromDb();
 
     public static final List<Classroom> AvailableClassrooms = GetAvailableClassroomsFromDb();
