@@ -14,23 +14,6 @@ public class LogsManager
     {
     }
 
-    public void Callback_ConnectionWithComputerHasBeenBroken(Computer computer, String callbackMessage)
-    {
-        System.out.println(callbackMessage);
-
-        try
-        {
-            _logsMaintainer.StopMaintainingLogsForSingleComputer(computer);
-            System.out.println("[INFO] Logs maintainer stopped work stopped for '" + computer.ComputerEntity.Host + "'.");
-
-            //TODO: Check if any computer is still being maintaning and logs gathering
-        }
-        catch (LogsException e)
-        {
-            e.printStackTrace();
-        }
-    }
-
     public void StartWork(LogsGatherer logsGatherer, LogsMaintainer logsMaintainer, List<Computer> selectedComputers)
             throws LogsException, NothingToDoException
     {
@@ -48,7 +31,7 @@ public class LogsManager
 
         try
         {
-            Thread.sleep((long)((Utilities.NumOfRetries + 0.5) * Utilities.Cooldown));
+            Thread.sleep((long)(Utilities.SSH_Timeout + 500)); // 500 is safe time to end logs gathering for unreachable computers
         }
         catch (InterruptedException e)
         {
@@ -68,5 +51,22 @@ public class LogsManager
     public void StopWork()
     {
         // TODO
+    }
+
+    public void Callback_ConnectionWithComputerHasBeenBroken(Computer computer, String callbackMessage)
+    {
+        System.out.println(callbackMessage);
+
+        try
+        {
+            _logsMaintainer.StopMaintainingLogsForSingleComputer(computer);
+            System.out.println("[INFO] Logs maintainer stopped work stopped for '" + computer.ComputerEntity.Host + "'.");
+
+            //TODO: Check if any computer is still being maintaning and logs gathering
+        }
+        catch (LogsException e)
+        {
+            e.printStackTrace();
+        }
     }
 }

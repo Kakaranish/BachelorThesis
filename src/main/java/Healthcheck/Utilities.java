@@ -18,6 +18,8 @@ public class Utilities
 
     public static final int Cooldown = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("Cooldown"));
 
+    public static final int SSH_Timeout = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("SSH_Timeout"));
+
     public static final List<Preference> AvailablePreferences = GetAvailablePreferencesFromDb();
 
     public static final List<Classroom> AvailableClassrooms = GetAvailableClassroomsFromDb();
@@ -26,7 +28,16 @@ public class Utilities
     {
         List<Classroom> results = AvailableClassrooms.stream()
                 .filter(c -> c.Name.equals(classroomName)).collect(Collectors.toList());
+
         return results.isEmpty()? null : results.get(0);
+    }
+
+    public static List<Computer> GetComputersWithSetPreferences(List<Computer> computers)
+    {
+        List<Computer> results = computers.stream()
+                .filter(c -> c.Preferences.isEmpty() == false).collect(Collectors.toList());
+
+        return results;
     }
 
     public static List<IPreference> ConvertListOfPreferencesToIPreferences(List<Preference> preferences)

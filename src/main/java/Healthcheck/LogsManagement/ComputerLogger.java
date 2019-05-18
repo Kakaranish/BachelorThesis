@@ -43,7 +43,7 @@ public class ComputerLogger extends Thread
             return;
         }
 
-        SSHConnection sshConnection = ConnectWithComputerUsingRetryPolicy(_computer);
+        SSHConnection sshConnection = ConnectWithComputerUsingSSH(_computer);
         if(sshConnection == null)
         {
             return;
@@ -97,7 +97,7 @@ public class ComputerLogger extends Thread
         }
     }
 
-    private SSHConnection ConnectWithComputerUsingRetryPolicy(Computer computer)
+    private SSHConnection ConnectWithComputerUsingSSH(Computer computer)
     {
         String decryptedPassword;
         try
@@ -111,55 +111,23 @@ public class ComputerLogger extends Thread
             return null;
         }
 
-        SSHConnection sshConnection = new SSHConnection();
         try
         {
             // First attempt
+            SSHConnection sshConnection = new SSHConnection();
             sshConnection.OpenConnection(
                     computer.ComputerEntity.Host,
                     computer.ComputerEntity.GetUsername(),
                     decryptedPassword,
                     computer.ComputerEntity.Port,
-                    computer.ComputerEntity.Timeout
+                    Utilities.SSH_Timeout
             );
 
             return sshConnection;
         }
-        catch (SSHConnectionException|IllegalArgumentException e)
+        catch (SSHConnectionException e)
         {
-            // Retries
-            int retryNum = 1;
-            while(retryNum <= Utilities.NumOfRetries)
-            {
-                try
-                {
-                    _logsGatherer.Callback_SSHConnectionAttemptFailed(this);
-
-                    Thread.sleep(Utilities.Cooldown);
-
-                    sshConnection.OpenConnection(
-                            computer.ComputerEntity.Host,
-                            computer.ComputerEntity.GetUsername(),
-                            decryptedPassword,
-                            computer.ComputerEntity.Port,
-                            computer.ComputerEntity.Timeout
-                    );
-
-                    return sshConnection;
-                }
-                catch (SSHConnectionException|IllegalArgumentException ex)
-                {
-                    ++retryNum;
-                }
-                catch (InterruptedException ex)
-                {
-                    sshConnection.CloseConnection();
-                    _logsGatherer.Callback_ThreadSleepInterrupted(this);
-                    return null;
-                }
-            }
-
-            _logsGatherer.Callback_SSHConnectionFailedAfterRetries(this);
+            _logsGatherer.Callback_SSHConnectionFailed(this);
             return null;
         }
     }

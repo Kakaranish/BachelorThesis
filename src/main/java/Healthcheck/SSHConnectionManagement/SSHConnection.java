@@ -1,7 +1,6 @@
 package Healthcheck.SSHConnectionManagement;
 
 import com.jcraft.jsch.*;
-
 import java.io.*;
 import java.util.Properties;
 
@@ -9,7 +8,6 @@ public class SSHConnection
 {
     private JSch _jsch;
     private Session _session = null;
-
     public SSHConnection()
     {
         _jsch = new JSch();
@@ -23,9 +21,9 @@ public class SSHConnection
         {
             _session = GetSession(username, host, password, port, timeout);
         }
-        catch(SSHConnectionException ex)
+        catch(SSHConnectionException e)
         {
-            throw ex;
+            throw e;
         }
     }
 
@@ -35,11 +33,6 @@ public class SSHConnection
             _session.disconnect();
             _session = null;
         }
-    }
-
-    public boolean IsConnectionEstablished()
-    {
-        return _session.isConnected();
     }
 
     public String ExecuteCommand(String command) throws SSHConnectionException
@@ -99,6 +92,11 @@ public class SSHConnection
         return result;
     }
 
+    private boolean IsConnectionEstablished()
+    {
+        return _session.isConnected();
+    }
+
     private Session GetSession(String username, String host, String password, int port, int timeout)
             throws SSHConnectionException
     {
@@ -113,12 +111,12 @@ public class SSHConnection
             session.setConfig(config);
 
             session.connect(timeout);
+            return session;
         }
         catch (JSchException ex)
         {
             throw new SSHConnectionException("Unable to get session.");
         }
-        return session;
     }
 
     private Channel GetChannel(int timeout, String type) throws SSHConnectionException

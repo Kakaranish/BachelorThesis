@@ -60,20 +60,12 @@ public class LogsGatherer
         RemoveComputerFromGatheredComputers(computerLogger);
     }
 
-    public void Callback_SSHConnectionAttemptFailed(ComputerLogger computerLogger)
+    public void Callback_SSHConnectionFailed(ComputerLogger computerLogger)
     {
         String host = computerLogger.GetComputer().ComputerEntity.Host;
-        System.out.println("[ERROR] '" + host + "': Attempt of SSH connection failed.");
+        System.out.println("[FATAL ERROR] '" + host + "': SSH connection failed.");
         RemoveComputerFromGatheredComputers(computerLogger);
     }
-
-    public void Callback_SSHConnectionFailedAfterRetries(ComputerLogger computerLogger)
-    {
-        String host = computerLogger.GetComputer().ComputerEntity.Host;
-        System.out.println("[FATAL ERROR] '" + host + "': SSH connection failed. Max num of retries reached.");
-        RemoveComputerFromGatheredComputers(computerLogger);
-    }
-
 
     private void RemoveComputerFromGatheredComputers(ComputerLogger computerLogger)
     {
