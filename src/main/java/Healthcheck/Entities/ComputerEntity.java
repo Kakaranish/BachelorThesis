@@ -29,7 +29,6 @@ public class ComputerEntity
     private String SSH_EncryptedPassword; // Is encrypted
     private String SSH_Key;
 
-    public int Timeout;
     public int Port;
 
     @Column(nullable = false)
@@ -62,7 +61,6 @@ public class ComputerEntity
             String _SSH_Username,
             String _SSH_EncryptedPassword,
             String _SSH_Key,
-            int timeout,
             int port,
             Duration maintainPeriod,
             Duration requestInterval,
@@ -74,7 +72,6 @@ public class ComputerEntity
         SSH_Username = _SSH_Username;
         SSH_EncryptedPassword = _SSH_EncryptedPassword;
         SSH_Key = _SSH_Key;
-        Timeout = timeout;
         Port = port;
         MaintainPeriod = maintainPeriod;
         RequestInterval = requestInterval;
@@ -87,7 +84,6 @@ public class ComputerEntity
     public ComputerEntity(
             String host,
             User user,
-            int timeout,
             int port,
             Duration maintainPeriod,
             Duration requestInterval,
@@ -97,7 +93,6 @@ public class ComputerEntity
     {
         Host = host;
         User = user;
-        Timeout = timeout;
         Port = port;
         MaintainPeriod = maintainPeriod;
         RequestInterval = requestInterval;
@@ -114,7 +109,6 @@ public class ComputerEntity
         SSH_EncryptedPassword = computerEntity.SSH_EncryptedPassword;
         SSH_Key = computerEntity.SSH_Key;
         User = computerEntity.User != null ? new User(computerEntity.User) : null;
-        Timeout = computerEntity.Timeout;
         Port = computerEntity.Port;
         MaintainPeriod = computerEntity.MaintainPeriod;
         RequestInterval = computerEntity.RequestInterval;
@@ -130,7 +124,6 @@ public class ComputerEntity
         SSH_EncryptedPassword = computerEntity.SSH_EncryptedPassword;
         SSH_Key = computerEntity.SSH_Key;
         User = computerEntity.User;
-        Timeout = computerEntity.Timeout;
         Port = computerEntity.Port;
         MaintainPeriod = computerEntity.MaintainPeriod;
         RequestInterval = computerEntity.RequestInterval;
