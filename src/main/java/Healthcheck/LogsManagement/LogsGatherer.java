@@ -88,8 +88,6 @@ public class LogsGatherer
 
     public void Callback_DatabaseTransactionCommitAttemptFailed(ComputerLogger computerLogger)
     {
-        RemoveComputerFromGatheredComputers(computerLogger);
-
         String host = computerLogger.GetComputer().ComputerEntity.Host;
         String callbackMessage = "[ERROR] '" + host + "': DatabaseManagement transaction commit attempt failed.";
     }
@@ -101,7 +99,7 @@ public class LogsGatherer
         String host = computerLogger.GetComputer().ComputerEntity.Host;
         String callbackMessage = "[FATAL ERROR] '" + host + "': DatabaseManagement transaction commit failed after retries.";
 
-        _logsManager.Callback_ConnectionWithComputerHasBeenBroken(computerLogger.GetComputer(), callbackMessage); // TODO: ?
+//        _logsManager.Callback_ConnectionWithComputerHasBeenBroken(computerLogger.GetComputer(), callbackMessage); // TODO: ?
     }
 
     public void Callback_SSHConnectionExecuteCommandAttemptFailed(ComputerLogger computerLogger)
