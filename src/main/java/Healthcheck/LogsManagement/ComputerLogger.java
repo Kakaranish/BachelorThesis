@@ -17,12 +17,13 @@ import java.util.Random;
 public class ComputerLogger extends Thread
 {
     private Computer _computer;
-    private LogsGatherer _logsGatherer;
+    private LogsManager _logsManager;
+    private SSHConnection _sshConnection;
 
-    public ComputerLogger(LogsGatherer logsManager, Computer computer)
+    public ComputerLogger(LogsManager logsManager, Computer computer)
     {
+        _logsManager = logsManager;
         _computer = computer;
-        _logsGatherer = logsManager;
     }
 
     public void StartGatheringLogs()
@@ -37,18 +38,6 @@ public class ComputerLogger extends Thread
 
     public void run()
     {
-        if(_computer.Preferences.isEmpty())
-        {
-            _logsGatherer.Callback_ComputerHasNoPreferences(this);
-            return;
-        }
-
-        SSHConnection sshConnection = ConnectWithComputerUsingSSH(_computer);
-        if(sshConnection == null)
-        {
-            return;
-        }
-
         while(true)
         {
             Timestamp timestamp = new Timestamp (System.currentTimeMillis());
@@ -56,17 +45,16 @@ public class ComputerLogger extends Thread
             for (IPreference computerPreference : _computer.Preferences)
             {
                 List<BaseEntity> logsToSave =
-                        GetLogsForGivenPreferenceTypeWithRetryPolicy(sshConnection, computerPreference, timestamp);
+                        GetLogsForGivenPreferenceTypeWithRetryPolicy(_sshConnection, computerPreference, timestamp);
                 if(logsToSave == null)
                 {
-                    sshConnection.CloseConnection();
+                    _sshConnection.CloseConnection();
                     return;
                 }
 
                 Session session = DatabaseManager.GetInstance().GetSession();
                 for (BaseEntity log : logsToSave)
                 {
-
                     boolean logSaved = SaveLogToSessionWithRetryPolicy(session, log);
                     if (logSaved == false)
                     {
@@ -76,7 +64,7 @@ public class ComputerLogger extends Thread
                 session.close();
             }
 
-            _logsGatherer.Callback_LogGathered(_computer.ComputerEntity.Host);
+            System.out.println("[INFO] '" + _computer.ComputerEntity.Host + "': Logs have been gathered.");
 
             try
             {
@@ -84,15 +72,34 @@ public class ComputerLogger extends Thread
             }
             catch (InterruptedException e)
             {
-                _logsGatherer.Callback_ThreadSleepInterrupted(this);
+                _logsManager.Callback_GatheringSSHThreadSleepInterrupted(this);
 
-                sshConnection.CloseConnection();
+                _sshConnection.CloseConnection();
                 return;
             }
         }
     }
 
-    private SSHConnection ConnectWithComputerUsingSSH(Computer computer)
+    public void ConnectWithComputerThroughSSH()
+    {
+        if(_computer.Preferences.isEmpty())
+        {
+            System.out.println("[INFO] '" + _computer.ComputerEntity.Host
+                    + "': SSH connection failed - computer has no preferences.");
+            return;
+        }
+
+        new Thread(() -> {
+            _sshConnection = GetSSHConnectionWithComputer(_computer);
+        }).start();
+    }
+
+    public boolean IsConnectedUsingSSH()
+    {
+        return _sshConnection != null;
+    }
+
+    private SSHConnection GetSSHConnectionWithComputer(Computer computer)
     {
         String decryptedPassword;
         try
@@ -101,7 +108,8 @@ public class ComputerLogger extends Thread
         }
         catch (EncrypterException e)
         {
-            _logsGatherer.Callback_UnableToDecryptPassword(this);
+            System.out.println("[FATAL ERROR] '" + _computer.ComputerEntity.Host
+                    + "': SSH connection failed - unable to decrypt password.");
 
             return null;
         }
@@ -117,11 +125,14 @@ public class ComputerLogger extends Thread
                     Utilities.SSH_Timeout
             );
 
+            System.out.println("[INFO] '" + _computer.ComputerEntity.Host + "': SSH connection established.");
             return sshConnection;
         }
         catch (SSHConnectionException e)
         {
-            _logsGatherer.Callback_SSHConnectionFailed(this);
+            System.out.println("[FATAL ERROR] '" + _computer.ComputerEntity.Host
+                    + "': SSH connection failed - timeout.");
+
             return null;
         }
     }
@@ -141,7 +152,9 @@ public class ComputerLogger extends Thread
         catch (Exception e)
         {
             session.getTransaction().rollback();
-            _logsGatherer.Callback_DatabaseTransactionCommitAttemptFailed(this);
+
+            System.out.println("[ERROR] '" + _computer.ComputerEntity.Host
+                    + "': Database transaction commit attempt failed.");
 
             // Retries
             int retryNum = 1;
@@ -161,7 +174,7 @@ public class ComputerLogger extends Thread
                 }
                 catch (InterruptedException ex)
                 {
-                    _logsGatherer.Callback_ThreadSleepInterrupted(this);
+                    _logsManager.Callback_GatheringThreadSleepInterrupted(this);
                     return false;
                 }
                 catch (Exception ex)
@@ -169,11 +182,12 @@ public class ComputerLogger extends Thread
                     session.getTransaction().rollback();
                     ++retryNum;
 
-                    _logsGatherer.Callback_DatabaseTransactionCommitAttemptFailed(this);
+                    System.out.println("[ERROR] '" + _computer.ComputerEntity.Host
+                            + "': Database transaction commit attempt failed.");
                 }
             }
 
-            _logsGatherer.Callback_DatabaseTransactionCommitFailedAfterRetries(this);
+            _logsManager.Callback_GatheringDatabaseTransactionCommitFailedAfterRetries(this);
             return false;
         }
     }
@@ -198,7 +212,8 @@ public class ComputerLogger extends Thread
             {
                 try
                 {
-                    _logsGatherer.Callback_SSHConnectionExecuteCommandAttemptFailed(this);
+                    System.out.println("[FATAL ERROR] '" + _computer.ComputerEntity.Host
+                            + "': SSH connection command execution attempt failed.");
 
                     Thread.sleep(Utilities.Cooldown);
 
@@ -215,12 +230,12 @@ public class ComputerLogger extends Thread
                 catch (InterruptedException ex)
                 {
                     sshConnection.CloseConnection();
-                    _logsGatherer.Callback_ThreadSleepInterrupted(this);
+                    _logsManager.Callback_GatheringThreadSleepInterrupted(this);
                     return null;
                 }
             }
 
-            _logsGatherer.Callback_SSHConnectionExecuteCommandFailedAfterRetries(this);
+            _logsManager.Callback_SSHConnectionExecuteCommandFailedAfterRetries(this);
             return null;
         }
     }

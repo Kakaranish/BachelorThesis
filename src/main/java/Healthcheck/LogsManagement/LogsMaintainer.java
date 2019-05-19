@@ -11,8 +11,7 @@ import javax.persistence.Query;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Random;
 
 public class LogsMaintainer extends Thread
 {
@@ -28,46 +27,25 @@ public class LogsMaintainer extends Thread
         }
     }
 
-    private ComputerManager _computerManager;
+    private LogsManager _logsManager;
 
-    private List<Computer> _gatheredComputers;
     private volatile boolean _isMaintaining = false;
 
-    public LogsMaintainer(ComputerManager computerManager)
+    public LogsMaintainer(LogsManager logsManager)
     {
-        _computerManager = computerManager;
-
-        _gatheredComputers = new ArrayList<>();
+        _logsManager = logsManager;
     }
 
-    public void StopMaintainingLogsForSingleComputer(Computer computer) throws LogsException
-    {
-        if(_isMaintaining == false)
-        {
-            String host = computer.ComputerEntity.Host;
-            throw new LogsException("[FATAL ERROR] Unable to stop maintaining logs for '" + host + "'. No maintainer is working.");
-        }
-
-        if(_gatheredComputers.contains(computer) == false)
-        {
-            String host = computer.ComputerEntity.Host;
-            throw new LogsException("[FATAL ERROR] Unable to stop maintaining logs for '" + host + "'. Host isn't maintained.");
-        }
-
-        _gatheredComputers.remove(computer);
-    }
-
-    public void StartMaintainingLogs(List<Computer> gatheredComputers) throws LogsException
+    public void StartMaintainingLogs() throws LogsException
     {
         if(_isMaintaining == true)
         {
             throw new LogsException("[FATAL ERROR] Unable to start maintaining logs. Other maintainer currently is working.");
         }
 
-        System.out.println("[INFO] Logs maintainer started work.");
+        System.out.println("[INFO] LogsMaintainer started its work.");
 
         _isMaintaining = true;
-        _gatheredComputers = gatheredComputers;
 
         this.start();
     }
@@ -76,27 +54,24 @@ public class LogsMaintainer extends Thread
     {
         if(_isMaintaining == false)
         {
-            throw new LogsException("[FATAL ERROR] Unable to stop maintaining logs. No maintainer is working.");
+            throw new LogsException("[FATAL ERROR] LogsMaintainer: Unable to stop maintaining logs. No maintainer is working.");
         }
 
-        System.out.println("[INFO] Logs maintainer stopped work.");
+        System.out.println("[INFO] LogsMaintainer stopped its work.");
 
         _isMaintaining = false;
-        _gatheredComputers = null;
 
         this.interrupt();
     }
 
     public void run()
     {
-        _isMaintaining = true;
-
         while(_isMaintaining)
         {
             ArrayDeque<Computer> computersToMaintain = new ArrayDeque<>();
             ComputerAndTimeToMaintainPair computerWithLowestTimeToMaintain = null;
 
-            for (Computer computer : Utilities.GetComputersWithSetPreferences(_gatheredComputers))
+            for (Computer computer : _logsManager.GetConnectedComputers())
             {
                 long computerTimeToMaintenance = GetComputerTimeToMaintenance(computer);
 
@@ -127,7 +102,7 @@ public class LogsMaintainer extends Thread
             else
             {
                 long timeToNextMaintain = Duration.ofMillis(computerWithLowestTimeToMaintain.TimeToMaintain).toSeconds();
-                System.out.println("[INFO] Next maintenance will be taken in " + timeToNextMaintain + "s");
+                System.out.println("[INFO] LogsMaintainer: Next maintenance will be taken in " + timeToNextMaintain + "s");
 
                 try
                 {
@@ -135,11 +110,11 @@ public class LogsMaintainer extends Thread
                 }
                 catch (InterruptedException|IllegalArgumentException e)
                 {
-                    e.printStackTrace();
-                    System.out.println(e.getMessage());
+                    _logsManager.Callback_MaintainingThreadSleepInterrupted();
                 }
 
                 MaintainComputer(computerWithLowestTimeToMaintain.Computer);
+
                 String host = computerWithLowestTimeToMaintain.Computer.ComputerEntity.Host;
                 System.out.println("[INFO] '" + host+ "' was maintained.");
             }
@@ -149,40 +124,85 @@ public class LogsMaintainer extends Thread
     public void MaintainComputer(Computer computer)
     {
         long logExpiration = computer.ComputerEntity.LogExpiration.toMillis();
-        Session session = DatabaseManager.GetInstance().GetSession();
 
+        Session session = DatabaseManager.GetInstance().GetSession();
+        for (IPreference computerPreference : computer.Preferences)
+        {
+            Long now = System.currentTimeMillis();
+
+            Query query = null;
+
+            String hql = "delete from " + computerPreference.GetClassName() + " t "+
+                    "where t.ComputerEntity = :computerEntity " +
+                    "and (" + now  + " - t.Timestamp) > " + logExpiration;
+            query = session.createQuery(hql);
+            query.setParameter("computerEntity", computer.ComputerEntity);
+
+            boolean removingLogsSucceed =
+                    ExecuteQueryWithRetryPolicy(session, query, _logsManager.GetComputerLoggerForComputer(computer));
+            if (removingLogsSucceed == false)
+            {
+                session.close();
+                return;
+            }
+        }
+        session.close();
+
+        Timestamp nowTimestamp = new Timestamp(System.currentTimeMillis());
+        _logsManager.SetComputerLastMaintenance(computer, nowTimestamp);
+    }
+
+    private boolean ExecuteQueryWithRetryPolicy(Session session, Query query, ComputerLogger computerLogger)
+    {
         try
         {
             session.beginTransaction();
-            for (IPreference computerPreference : computer.Preferences)
-            {
-                Long now = System.currentTimeMillis();
-
-                String hql = "delete from " + computerPreference.GetClassName() + " t "+
-                        "where t.ComputerEntity = :computerEntity " +
-                        "and (" + now  + " - t.Timestamp) > " + logExpiration;
-
-                Query query = session.createQuery(hql);
-                query.setParameter("computerEntity", computer.ComputerEntity);
-
-                query.executeUpdate();
-            }
+            query.executeUpdate();
+            session.flush();
             session.getTransaction().commit();
-        }
-        catch (PersistenceException e)
-        {
-            String host = computer.ComputerEntity.Host;
-            throw new DatabaseException("[FATAL ERROR] Unable to maintain '" + host + "' logs.");
-        }
-        finally
-        {
-            session.close();
-        }
 
-        // Set computer last maintenance time to now
-        Computer newComputer = new Computer(computer);
-        newComputer.ComputerEntity.LastMaintenance = new Timestamp(System.currentTimeMillis());
-        _computerManager.UpdateComputer(computer, newComputer.ComputerEntity);
+            return true;
+        }
+        catch (Exception e)
+        {
+            System.out.println("[ERROR] '"
+                    + computerLogger.GetComputer().ComputerEntity.Host + "': Executing query attempt failed");
+
+            session.getTransaction().rollback();
+
+            int retryNum = 1;
+            while(retryNum <= Utilities.LogSaveNumOfRetries)
+            {
+                try
+                {
+                    Thread.sleep(Utilities.LogSaveRetryCooldown
+                            + new Random().ints(0,45).findFirst().getAsInt());
+
+                    session.beginTransaction();
+                    query.executeUpdate();
+                    session.flush();
+                    session.getTransaction().commit();
+
+                    return true;
+                }
+                catch (InterruptedException ex)
+                {
+                    _logsManager.Callback_MaintainingComputerLoggerThreadSleepInterrupted(computerLogger);
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    session.getTransaction().rollback();
+                    ++retryNum;
+
+                    System.out.println("[ERROR] '"
+                            + computerLogger.GetComputer().ComputerEntity.Host + "': Executing query attempt failed");
+                }
+            }
+
+            _logsManager.Callback_MaintainingExecuteQueryFailedAfterRetries(computerLogger);
+            return false;
+        }
     }
 
     public void RemoveAllLogsAssociatedWithComputers(Computer computer) throws DatabaseException
@@ -225,8 +245,6 @@ public class LogsMaintainer extends Thread
                     " t where t.ComputerEntity = :computerEntity";
             Query query = session.createQuery(hql);
             query.setParameter("computerEntity", computer.ComputerEntity);
-
-            query.executeUpdate();
         }
     }
 

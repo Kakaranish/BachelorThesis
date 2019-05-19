@@ -1,21 +1,26 @@
 package Healthcheck.LogsManagement;
 
 import Healthcheck.Computer;
+import Healthcheck.ComputerManager;
 import Healthcheck.Utilities;
-
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class LogsManager
 {
     private LogsGatherer _logsGatherer;
     private LogsMaintainer _logsMaintainer;
+    private ComputerManager _computerManager;
+    private List<ComputerLogger> _connectedComputerLoggers;
 
-    public LogsManager()
+    public LogsManager(ComputerManager computerManager)
     {
+        _computerManager = computerManager;
     }
 
-    public void StartWork(LogsGatherer logsGatherer, LogsMaintainer logsMaintainer, List<Computer> selectedComputers)
-            throws LogsException, NothingToDoException
+    public void StartWork() throws LogsException, NothingToDoException
     {
         if(_logsGatherer != null && _logsMaintainer != null)
         {
@@ -23,29 +28,18 @@ public class LogsManager
         }
         else
         {
-            _logsGatherer = logsGatherer;
-            _logsMaintainer = logsMaintainer;
+            _logsGatherer = new LogsGatherer(this);
+            _logsMaintainer = new LogsMaintainer(this);
         }
 
-        _logsGatherer.StartGatheringLogs(selectedComputers);
-
-        try
+        _connectedComputerLoggers = GetReachableComputerLoggers(_computerManager.GetSelectedComputers());
+        if(_connectedComputerLoggers.isEmpty())
         {
-            Thread.sleep((long)(Utilities.SSH_Timeout + 500)); // 500 is safe time to end logs gathering for unreachable computers
-        }
-        catch (InterruptedException e)
-        {
-            throw new LogsException("[FATAL ERROR] Thread sleep was interrupted in LogsManager.");
+            throw new NothingToDoException("[INFO] LogsManager: No computers to maintenance & logs gathering.");
         }
 
-        List<Computer> gatheredComputers = _logsGatherer.GetGatheredComputers();
-        if(gatheredComputers.isEmpty())
-        {
-            _logsGatherer.StopGatheringLogsForAllComputerLoggers();
-            throw new NothingToDoException("[INFO] No computers to logs gathering & maintaining.");
-        }
-
-        _logsMaintainer.StartMaintainingLogs(gatheredComputers);
+        _logsGatherer.StartGatheringLogs();
+        _logsMaintainer.StartMaintainingLogs();
     }
 
     public void StopWork()
@@ -53,20 +47,155 @@ public class LogsManager
         // TODO
     }
 
-    public void Callback_ConnectionWithComputerHasBeenBroken(Computer computer, String callbackMessage)
+    public List<ComputerLogger> GetConnectedComputerLoggers()
     {
-        System.out.println(callbackMessage);
+        return _connectedComputerLoggers;
+    }
+
+    public List<Computer> GetConnectedComputers()
+    {
+        List<Computer> connectedComputers = _connectedComputerLoggers.stream()
+                .map(ComputerLogger::GetComputer).collect(Collectors.toList());
+
+        return connectedComputers;
+    }
+
+    public void SetComputerLastMaintenance(Computer computer, Timestamp timestamp)
+    {
+        Computer newComputer = new Computer(computer);
+        newComputer.ComputerEntity.LastMaintenance = timestamp;
+        _computerManager.UpdateComputer(computer, newComputer.ComputerEntity);
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // Callbacks connected with GATHERING
+    /////////////////////////////////////////////////////////////////////////
+
+    public void GatheringCallback_StopManagementForComputerLogger(ComputerLogger computerLogger)
+    {
+        if(_connectedComputerLoggers.contains(computerLogger))
+        {
+            _connectedComputerLoggers.remove(computerLogger);
+            System.out.println("[INFO] LogsGatherer stopped gathering logs for '"
+                    + computerLogger.GetComputer().ComputerEntity.Host + "'.");
+        }
+    }
+
+    public void Callback_GatheringSSHThreadSleepInterrupted(ComputerLogger computerLogger)
+    {
+        String host = computerLogger.GetComputer().ComputerEntity.Host;
+        System.out.println("[FATAL ERROR] '" + host + "': SSH connection failed. Thread sleep interrupted.");
+
+        GatheringCallback_StopManagementForComputerLogger(computerLogger);
+    }
+
+    public void Callback_GatheringThreadSleepInterrupted(ComputerLogger computerLogger)
+    {
+        String host = computerLogger.GetComputer().ComputerEntity.Host;
+        System.out.println("[FATAL ERROR] '" + host + "': Gathering failed. Thread sleep interrupted.");
+
+        GatheringCallback_StopManagementForComputerLogger(computerLogger);
+    }
+
+    public void Callback_GatheringDatabaseTransactionCommitFailedAfterRetries(ComputerLogger computerLogger)
+    {
+        String host = computerLogger.GetComputer().ComputerEntity.Host;
+        System.out.println("[FATAL ERROR] '" + host + "': Database transaction commit failed after retries.");
+
+        GatheringCallback_StopManagementForComputerLogger(computerLogger);
+    }
+
+    public void Callback_SSHConnectionExecuteCommandFailedAfterRetries(ComputerLogger computerLogger)
+    {
+        String host = computerLogger.GetComputer().ComputerEntity.Host;
+        System.out.println("[FATAL ERROR] '" + host + "': SSH connection command execution failed after retries.");
+
+        GatheringCallback_StopManagementForComputerLogger(computerLogger);
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // Callbacks connected with MAINTAINING
+    /////////////////////////////////////////////////////////////////////////
+
+    public void MaintainingCallback_StopWork()
+    {
+        StopWork();
+    }
+
+    public void MaintainingCallback_StopManagementForComputerLogger(ComputerLogger computerLogger)
+    {
+        _logsGatherer.StopGatheringLogsForSingleComputerLogger(computerLogger);
+        if(_connectedComputerLoggers.contains(computerLogger))
+        {
+            _connectedComputerLoggers.remove(computerLogger);
+        }
+    }
+
+    public void Callback_MaintainingThreadSleepInterrupted()
+    {
+        System.out.println("[FATAL ERROR] Maintaining logs for all computer loggers failed. Main thread sleep interrupted.");
+
+        MaintainingCallback_StopWork();
+    }
+
+    public void Callback_MaintainingComputerLoggerThreadSleepInterrupted(ComputerLogger computerLogger)
+    {
+        System.out.println("[FATAL ERROR] '" + computerLogger.GetComputer().ComputerEntity.Host
+                + "': Maintaining logs failed - thread sleep interrupted.");
+
+        MaintainingCallback_StopManagementForComputerLogger(computerLogger);
+    }
+
+    public void Callback_MaintainingExecuteQueryFailedAfterRetries(ComputerLogger computerLogger)
+    {
+        System.out.println("[FATAL ERROR] '" + computerLogger.GetComputer().ComputerEntity.Host
+                + "': Maintaining logs failed - executing query failed after retries.");
+
+        MaintainingCallback_StopManagementForComputerLogger(computerLogger);
+    }
+
+    private List<ComputerLogger> GetReachableComputerLoggers(List<Computer> selectedComputers) throws LogsException
+    {
+        List<ComputerLogger> connectedComputerLoggers = new ArrayList<>();
+        for (Computer selectedComputer : selectedComputers)
+        {
+            ComputerLogger computerLogger = new ComputerLogger(this, selectedComputer);
+            computerLogger.ConnectWithComputerThroughSSH();
+
+            connectedComputerLoggers.add(computerLogger);
+        }
 
         try
         {
-            _logsMaintainer.StopMaintainingLogsForSingleComputer(computer);
-            System.out.println("[INFO] Logs maintainer stopped work stopped for '" + computer.ComputerEntity.Host + "'.");
-
-            //TODO: Check if any computer is still being maintaning and logs gathering
+            Thread.sleep((long)(Utilities.SSH_Timeout + 500));  /* 500ms is safe time offset when delay
+                                                                   related with making connections occurs */
         }
-        catch (LogsException e)
+        catch (InterruptedException e)
         {
-            e.printStackTrace();
+            CleanUp();
+            throw new LogsException("[FATAL ERROR] Thread sleep was interrupted in LogsManager.");
         }
+
+        connectedComputerLoggers = connectedComputerLoggers.stream()
+                .filter(c -> c.IsConnectedUsingSSH() == true &&
+                        c.GetComputer().ComputerEntity.Preferences.isEmpty() == false)
+                .collect(Collectors.toList());
+
+        return  connectedComputerLoggers;
+    }
+
+    public ComputerLogger GetComputerLoggerForComputer(Computer computer)
+    {
+        List<ComputerLogger> results = _connectedComputerLoggers.stream()
+                .filter(c -> c.GetComputer() == computer).collect(Collectors.toList());
+
+        return results.isEmpty()? null : results.get(0);
+    }
+
+    private void CleanUp()
+    {
+        _logsGatherer = null;
+        _logsMaintainer = null;
+        _connectedComputerLoggers = null;
     }
 }

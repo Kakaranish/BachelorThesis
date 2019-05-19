@@ -1,31 +1,22 @@
 package Healthcheck.LogsManagement;
 
-import Healthcheck.Computer;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class LogsGatherer
 {
     private LogsManager _logsManager;
-
-    private List<ComputerLogger> _gatheredComputers;
 
     public LogsGatherer(LogsManager logsManager)
     {
         _logsManager = logsManager;
     }
 
-    public void StartGatheringLogs(List<Computer> selectedComputers)
+    public void StartGatheringLogs()
     {
-        List<ComputerLogger> computersToGather = new ArrayList<>();
-        for (Computer computerToGather : selectedComputers)
-        {
-            computersToGather.add(new ComputerLogger(this, computerToGather));
-        }
+        System.out.println("[INFO] LogsGatherer started its work.");
 
-        _gatheredComputers = computersToGather;
-
-        for (ComputerLogger computerLogger : _gatheredComputers)
+        for (ComputerLogger computerLogger : _logsManager.GetConnectedComputerLoggers())
         {
             computerLogger.StartGatheringLogs();
         }
@@ -33,109 +24,28 @@ public class LogsGatherer
 
     public void StopGatheringLogsForAllComputerLoggers()
     {
-        for (ComputerLogger gatheredComputer : _gatheredComputers)
+        System.out.println("[INFO] LogsGatherer stopped its work.");
+
+        for (ComputerLogger gatheredComputer : _logsManager.GetConnectedComputerLoggers())
         {
             gatheredComputer.StopGatheringLogs();
         }
-
-        System.out.println("[INFO] Gathering logs for all computers has been stopped.");
     }
 
-    // -----------------------------------------------------------------------------------------------------------------
-    // -------------------------------------------------  CALLBACKS  ---------------------------------------------------
-
-    public void Callback_LogGathered(String host)
+    public void StopGatheringLogsForSingleComputerLogger(ComputerLogger computerLogger)
     {
-        System.out.println("[INFO] '" + host + "': Logs have been gathered.");
-    }
-
-    /////////////////////////////////////////////////////////////////////////
-    // Callbacks that may occur during attempting to make connection
-    /////////////////////////////////////////////////////////////////////////
-
-    public void Callback_UnableToDecryptPassword(ComputerLogger computerLogger)
-    {
-        String host = computerLogger.GetComputer().ComputerEntity.Host;
-        System.out.println("[FATAL ERROR] '" + host + "': Connection failed. Unable to decrypt password.");
-        RemoveComputerFromGatheredComputers(computerLogger);
-    }
-
-    public void Callback_SSHConnectionFailed(ComputerLogger computerLogger)
-    {
-        String host = computerLogger.GetComputer().ComputerEntity.Host;
-        System.out.println("[FATAL ERROR] '" + host + "': SSH connection failed.");
-        RemoveComputerFromGatheredComputers(computerLogger);
-    }
-
-    private void RemoveComputerFromGatheredComputers(ComputerLogger computerLogger)
-    {
-        _gatheredComputers.remove(computerLogger);
-    }
-
-    /////////////////////////////////////////////////////////////////////////
-    // Callbacks that may occur when connected with computer
-    /////////////////////////////////////////////////////////////////////////
-
-    public void Callback_ThreadSleepInterrupted(ComputerLogger computerLogger)
-    {
-        RemoveComputerFromGatheredComputers(computerLogger);
-
-        String host = computerLogger.GetComputer().ComputerEntity.Host;
-        String callbackMessage = "[FATAL ERROR] '" + host + "': SSH connection failed. Thread sleep interrupted.";
-
-        _logsManager.Callback_ConnectionWithComputerHasBeenBroken(computerLogger.GetComputer(), callbackMessage); // TODO: ?
-    }
-
-    public void Callback_DatabaseTransactionCommitAttemptFailed(ComputerLogger computerLogger)
-    {
-        String host = computerLogger.GetComputer().ComputerEntity.Host;
-        String callbackMessage = "[ERROR] '" + host + "': DatabaseManagement transaction commit attempt failed.";
-    }
-
-    public void Callback_DatabaseTransactionCommitFailedAfterRetries(ComputerLogger computerLogger)
-    {
-        RemoveComputerFromGatheredComputers(computerLogger);
-
-        String host = computerLogger.GetComputer().ComputerEntity.Host;
-        String callbackMessage = "[FATAL ERROR] '" + host + "': DatabaseManagement transaction commit failed after retries.";
-
-//        _logsManager.Callback_ConnectionWithComputerHasBeenBroken(computerLogger.GetComputer(), callbackMessage); // TODO: ?
-    }
-
-    public void Callback_SSHConnectionExecuteCommandAttemptFailed(ComputerLogger computerLogger)
-    {
-        String host = computerLogger.GetComputer().ComputerEntity.Host;
-        System.out.println("[FATAL ERROR] '" + host + "': SSH connection execute command attempt failed.");
-    }
-
-    public void Callback_SSHConnectionExecuteCommandFailedAfterRetries(ComputerLogger computerLogger)
-    {
-        String host = computerLogger.GetComputer().ComputerEntity.Host;
-        System.out.println("[FATAL ERROR] '" + host + "': SSH connection execute command failed after retries.");
-        RemoveComputerFromGatheredComputers(computerLogger);
-
-        // TODO: Add callback to _logsManager
-    }
-
-    public void Callback_ComputerHasNoPreferences(ComputerLogger computerLogger)
-    {
-        String host = computerLogger.GetComputer().ComputerEntity.Host;
-        System.out.println("[INFO] '" + host + "': Maintaining & log gathering cannot be performed for computer. Computer has no preferences.");
-        RemoveComputerFromGatheredComputers(computerLogger);
-    }
-
-    // -----------------------------------------------------------------------------------------------------------------
-    // --------------------------------------------------- GETTERS -----------------------------------------------------
-
-    public List<Computer> GetGatheredComputers()
-    {
-        List<Computer> gatheredComputers = new ArrayList<>();
-
-        for (ComputerLogger gatheredComputer : _gatheredComputers)
+        if(_logsManager.GetConnectedComputerLoggers().contains(computerLogger) == false)
         {
-            gatheredComputers.add(gatheredComputer.GetComputer());
+            return;
         }
 
-        return gatheredComputers;
+        List<ComputerLogger> results = _logsManager.GetConnectedComputerLoggers().stream()
+                .filter(c -> c == computerLogger).collect(Collectors.toList());
+        if(results.isEmpty() == false)
+        {
+            results.get(0).StopGatheringLogs();
+            System.out.println("[INFO] LogsGatherer stopped gathering logs for '"
+                    + computerLogger.GetComputer().ComputerEntity.Host + "'.");
+        }
     }
 }
