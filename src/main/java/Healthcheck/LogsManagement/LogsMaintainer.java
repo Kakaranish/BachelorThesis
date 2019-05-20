@@ -166,7 +166,7 @@ public class LogsMaintainer extends Thread
         {
             System.out.println(e.getMessage());
             System.out.println("[ERROR] '"
-                    + computerLogger.GetComputer().ComputerEntity.Host + "': Executing query attempt failed");
+                    + computerLogger.GetComputer().ComputerEntity.Host + "': LogsMaintainer - executing query attempt failed");
 
             session.getTransaction().rollback();
 
@@ -196,7 +196,7 @@ public class LogsMaintainer extends Thread
                     ++retryNum;
 
                     System.out.println("[ERROR] '"
-                            + computerLogger.GetComputer().ComputerEntity.Host + "': Executing query attempt failed");
+                            + computerLogger.GetComputer().ComputerEntity.Host + "': LogsMaintainer - query attempt failed");
                 }
             }
 
@@ -205,6 +205,7 @@ public class LogsMaintainer extends Thread
         }
     }
 
+    // TODO: Add retry policy
     public void RemoveAllLogsAssociatedWithComputers(Computer computer) throws DatabaseException
     {
         Session session = DatabaseManager.GetInstance().GetSession();
