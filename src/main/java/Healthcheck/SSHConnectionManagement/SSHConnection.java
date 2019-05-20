@@ -1,5 +1,6 @@
 package Healthcheck.SSHConnectionManagement;
 
+import Healthcheck.Utilities;
 import com.jcraft.jsch.*;
 import java.io.*;
 import java.util.Properties;
@@ -45,7 +46,7 @@ public class SSHConnection
         String result = new String();
         try
         {
-            ChannelExec channel = (ChannelExec) GetChannel(3000, "exec");
+            ChannelExec channel = (ChannelExec) GetChannel(Utilities.SSHTimeout, "exec");
             channel.setInputStream(null);
             channel.setCommand(command);
             channel.setErrStream(System.err);
