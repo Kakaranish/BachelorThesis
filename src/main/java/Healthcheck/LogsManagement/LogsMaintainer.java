@@ -134,7 +134,6 @@ public class LogsMaintainer extends Thread
                     "where t.ComputerEntity = :computerEntity " +
                     "and (" + now  + " - t.Timestamp) > " + logExpiration;
             Query query = session.createQuery(hql);
-//            query.setLockMode(LockModeType.PESSIMISTIC_WRITE);
             query.setParameter("computerEntity", computer.ComputerEntity);
 
             boolean removingLogsSucceed =
@@ -164,9 +163,9 @@ public class LogsMaintainer extends Thread
         }
         catch (Exception e)
         {
-            System.out.println(e.getMessage());
             System.out.println("[ERROR] '"
-                    + computerLogger.GetComputer().ComputerEntity.Host + "': LogsMaintainer - executing query attempt failed");
+                    + computerLogger.GetComputer().ComputerEntity.Host
+                    + "': LogsMaintainer - executing query attempt failed. Database is locked.");
 
             session.getTransaction().rollback();
 
@@ -196,7 +195,8 @@ public class LogsMaintainer extends Thread
                     ++retryNum;
 
                     System.out.println("[ERROR] '"
-                            + computerLogger.GetComputer().ComputerEntity.Host + "': LogsMaintainer - query attempt failed");
+                            + computerLogger.GetComputer().ComputerEntity.Host
+                            + "': LogsMaintainer - query attempt failed. Database is locked.");
                 }
             }
 

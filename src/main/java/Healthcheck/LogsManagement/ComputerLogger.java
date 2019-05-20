@@ -154,7 +154,7 @@ public class ComputerLogger extends Thread
             session.getTransaction().rollback();
 
             System.out.println("[ERROR] '" + _computer.ComputerEntity.Host
-                    + "': LogsGatherer - transaction commit attempt failed.");
+                    + "': LogsGatherer - transaction commit attempt failed. Database is locked.");
             // Retries
             int retryNum = 1;
             while(retryNum <= Utilities.LogSaveNumOfRetries)
@@ -181,7 +181,7 @@ public class ComputerLogger extends Thread
                     ++retryNum;
 
                     System.out.println("[ERROR] '" + _computer.ComputerEntity.Host
-                            + "': LogsGatherer - transaction commit attempt failed.");
+                            + "': LogsGatherer - transaction commit attempt failed. Database is locked.");
                 }
             }
 
