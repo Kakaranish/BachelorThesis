@@ -14,15 +14,17 @@ import java.util.stream.Collectors;
 
 public class Utilities
 {
-    public static final int NumOfRetries = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("NumOfRetries"));
+    public static final int GetLogsUsingSSHNumOfRetries = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("GetLogsUsingSSHNumOfRetries"));
 
-    public static final int Cooldown = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("Cooldown"));
+    public static final int GetLogsUsingSSHCooldown = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("GetLogsUsingSSHCooldown"));
 
-    public static final int SSH_Timeout = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("SSH_Timeout"));
+    public static final int SSHTimeout = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("SSHTimeout"));
 
     public static final int LogSaveNumOfRetries = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("LogSaveNumOfRetries"));
 
-    public static final int LogSaveRetryCooldown= Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("LogSaveRetryCooldown"));
+    public static final int LogSaveRetryCooldown = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("LogSaveRetryCooldown"));
+
+    public static final int GatheringStartDelay = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("GatheringStartDelay"));
 
     public static final List<Preference> AvailablePreferences = GetAvailablePreferencesFromDb();
 
