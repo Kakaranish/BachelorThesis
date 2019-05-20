@@ -1,5 +1,6 @@
 package Healthcheck.LogsManagement;
 
+import Healthcheck.Utilities;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,7 +22,7 @@ public class LogsGatherer
             {
                 try
                 {
-                    Thread.sleep(1000);
+                    Thread.sleep(Utilities.GatheringStartDelay);
                 }
                 catch (InterruptedException e)
                 {
