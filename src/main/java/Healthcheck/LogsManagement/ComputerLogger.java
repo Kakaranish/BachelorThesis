@@ -73,7 +73,7 @@ public class ComputerLogger extends Thread
             }
             catch (InterruptedException e)
             {
-                _logsManager.Callback_GatheringSSHThreadSleepInterrupted(this);
+                _logsManager.Callback_Gatherer_SSHThreadSleepInterrupted(this);
 
                 _sshConnection.CloseConnection();
                 return;
@@ -172,7 +172,7 @@ public class ComputerLogger extends Thread
                 }
                 catch (InterruptedException ex)
                 {
-                    _logsManager.Callback_GatheringThreadSleepInterrupted(this);
+                    _logsManager.Callback_Gatherer_ThreadSleepInterrupted(this);
                     return false;
                 }
                 catch (Exception ex)
@@ -185,7 +185,7 @@ public class ComputerLogger extends Thread
                 }
             }
 
-            _logsManager.Callback_GatheringDatabaseTransactionCommitFailedAfterRetries(this);
+            _logsManager.Callback_Gatherer_DatabaseTransactionCommitFailedAfterRetries(this);
             return false;
         }
     }
@@ -228,12 +228,12 @@ public class ComputerLogger extends Thread
                 catch (InterruptedException ex)
                 {
                     sshConnection.CloseConnection();
-                    _logsManager.Callback_GatheringThreadSleepInterrupted(this);
+                    _logsManager.Callback_Gatherer_ThreadSleepInterrupted(this);
                     return null;
                 }
             }
 
-            _logsManager.Callback_SSHConnectionExecuteCommandFailedAfterRetries(this);
+            _logsManager.Callback_Gatherer_SSHConnectionExecuteCommandFailedAfterRetries(this);
             return null;
         }
     }

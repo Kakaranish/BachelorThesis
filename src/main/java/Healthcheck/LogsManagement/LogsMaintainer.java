@@ -110,7 +110,7 @@ public class LogsMaintainer extends Thread
                 }
                 catch (InterruptedException|IllegalArgumentException e)
                 {
-                    _logsManager.Callback_MaintainingThreadSleepInterrupted();
+                    _logsManager.Callback_Maintainer_ThreadSleepInterrupted();
                 }
 
                 MaintainComputer(computerWithLowestTimeToMaintain.Computer);
@@ -187,7 +187,7 @@ public class LogsMaintainer extends Thread
                 }
                 catch (InterruptedException ex)
                 {
-                    _logsManager.Callback_MaintainingComputerLoggerThreadSleepInterrupted(computerLogger);
+                    _logsManager.Callback_Maintainer_ComputerLoggerThreadSleepInterrupted(computerLogger);
                     return false;
                 }
                 catch (Exception ex)
@@ -200,7 +200,7 @@ public class LogsMaintainer extends Thread
                 }
             }
 
-            _logsManager.Callback_MaintainingExecuteQueryFailedAfterRetries(computerLogger);
+            _logsManager.Callback_Maintainer_ExecuteQueryFailedAfterRetries(computerLogger);
             return false;
         }
     }

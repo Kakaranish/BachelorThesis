@@ -71,7 +71,7 @@ public class LogsManager
     // Callbacks connected with GATHERING
     /////////////////////////////////////////////////////////////////////////
 
-    public void GatheringCallback_StopManagementForComputerLogger(ComputerLogger computerLogger)
+    public void Callback_Gatherer_StopManagementForComputerLogger(ComputerLogger computerLogger)
     {
         if(_connectedComputerLoggers.contains(computerLogger))
         {
@@ -83,48 +83,48 @@ public class LogsManager
         }
     }
 
-    public void Callback_GatheringSSHThreadSleepInterrupted(ComputerLogger computerLogger)
+    public void Callback_Gatherer_SSHThreadSleepInterrupted(ComputerLogger computerLogger)
     {
         String host = computerLogger.GetComputer().ComputerEntity.Host;
         System.out.println("[FATAL ERROR] '" + host + "': SSH connection failed. Thread sleep interrupted.");
 
-        GatheringCallback_StopManagementForComputerLogger(computerLogger);
+        Callback_Gatherer_StopManagementForComputerLogger(computerLogger);
     }
 
-    public void Callback_GatheringThreadSleepInterrupted(ComputerLogger computerLogger)
+    public void Callback_Gatherer_ThreadSleepInterrupted(ComputerLogger computerLogger)
     {
         String host = computerLogger.GetComputer().ComputerEntity.Host;
         System.out.println("[FATAL ERROR] '" + host + "': Gathering failed. Thread sleep interrupted.");
 
-        GatheringCallback_StopManagementForComputerLogger(computerLogger);
+        Callback_Gatherer_StopManagementForComputerLogger(computerLogger);
     }
 
-    public void Callback_GatheringDatabaseTransactionCommitFailedAfterRetries(ComputerLogger computerLogger)
+    public void Callback_Gatherer_DatabaseTransactionCommitFailedAfterRetries(ComputerLogger computerLogger)
     {
         String host = computerLogger.GetComputer().ComputerEntity.Host;
         System.out.println("[FATAL ERROR] '" + host + "': Database transaction commit failed after retries.");
 
-        GatheringCallback_StopManagementForComputerLogger(computerLogger);
+        Callback_Gatherer_StopManagementForComputerLogger(computerLogger);
     }
 
-    public void Callback_SSHConnectionExecuteCommandFailedAfterRetries(ComputerLogger computerLogger)
+    public void Callback_Gatherer_SSHConnectionExecuteCommandFailedAfterRetries(ComputerLogger computerLogger)
     {
         String host = computerLogger.GetComputer().ComputerEntity.Host;
         System.out.println("[FATAL ERROR] '" + host + "': SSH connection command execution failed after retries.");
 
-        GatheringCallback_StopManagementForComputerLogger(computerLogger);
+        Callback_Gatherer_StopManagementForComputerLogger(computerLogger);
     }
 
     /////////////////////////////////////////////////////////////////////////
     // Callbacks connected with MAINTAINING
     /////////////////////////////////////////////////////////////////////////
 
-    public void MaintainingCallback_StopWork()
+    public void Callback_Maintainer_StopWork()
     {
         StopWork();
     }
 
-    public void MaintainingCallback_StopManagementForComputerLogger(ComputerLogger computerLogger)
+    public void Callback_Maintainer_StopManagementForComputerLogger(ComputerLogger computerLogger)
     {
         _logsGatherer.StopGatheringLogsForSingleComputerLogger(computerLogger);
         if(_connectedComputerLoggers.contains(computerLogger))
@@ -133,27 +133,27 @@ public class LogsManager
         }
     }
 
-    public void Callback_MaintainingThreadSleepInterrupted()
+    public void Callback_Maintainer_ThreadSleepInterrupted()
     {
         System.out.println("[FATAL ERROR] Maintaining logs for all computer loggers failed. Main thread sleep interrupted.");
 
-        MaintainingCallback_StopWork();
+        Callback_Maintainer_StopWork();
     }
 
-    public void Callback_MaintainingComputerLoggerThreadSleepInterrupted(ComputerLogger computerLogger)
+    public void Callback_Maintainer_ComputerLoggerThreadSleepInterrupted(ComputerLogger computerLogger)
     {
         System.out.println("[FATAL ERROR] '" + computerLogger.GetComputer().ComputerEntity.Host
                 + "': Maintaining logs failed - thread sleep interrupted.");
 
-        MaintainingCallback_StopManagementForComputerLogger(computerLogger);
+        Callback_Maintainer_StopManagementForComputerLogger(computerLogger);
     }
 
-    public void Callback_MaintainingExecuteQueryFailedAfterRetries(ComputerLogger computerLogger)
+    public void Callback_Maintainer_ExecuteQueryFailedAfterRetries(ComputerLogger computerLogger)
     {
         System.out.println("[FATAL ERROR] '" + computerLogger.GetComputer().ComputerEntity.Host
                 + "': Maintaining logs failed - executing query failed after retries.");
 
-        MaintainingCallback_StopManagementForComputerLogger(computerLogger);
+        Callback_Maintainer_StopManagementForComputerLogger(computerLogger);
     }
 
     private List<ComputerLogger> GetReachableComputerLoggers(List<Computer> selectedComputers) throws LogsException
