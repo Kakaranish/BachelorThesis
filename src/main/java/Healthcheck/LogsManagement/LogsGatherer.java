@@ -16,10 +16,21 @@ public class LogsGatherer
     {
         System.out.println("[INFO] LogsGatherer started its work.");
 
-        for (ComputerLogger computerLogger : _logsManager.GetConnectedComputerLoggers())
-        {
-            computerLogger.StartGatheringLogs();
-        }
+        new Thread(() -> {
+            for (ComputerLogger computerLogger : _logsManager.GetConnectedComputerLoggers())
+            {
+                try
+                {
+                    Thread.sleep(1000);
+                }
+                catch (InterruptedException e)
+                {
+                    e.printStackTrace();
+                }
+
+                computerLogger.StartGatheringLogs();
+            }
+        }).start();
     }
 
     public void StopGatheringLogsForAllComputerLoggers()

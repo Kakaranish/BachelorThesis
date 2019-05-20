@@ -169,7 +169,7 @@ public class LogsManager
 
         try
         {
-            Thread.sleep((long)(Utilities.SSH_Timeout + 500));  /* 500ms is safe time offset when delay
+            Thread.sleep((long)(Utilities.SSHTimeout + 500));  /* 500ms is safe time offset when delay
                                                                    related with making connections occurs */
         }
         catch (InterruptedException e)
