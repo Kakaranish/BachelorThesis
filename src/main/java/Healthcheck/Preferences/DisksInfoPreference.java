@@ -12,7 +12,7 @@ public class DisksInfoPreference implements IPreference
 
     public String GetCommandToExecute()
     {
-        return "df";
+        return "df | grep -v \"tmpfs\"";
     }
 
     public IInfo GetInformationModel(String commandExecutionResult)

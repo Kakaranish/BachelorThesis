@@ -12,7 +12,7 @@ public class ProcessesInfoPreference implements IPreference
 
     public String GetCommandToExecute()
     {
-        return "ps aux";
+        return "ps aux --sort -%cpu | head -11";
     }
 
     public IInfo GetInformationModel(String commandExecutionResult)
