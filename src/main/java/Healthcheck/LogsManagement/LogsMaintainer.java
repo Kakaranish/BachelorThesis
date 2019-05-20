@@ -130,12 +130,11 @@ public class LogsMaintainer extends Thread
         {
             Long now = System.currentTimeMillis();
 
-            Query query = null;
-
             String hql = "delete from " + computerPreference.GetClassName() + " t "+
                     "where t.ComputerEntity = :computerEntity " +
                     "and (" + now  + " - t.Timestamp) > " + logExpiration;
-            query = session.createQuery(hql);
+            Query query = session.createQuery(hql);
+//            query.setLockMode(LockModeType.PESSIMISTIC_WRITE);
             query.setParameter("computerEntity", computer.ComputerEntity);
 
             boolean removingLogsSucceed =
@@ -165,6 +164,7 @@ public class LogsMaintainer extends Thread
         }
         catch (Exception e)
         {
+            System.out.println(e.getMessage());
             System.out.println("[ERROR] '"
                     + computerLogger.GetComputer().ComputerEntity.Host + "': Executing query attempt failed");
 

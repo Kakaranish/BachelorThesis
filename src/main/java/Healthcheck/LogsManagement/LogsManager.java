@@ -77,6 +77,8 @@ public class LogsManager
         {
             _connectedComputerLoggers.remove(computerLogger);
             System.out.println("[INFO] LogsGatherer stopped gathering logs for '"
+                + computerLogger.GetComputer().ComputerEntity.Host + "'.");
+            System.out.println("[INFO] LogsMaintainer stopped maintaining logs for '"
                     + computerLogger.GetComputer().ComputerEntity.Host + "'.");
         }
     }

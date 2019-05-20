@@ -58,6 +58,7 @@ public class ComputerLogger extends Thread
                     boolean logSaved = SaveLogToSessionWithRetryPolicy(session, log);
                     if (logSaved == false)
                     {
+                        session.close();
                         return;
                     }
                 }
@@ -143,19 +144,18 @@ public class ComputerLogger extends Thread
         {
             // First attempt
             session.beginTransaction();
-            session.save(log);
-            session.flush();
+            session.persist(log);
             session.getTransaction().commit();
 
             return true;
         }
         catch (Exception e)
         {
+            System.out.println(e.getMessage());
             session.getTransaction().rollback();
 
             System.out.println("[ERROR] '" + _computer.ComputerEntity.Host
-                    + "': Database transaction commit attempt failed.");
-
+                    + "': Database gathering transaction commit attempt failed.");
             // Retries
             int retryNum = 1;
             while(retryNum <= Utilities.LogSaveNumOfRetries)
@@ -163,11 +163,10 @@ public class ComputerLogger extends Thread
                 try
                 {
                     Thread.sleep(Utilities.LogSaveRetryCooldown
-                            + new Random().ints(0,45).findFirst().getAsInt());
+                            + new Random().ints(0,100).findFirst().getAsInt());
 
                     session.beginTransaction();
-                    session.save(log);
-                    session.flush();
+                    session.persist(log);
                     session.getTransaction().commit();
 
                     return true;
@@ -183,7 +182,7 @@ public class ComputerLogger extends Thread
                     ++retryNum;
 
                     System.out.println("[ERROR] '" + _computer.ComputerEntity.Host
-                            + "': Database transaction commit attempt failed.");
+                            + "': Database gathering transaction commit attempt failed.");
                 }
             }
 
