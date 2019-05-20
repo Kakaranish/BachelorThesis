@@ -52,17 +52,17 @@ public class ComputerLogger extends Thread
                     return;
                 }
 
-                Session session = DatabaseManager.GetInstance().GetSession();
                 for (BaseEntity log : logsToSave)
                 {
+                    Session session = DatabaseManager.GetInstance().GetSession();
                     boolean logSaved = SaveLogToSessionWithRetryPolicy(session, log);
                     if (logSaved == false)
                     {
                         session.close();
                         return;
                     }
+                    session.close();
                 }
-                session.close();
             }
 
             System.out.println("[INFO] '" + _computer.ComputerEntity.Host + "': Logs have been gathered.");
@@ -123,7 +123,7 @@ public class ComputerLogger extends Thread
                     computer.ComputerEntity.GetUsername(),
                     decryptedPassword,
                     computer.ComputerEntity.Port,
-                    Utilities.SSH_Timeout
+                    Utilities.SSHTimeout
             );
 
             System.out.println("[INFO] '" + _computer.ComputerEntity.Host + "': SSH connection established.");
@@ -151,11 +151,10 @@ public class ComputerLogger extends Thread
         }
         catch (Exception e)
         {
-            System.out.println(e.getMessage());
             session.getTransaction().rollback();
 
             System.out.println("[ERROR] '" + _computer.ComputerEntity.Host
-                    + "': Database gathering transaction commit attempt failed.");
+                    + "': LogsGatherer - transaction commit attempt failed.");
             // Retries
             int retryNum = 1;
             while(retryNum <= Utilities.LogSaveNumOfRetries)
@@ -182,7 +181,7 @@ public class ComputerLogger extends Thread
                     ++retryNum;
 
                     System.out.println("[ERROR] '" + _computer.ComputerEntity.Host
-                            + "': Database gathering transaction commit attempt failed.");
+                            + "': LogsGatherer - transaction commit attempt failed.");
                 }
             }
 
@@ -207,14 +206,14 @@ public class ComputerLogger extends Thread
         {
             // Retries
             int retryNum = 1;
-            while(retryNum <= Utilities.NumOfRetries)
+            while(retryNum <= Utilities.GetLogsUsingSSHNumOfRetries)
             {
                 try
                 {
                     System.out.println("[FATAL ERROR] '" + _computer.ComputerEntity.Host
                             + "': SSH connection command execution attempt failed.");
 
-                    Thread.sleep(Utilities.Cooldown);
+                    Thread.sleep(Utilities.GetLogsUsingSSHCooldown);
 
                     String sshResultNotProcessed = sshConnection.ExecuteCommand(computerIPreference.GetCommandToExecute());
                     IInfo model = computerIPreference.GetInformationModel(sshResultNotProcessed);
