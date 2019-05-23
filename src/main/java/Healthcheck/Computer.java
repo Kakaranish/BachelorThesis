@@ -2,7 +2,6 @@ package Healthcheck;
 
 import Healthcheck.Entities.ComputerEntity;
 import Healthcheck.Preferences.IPreference;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,25 +25,12 @@ public class Computer
             Preferences = new ArrayList<>();
         }
 
+        Preferences = new ArrayList<>();
         for (IPreference computerPreference : computer.Preferences)
         {
             Preferences.add(computerPreference);
         }
     }
-
-//    public boolean CanConnectWithComputer()
-//    {
-//
-//    }
-//
-//    private boolean CanSSHBeEstablishedWithComputer()
-//    {
-//        try
-//        {
-//
-//        }
-//        catch ()
-//    }
 
     private boolean HasComputerAllConnectionFieldsFilled()
     {
@@ -52,18 +38,4 @@ public class Computer
                 ComputerEntity.GetEncryptedPassword()!= null &&
                 ComputerEntity.GetSSHKey() != null;
     }
-
-    private boolean HasComputerNecessaryConnectionFieldsFilled()
-    {
-        return HasComputerAllConnectionFieldsFilled();
-
-        // TODO: Apply this logic
-//        return  ComputerEntity.GetUsername() != null &&
-//                (ComputerEntity.GetEncryptedPassword()!= null ||
-//                ComputerEntity.GetSSHKey() != null);
-    }
-
-
-
-
 }
