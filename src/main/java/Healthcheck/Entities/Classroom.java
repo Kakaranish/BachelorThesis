@@ -1,5 +1,7 @@
 package Healthcheck.Entities;
 
+import Healthcheck.Utilities;
+
 import javax.persistence.*;
 
 @Entity
@@ -24,6 +26,23 @@ public class Classroom
         Id = null;
         Name = name;
         Description = description;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if(obj == null)
+        {
+            return false;
+        }
+
+        Classroom other = (Classroom) obj;
+
+        boolean succeed = this.Id == other.Id &&
+                Utilities.AreEqual(this.Name, other.Name) &&
+                Utilities.AreEqual(this.Description, other.Description);
+
+        return succeed;
     }
 }
 

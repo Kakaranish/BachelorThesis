@@ -1,5 +1,6 @@
 package Healthcheck.Entities;
 
+import Healthcheck.Utilities;
 import javax.persistence.*;
 
 @Entity
@@ -64,11 +65,16 @@ public class User
     @Override
     public boolean equals(Object obj)
     {
-        User otherUser = (User) obj;
+        if(obj == null)
+        {
+            return false;
+        }
 
-        return  DisplayedUsername.equals(otherUser.DisplayedUsername) &&
-                SSH_Username.equals(otherUser.SSH_Username) &&
-                SSH_EncryptedPassword.equals(otherUser.SSH_EncryptedPassword) &&
-                SSH_Key.equals(otherUser.SSH_Key);
+        User other = (User) obj;
+        return  this.Id == other.Id &&
+                Utilities.AreEqual(this.DisplayedUsername, other.DisplayedUsername) &&
+                Utilities.AreEqual(this.SSH_Username, other.SSH_Username) &&
+                Utilities.AreEqual(this.SSH_EncryptedPassword, other.SSH_EncryptedPassword) &&
+                Utilities.AreEqual(this.SSH_Key, other.SSH_Key);
     }
 }

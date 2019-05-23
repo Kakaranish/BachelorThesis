@@ -1,6 +1,9 @@
 package Healthcheck.Entities;
 
+import Healthcheck.Utilities;
+
 import javax.persistence.*;
+import javax.sound.sampled.Port;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.List;
@@ -105,30 +108,36 @@ public class ComputerEntity
     // Copy constructor
     public ComputerEntity(ComputerEntity computerEntity)
     {
+        Id = computerEntity.Id;
+        Host = computerEntity.Host;
+        User = computerEntity.User != null ? new User(computerEntity.User) : null;
+        Classroom = computerEntity.Classroom;
         SSH_Username = computerEntity.SSH_Username;
         SSH_EncryptedPassword = computerEntity.SSH_EncryptedPassword;
         SSH_Key = computerEntity.SSH_Key;
-        User = computerEntity.User != null ? new User(computerEntity.User) : null;
         Port = computerEntity.Port;
+        IsSelected = computerEntity.IsSelected;
         MaintainPeriod = computerEntity.MaintainPeriod;
         RequestInterval = computerEntity.RequestInterval;
         LogExpiration = computerEntity.LogExpiration;
-        IsSelected = computerEntity.IsSelected;
         LastMaintenance = computerEntity.LastMaintenance;
         Preferences = computerEntity.Preferences;
     }
 
     public void CopyFrom(ComputerEntity computerEntity)
     {
+        Id = computerEntity.Id;
+        Host = computerEntity.Host;
+        User = computerEntity.User;
+        Classroom = computerEntity.Classroom;
         SSH_Username = computerEntity.SSH_Username;
         SSH_EncryptedPassword = computerEntity.SSH_EncryptedPassword;
         SSH_Key = computerEntity.SSH_Key;
-        User = computerEntity.User;
         Port = computerEntity.Port;
         MaintainPeriod = computerEntity.MaintainPeriod;
+        IsSelected = computerEntity.IsSelected;
         RequestInterval = computerEntity.RequestInterval;
         LogExpiration = computerEntity.LogExpiration;
-        IsSelected = computerEntity.IsSelected;
         LastMaintenance = computerEntity.LastMaintenance;
         Preferences = computerEntity.Preferences;
     }
@@ -152,7 +161,7 @@ public class ComputerEntity
         User = user;
     }
 
-    public void RemoveUser(boolean clearUserFields)
+    public void RemoveUser()
     {
         if(User == null)
         {
@@ -160,18 +169,9 @@ public class ComputerEntity
         }
         else
         {
-            if(clearUserFields)
-            {
-                SSH_Username = null;
-                SSH_EncryptedPassword = null;
-                SSH_Key = null;
-            }
-            else
-            {
-                SSH_Username = User.SSH_Username;
-                SSH_EncryptedPassword = User.SSH_EncryptedPassword;
-                SSH_Key = User.SSH_Key;
-            }
+            SSH_Username = User.SSH_Username;
+            SSH_EncryptedPassword = User.SSH_EncryptedPassword;
+            SSH_Key = User.SSH_Key;
 
             User = null;
         }
@@ -205,5 +205,30 @@ public class ComputerEntity
     public String GetSSHKeyConnectionField()
     {
         return SSH_Key;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if(obj == null)
+        {
+            return false;
+        }
+
+        ComputerEntity other = (ComputerEntity) obj;
+        return  this.Id == other.Id &&
+                Utilities.AreEqual(this.Host, other.Host) &&
+                Utilities.AreEqual(this.User, other.User) &&
+                Utilities.AreEqual(this.Classroom, other.Classroom) &&
+                Utilities.AreEqual(this.SSH_Username, other.SSH_Username) &&
+                Utilities.AreEqual(this.SSH_EncryptedPassword, other.SSH_EncryptedPassword) &&
+                Utilities.AreEqual(this.SSH_Key, other.SSH_Key) &&
+                this.Port == other.Port &&
+                this.IsSelected == other.IsSelected &&
+                Utilities.AreEqual(this.MaintainPeriod, other.MaintainPeriod) &&
+                Utilities.AreEqual(this.LogExpiration, other.LogExpiration) &&
+                Utilities.AreEqual(this.RequestInterval, other.RequestInterval) &&
+                Utilities.AreEqual(this.LastMaintenance, other.LastMaintenance) &&
+                this.Preferences == other.Preferences;
     }
 }
