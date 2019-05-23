@@ -74,6 +74,7 @@ public class LogsMaintainer extends Thread
             for (Computer computer : _logsManager.GetConnectedComputers())
             {
                 long computerTimeToMaintenance = GetComputerTimeToMaintenance(computer);
+                System.out.println("time to maintain: " + computerTimeToMaintenance);
 
                 if( computerWithLowestTimeToMaintain == null ||
                         computerTimeToMaintenance < computerWithLowestTimeToMaintain.TimeToMaintain)
@@ -123,9 +124,9 @@ public class LogsMaintainer extends Thread
 
     public void MaintainComputer(Computer computer)
     {
+        System.out.println("INSIDE MAINTAINER");
         long logExpiration = computer.ComputerEntity.LogExpiration.toMillis();
 
-        Session session = DatabaseManager.GetInstance().GetSession();
         for (IPreference computerPreference : computer.Preferences)
         {
             Long now = System.currentTimeMillis();
@@ -133,21 +134,37 @@ public class LogsMaintainer extends Thread
             String hql = "delete from " + computerPreference.GetClassName() + " t "+
                     "where t.ComputerEntity = :computerEntity " +
                     "and (" + now  + " - t.Timestamp) > " + logExpiration;
-            Query query = session.createQuery(hql);
+
+            Session session = DatabaseManager.GetInstance().GetSession();
+            Query query = null;
+
+            query = session.createQuery(hql);
             query.setParameter("computerEntity", computer.ComputerEntity);
 
+
+            System.out.println("AFTER QUERY");
             boolean removingLogsSucceed =
                     ExecuteQueryWithRetryPolicy(session, query, _logsManager.GetComputerLoggerForComputer(computer));
             if (removingLogsSucceed == false)
             {
+                System.out.println("REMOVING LOGS == FALSE");
                 session.close();
                 return;
             }
-        }
-        session.close();
 
+            session.close();
+        }
+        System.out.println("OUTSIDE MAINTAINING1");
         Timestamp nowTimestamp = new Timestamp(System.currentTimeMillis());
-        _logsManager.SetComputerLastMaintenance(computer, nowTimestamp);
+        try
+        {
+            _logsManager.SetComputerLastMaintenance(computer, nowTimestamp);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace(System.out);
+        }
+        System.out.println("OUTSIDE MAINTAINING2");
     }
 
     private boolean ExecuteQueryWithRetryPolicy(Session session, Query query, ComputerLogger computerLogger)
@@ -155,9 +172,11 @@ public class LogsMaintainer extends Thread
         try
         {
             session.beginTransaction();
+            System.out.println("BEFORE EXECUTE");
             query.executeUpdate();
-            session.flush();
+            System.out.println("AFTER EXECUTE");
             session.getTransaction().commit();
+            System.out.println("AFTER COMMIT");
 
             return true;
         }
@@ -167,6 +186,7 @@ public class LogsMaintainer extends Thread
                     + computerLogger.GetComputer().ComputerEntity.Host
                     + "': LogsMaintainer - executing query attempt failed. Database is locked.");
 
+            e.printStackTrace(System.out);
             session.getTransaction().rollback();
 
             int retryNum = 1;
@@ -179,7 +199,6 @@ public class LogsMaintainer extends Thread
 
                     session.beginTransaction();
                     query.executeUpdate();
-                    session.flush();
                     session.getTransaction().commit();
 
                     return true;
@@ -206,7 +225,7 @@ public class LogsMaintainer extends Thread
     }
 
     // TODO: Add retry policy
-    public void RemoveAllLogsAssociatedWithComputers(Computer computer) throws DatabaseException
+    public static void RemoveAllLogsAssociatedWithComputers(Computer computer) throws DatabaseException
     {
         Session session = DatabaseManager.GetInstance().GetSession();
 
@@ -237,15 +256,18 @@ public class LogsMaintainer extends Thread
         }
     }
 
-    public void RemoveAllLogsAssociatedWithComputerFromDb(Computer computer, Session session)
+    public static void RemoveAllLogsAssociatedWithComputerFromDb(Computer computer, Session session)
     {
         for (IPreference computerPreference : Preferences.AllPreferencesList)
         {
             String hql = "delete from " +
                     computerPreference.GetClassName() +
                     " t where t.ComputerEntity = :computerEntity";
+
             Query query = session.createQuery(hql);
             query.setParameter("computerEntity", computer.ComputerEntity);
+
+            query.executeUpdate();
         }
     }
 

@@ -3,14 +3,14 @@ package Healthcheck;
 import Healthcheck.DatabaseManagement.DatabaseException;
 import Healthcheck.DatabaseManagement.DatabaseManager;
 import Healthcheck.Entities.*;
-import Healthcheck.LogsManagement.LogsGatherer;
-import Healthcheck.LogsManagement.LogsMaintainer;
-import Healthcheck.LogsManagement.LogsMaintainerException;
+import Healthcheck.LogsManagement.*;
 import Healthcheck.Preferences.*;
+import org.dom4j.datatype.DatatypeAttribute;
 import org.hibernate.Session;
 
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
+import javax.xml.crypto.Data;
 
 import java.sql.Timestamp;
 import java.time.Duration;
@@ -115,7 +115,6 @@ public class Application
                     "username",
                     "password",
                     "ssh",
-                    2000,
                     22,
                     Duration.ofHours(2),
                     Duration.ofHours(2),
@@ -160,20 +159,6 @@ public class Application
             //            Logs.Healthcheck.LogsManagement.ComputerLogger computerLogger = new Logs.Healthcheck.LogsManagement.ComputerLogger()
     }
 
-    public static void UpdateComputer()
-    {
-        ComputerManager computerManager = new ComputerManager();
-        Computer compToUpdate = computerManager.GetComputer("51.68.142.57");
-        UsersManager usersManager = new UsersManager();
-        User user = usersManager.GetUser("root_ovh", "root");
-
-        Computer updatedComputer = new Computer(compToUpdate);
-        updatedComputer.ComputerEntity.MaintainPeriod = Duration.ofSeconds(30);
-        updatedComputer.ComputerEntity.RequestInterval = Duration.ofSeconds(3);
-        updatedComputer.ComputerEntity.LogExpiration = Duration.ofMinutes(1);
-        computerManager.UpdateComputer(compToUpdate, updatedComputer.ComputerEntity);
-        int x = 10;
-    }
 
     public static void GetSelectedComputers()
     {
@@ -195,16 +180,6 @@ public class Application
 //        usersManager.AddUser(user);
 //    }
 
-    public static void UpdateUser()
-    {
-        ComputerManager computerManager = new ComputerManager();
-        UsersManager usersManager = new UsersManager();
-        User user = usersManager.GetUser("root_ovh1", "root");
-        User userToUpdate = new User(user);
-        userToUpdate.DisplayedUsername = null;
-        usersManager.UpdateUser(user, userToUpdate, computerManager);
-        int x = 10;
-    }
 
     public static void RemoveUser()
     {
@@ -311,155 +286,186 @@ public class Application
 //
 //    }
 
+
     public static void RunProgram2()
     {
-        ComputerManager computerManager = new ComputerManager();
-        LogsGatherer logsGatherer = new LogsGatherer();
-        LogsMaintainer logsMaintainer = new LogsMaintainer(computerManager);
+//        ComputerManager computerManager = new ComputerManager();
+//        LogsGatherer logsGatherer = new LogsGatherer();
+//        LogsMaintainer logsMaintainer = new LogsMaintainer(computerManager);
+//
+//        logsGatherer.StartGatheringLogs(computerManager.GetSelectedComputers());
+//        try
+//        {
+//            logsMaintainer.StartMaintainingLogs();
+//        }
+//        catch (LogsException e)
+//        {
+//            e.printStackTrace();
+//        }
+    }
 
-        logsGatherer.StartGatheringLogs(computerManager.GetSelectedComputers());
+//    public static void RunProgram3()
+//    {
+//        ComputerManager computerManager = new ComputerManager();
+//        LogsManager logsManager = new LogsManager();
+//        LogsMaintainer logsMaintainer = new LogsMaintainer(computerManager);
+//        LogsGatherer logsGatherer = new LogsGatherer(logsManager);
+//
+//        try
+//        {
+//            logsManager.StartWork(logsGatherer, logsMaintainer, computerManager.GetSelectedComputers());
+//        }
+//        catch (LogsException e)
+//        {
+//            e.printStackTrace();
+//        }
+//        catch (NothingToDoException e)
+//        {
+//            e.printStackTrace();
+//        }
+//    }
+
+    public static void RunProgram4()
+    {
+        ComputerManager computerManager = new ComputerManager();
+        LogsManager logsManager = new LogsManager(computerManager);
+
         try
         {
-            logsMaintainer.StartMaintainingLogs();
+            logsManager.StartWork();
         }
-        catch (LogsMaintainerException e)
+        catch (LogsException e)
+        {
+            e.printStackTrace();
+        }
+        catch (NothingToDoException e)
         {
             e.printStackTrace();
         }
     }
+
+    public static void AddUser()
+    {
+        UsersManager usersManager = new UsersManager();
+        try
+        {
+            usersManager.AddUser(new User(
+                    "test_user",
+                    "test_user",
+                    "scBkrr5+CFCcqA8kTNBknw==",
+                    "ssh_key"));
+        }
+        catch (DatabaseException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public static void UpdateUser()
+    {
+        ComputerManager computerManager = new ComputerManager();
+        UsersManager usersManager = new UsersManager();
+        User user = usersManager.GetUser("test_user", "test_user");
+        User userToUpdate = new User(user);
+//        userToUpdate.DisplayedUsername = null;
+        userToUpdate.SSH_Username = "user_test2";
+
+        try
+        {
+            usersManager.UpdateUser(user, userToUpdate, computerManager);
+        }
+        catch (NothingToDoException e)
+        {
+            System.out.println("Nothing todo");
+        }
+
+        int x = 10;
+    }
+
+    public static void AddComputer()
+    {
+        ComputerManager computerManager = new ComputerManager();
+        UsersManager usersManager = new UsersManager();
+        User retrievedUser = usersManager.GetUser("test_user", "user_test2");
+//        Classroom classroom = Utilities.GetClassroom("B-0-22");
+
+        Computer computer = new Computer(new ComputerEntity(
+                "computerX",
+                "username",
+                "password",
+                "ssh",
+                22,
+                Duration.ofSeconds(30),
+                Duration.ofSeconds(5),
+                Duration.ofSeconds(60),
+                null,
+                true
+        ), new ArrayList<IPreference>(){{
+            add(new CpuInfoPreference());
+            add(new DisksInfoPreference());
+            add(new UsersInfoPreference());
+        }});
+
+        computerManager.AddComputer(computer);
+    }
+
+    public static void UpdateComputer_AddUser()
+    {
+        ComputerManager computerManager = new ComputerManager();
+        Computer compToUpdate = computerManager.GetComputer("computerX");
+        UsersManager usersManager = new UsersManager();
+        User user = usersManager.GetUser("root_ovh", "root");
+
+        List preferences = new ArrayList<IPreference>(){{
+            add(new CpuInfoPreference());
+            add(new DisksInfoPreference());
+            add(new ProcessesInfoPreference());
+            add(new RamInfoPreference());;
+            add(new SwapInfoPreference());
+            add(new UsersInfoPreference());
+        }};
+        Computer updatedComputer = new Computer(compToUpdate);
+        updatedComputer.ComputerEntity.User = user;
+        updatedComputer.ComputerEntity.Preferences = Utilities.ConvertListOfIPreferencesToPreferences(preferences);
+//        updatedComputer.ComputerEntity.User = null;
+        updatedComputer.ComputerEntity.SetConnectionDataFields("user", "password", "key");
+        try
+        {
+            computerManager.UpdateComputer(compToUpdate, updatedComputer.ComputerEntity);
+        }
+        catch (NothingToDoException e)
+        {
+            System.out.println("Nothing to do.");
+        }
+
+        int x = 10;
+    }
+
+    public static void RemoveComputerWithLogs()
+    {
+        ComputerManager computerManager = new ComputerManager();
+        Computer compToRemove = computerManager.GetComputer("145.239.81.14");
+        computerManager.RemoveComputerWithLogs(compToRemove);
+
+        int x = 10;
+    }
+
+    public static void RemoveUserFromComputers()
+    {
+        UsersManager usersManager = new UsersManager();
+        ComputerManager computerManager = new ComputerManager();
+        User userToRemove = usersManager.GetUser("test_user", "user_test2");
+        usersManager.RemoveUser(userToRemove, computerManager);
+    }
+
     public static void main(String[] args)
     {
-        // TODO: Check if works in computer manager
-//                AddUser();
-//                UpdateUser();
-        //        RemoveUser();
-
-//        Session session = DatabaseManager.GetInstance().GetSession();
-//        RunProgram();
-        RunProgram2();
-//        UpdateUser();
-//        UpdateComputer();
-
-//        RunProgram();
-        long milis = new Timestamp(Duration.ofMinutes(1).toMillis()).getTime();
-//        UpdateComputer();
-//
-//        PopulateComputers();
-//        RunGatheringLogs();
-
-
-        //                Session session =Healthcheck.DatabaseManagement.DatabaseManager.GetInstance().GetSession();
-
-            //            UpdateComputer();
-//            Healthcheck.ComputerManager computerManager = new Healthcheck.ComputerManager();
-//            Healthcheck.LogsManagement.LogsMaintainer logsMaintainer = new Healthcheck.LogsManagement.LogsMaintainer(computerManager);
-//            Healthcheck.Computer computer = computerManager.GetComputer("karol_wojczak_comp");
-//            Healthcheck.LogsManagement.LogsManager logsManager = new Healthcheck.LogsManagement.LogsManager(computerManager);
-
-
-
-            //            logsMaintainer.MaintainComputer(computer);
-            //            logsManager.StartGatheringLogs();
-            //            logsMaintainer.StartMaintainingLogs();
-
-//            Healthcheck.UsersManager usersManager = new Healthcheck.UsersManager();
-//            User user = usersManager.GetUser("jan_pawel");
-//            User toUpdate = new User(user);
-//            toUpdate.EncryptedPassword = "kremowka2137";
-//            usersManager.UpdateUser(user, toUpdate, computerManager);
-
-
-
-        //        GetSelectedComputers();
-        //        RunGatheringLogs();
-
-//            Healthcheck.UsersManager usersManager = new Healthcheck.UsersManager();
-//            usersManager.AddUser(new User("karol_wojczak", "some_password", "ssh_2137"));
-//
-//            usersManager.UpdateUser(someUser, new User(someUser.DisplayedUsername, "some_password1", someUser.SSHKey));
-//            int x = 10;
-//            usersManager.UpdateUser(someUser, new User(someUser.DisplayedUsername, "some_password2", someUser.SSHKey));
-//            int y = 10;
-
-            //            Healthcheck.Computer computer = new Healthcheck.Computer(new ComputerEntity(
-            //                    "wojtilak_host",
-            //                    someUser,
-            //                    2000,
-            //                    22,
-            //                    Duration.ofHours(2),
-            //                    Duration.ofHours(2),
-            //                    Duration.ofHours(2)
-            //            ), new ArrayList<IPreference>() {{
-            //                add(new DisksInfoPreference());
-            //                add(new RamInfoPreference());
-            //            }});
-
-            //            User wojczak_user = usersManager.GetUser("root");
-            //            User root_user = usersManager.GetUser("root");
-
-
-            //            Healthcheck.Computer computerWithNoPreferences = new Healthcheck.Computer(new ComputerEntity(
-            //                    "wojtilak_host2",
-            //                    root_user,
-            //                    2000,
-            //                    22,
-            //                    Duration.ofHours(2),
-            //                    Duration.ofHours(2),
-            //                    Duration.ofHours(2)
-            //            ), null);
-
-
-            //            Healthcheck.Computer wojtilak_computer = computerManager.GetComputer("wojtilak_host");
-
-            //            User newUser = new User("papajak_watykaniak", "password", "ssh_key");
-            //            usersManager.AddUser(newUser);
-            //            User papajak_watykaniak = usersManager.GetUser("papajak_watykaniak");
-            //            User new_papajak_watykaniak = new User(papajak_watykaniak);
-            //            new_papajak_watykaniak.EncryptedPassword = "password5";
-
-            //            usersManager.AddUser(newUser);
-            //            Healthcheck.Computer someComputer = computerManager.GetComputer("some host8");
-            //            usersManager.UpdateUser(papajak_watykaniak, new_papajak_watykaniak, computerManager);
-
-            //            usersManager.RemoveUser(papajak_watykaniak, computerManager, true);
-            //            computerManager.AssignUserToComputer(someComputer, papajak_watykaniak);
-
-
-            //            someComputer.ComputerEntity.User = root_user;
-            //            someComputer.ComputerPreferences.removeIf(t -> t instanceof DisksInfoPreference);
-
-
-            List<IPreference> preferences = new ArrayList<IPreference>(){{
-                //                add(new CpuInfoPreference());
-                //                add(new SwapInfoPreference());
-            }};
-
-            //            try
-            //            {
-            //                computerManager.UpdateComputer(wojtilak_computer, someComputer);
-            //            } catch (Healthcheck.DatabaseManagement.DatabaseException e)
-            //            {
-            //                e.printStackTrace();
-            //            }
-
-
-            //            computerManager.UpdateComputerPreferencesInDb(wojtilak_computer, preferences );
-            //            computerManager.AddPreferencesInDb(wojtilak_computer, preferences);
-            //            computerManager.RemoveComputerPreferences(wojtilak_computer);
-
-            //            Healthcheck.LogsManagement.LogsMaintainer logsMaintainer = new Healthcheck.LogsManagement.LogsMaintainer();
-            //            Healthcheck.Computer compWithLogs = computerManager.GetComputer("51.68.142.57");
-            //            logsMaintainer.RemoveAllLogsAssociatedWithComputers(compWithLogs);
-
-
-
-            int y = 10;
-
-            //            computerManager.AssignUserToComputer(wojczak_user, wojtilak_computer);
-
-            //            computerManager.AddComputer(computer);
-
-            //            usersManager.RemoveUserWithoutAssociatedComputers(someUser, computerManager);
-            //            usersManager.UpdateUserInDb(someUser, new User("papajak", "jp2gmd", someUser.SSHKey));
+//        RunProgram4();
+//        AddUser();
+//        Up    dateUser();
+//        AddComputer();
+//        UpdateComputer_AddUser();
+//        RemoveComputerWithLogs();
+        RemoveUserFromComputers();
     }
 }

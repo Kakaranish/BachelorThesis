@@ -36,6 +36,15 @@ public class ComputerLogger extends Thread
         this.interrupt();
     }
 
+    public void CloseSSHConnection()
+    {
+        if(_sshConnection != null)
+        {
+            _sshConnection.CloseConnection();
+            _sshConnection = null;
+        }
+    }
+
     public void run()
     {
         while(true)
@@ -58,6 +67,7 @@ public class ComputerLogger extends Thread
                     boolean logSaved = SaveLogToSessionWithRetryPolicy(session, log);
                     if (logSaved == false)
                     {
+                        _sshConnection.CloseConnection();
                         session.close();
                         return;
                     }
@@ -190,6 +200,7 @@ public class ComputerLogger extends Thread
         }
     }
 
+    // TODO: Exception instead of SSHException?
     private List<BaseEntity> GetLogsForGivenPreferenceTypeWithRetryPolicy(
             SSHConnection sshConnection, IPreference computerIPreference, Timestamp timestamp)
     {

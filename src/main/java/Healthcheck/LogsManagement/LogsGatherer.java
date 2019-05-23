@@ -44,11 +44,11 @@ public class LogsGatherer
         }
     }
 
-    public void StopGatheringLogsForSingleComputerLogger(ComputerLogger computerLogger)
+    public boolean StopGatheringLogsForSingleComputerLogger(ComputerLogger computerLogger)
     {
         if(_logsManager.GetConnectedComputerLoggers().contains(computerLogger) == false)
         {
-            return;
+            return false;
         }
 
         List<ComputerLogger> results = _logsManager.GetConnectedComputerLoggers().stream()
@@ -56,8 +56,10 @@ public class LogsGatherer
         if(results.isEmpty() == false)
         {
             results.get(0).StopGatheringLogs();
-            System.out.println("[INFO] LogsGatherer stopped gathering logs for '"
-                    + computerLogger.GetComputer().ComputerEntity.Host + "'.");
+            computerLogger.CloseSSHConnection();
+
+            return true;
         }
+        return false;
     }
 }
