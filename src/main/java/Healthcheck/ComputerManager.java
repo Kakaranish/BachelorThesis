@@ -4,12 +4,13 @@ import Healthcheck.DatabaseManagement.DatabaseException;
 import Healthcheck.DatabaseManagement.DatabaseManager;
 import Healthcheck.Entities.*;
 import Healthcheck.LogsManagement.LogsMaintainer;
+import Healthcheck.LogsManagement.NothingToDoException;
 import Healthcheck.Preferences.IPreference;
 import org.hibernate.Session;
-import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 public class ComputerManager
@@ -26,6 +27,12 @@ public class ComputerManager
 
     public void AddComputer(Computer computer) throws DatabaseException
     {
+        if(GetComputer(computer.ComputerEntity.Host) != null)
+        {
+            throw new IllegalArgumentException("[FATAL ERROR] ComputerManager: " +
+                    "Unable to add computer. User with same host name exists.");
+        }
+
         try
         {
             AddComputerToDb(computer);
@@ -39,25 +46,21 @@ public class ComputerManager
 
     private void AddComputerToDb(Computer computer) throws DatabaseException
     {
+        String attemptErrorMessage = "[ERROR] ComputerManager: Attempt of adding computer entity to db failed.";
+
         Session session = DatabaseManager.GetInstance().GetSession();
+        boolean persistSucceed
+                = DatabaseManager.PersistWithRetryPolicy(session, computer.ComputerEntity, attemptErrorMessage);
+        session.close();
 
-        try
+        if(persistSucceed == true)
         {
-            session.beginTransaction();
-
-            session.save(computer.ComputerEntity);
             computer.ComputerEntity.Preferences =
                     Utilities.ConvertListOfIPreferencesToPreferences(computer.Preferences);
-
-            session.getTransaction().commit();
         }
-        catch (PersistenceException e)
+        else
         {
-            throw new DatabaseException("Unable to add computer.");
-        }
-        finally
-        {
-            session.close();
+            throw new DatabaseException("[FATAL ERROR] ComputerManager: Unable to add computer entity to db.");
         }
     }
 
@@ -65,16 +68,12 @@ public class ComputerManager
     // ------------------------------------------------ UPDATE ---------------------------------------------------------
 
     public void UpdateComputer(Computer computerToUpdate, ComputerEntity newComputerEntity)
-            throws DatabaseException
+            throws DatabaseException, IllegalArgumentException, NothingToDoException
     {
         if(CanComputerEntityBeUpdated(computerToUpdate.ComputerEntity, newComputerEntity) == false)
         {
-            throw new IllegalArgumentException("Unable to update computer. Provided user and data connection fields are empty ");
-        }
-
-        if(computerToUpdate.ComputerEntity == newComputerEntity)
-        {
-            return;
+            throw new IllegalArgumentException("[ERROR] ComputerManager: " +
+                    "Unable to update computer entity. Provided user and data connection fields are empty");
         }
 
         if(newComputerEntity.User != null)
@@ -82,36 +81,29 @@ public class ComputerManager
             newComputerEntity.ResetConnectionDataFields();
         }
 
+        if(computerToUpdate.ComputerEntity == newComputerEntity
+                || computerToUpdate.ComputerEntity.equals(newComputerEntity))
+        {
+            throw new NothingToDoException("[INFO] ComputerManager: Nothing to update.");
+        }
+
+        computerToUpdate.ComputerEntity.CopyFrom(newComputerEntity);
+        String attemptErrorMessage = "[ERROR] ComputerManager: Attempt of updating computer entity in db failed.";
 
         Session session = DatabaseManager.GetInstance().GetSession();
+        boolean updateSucceed
+                = DatabaseManager.UpdateWithRetryPolicy(session, computerToUpdate.ComputerEntity, attemptErrorMessage);
+        session.close();
 
-        try
+        if(updateSucceed == true)
         {
-            session.beginTransaction();
-
-            computerToUpdate.ComputerEntity.CopyFrom(newComputerEntity);
-            UpdateComputerEntityInDb(computerToUpdate.ComputerEntity, session);
-
             computerToUpdate.Preferences =
                     Utilities.ConvertListOfPreferencesToIPreferences(newComputerEntity.Preferences);
-
-            session.getTransaction().commit();
         }
-        catch (PersistenceException e)
+        else
         {
-            throw new DatabaseException("Unable to update computer.");
+            throw new DatabaseException("[FATAL ERROR] ComputerManager: Unable to update computer entity in db.");
         }
-        finally
-        {
-            session.close();
-        }
-    }
-
-    public void UpdateComputerEntityInDb(
-            ComputerEntity computerEntityToUpdate,
-            Session session)
-    {
-        session.update(computerEntityToUpdate);
     }
 
     // -----------------------------------------------------------------------------------------------------------------
@@ -132,30 +124,23 @@ public class ComputerManager
 
     private void RemoveComputerWithoutLogsFromDb(Computer computer) throws DatabaseException
     {
+        String attemptErrorMessage = "[ERROR] ComputerManager: Attempt of removing computer entity from db failed.";
         Session session = DatabaseManager.GetInstance().GetSession();
-        session.beginTransaction();
+        boolean removeSucceed
+                = DatabaseManager.RemoveWithRetryPolicy(session, computer.ComputerEntity, attemptErrorMessage);
+        session.close();
 
-        try
+        if(removeSucceed == false)
         {
-            RemoveComputerEntityFromDb(computer.ComputerEntity, session);
-
-            session.getTransaction().commit();
-        }
-        catch (PersistenceException e)
-        {
-            throw new DatabaseException("Unable to remove computer without logs.");
-        }
-        finally
-        {
-            session.close();
+            throw new DatabaseException("[FATAL ERROR] ComputerManager: Unable to remove computer entity from db.");
         }
     }
 
-    public void RemoveComputerWithLogs(Computer computer, LogsMaintainer logsMaintainer) throws DatabaseException
+    public void RemoveComputerWithLogs(Computer computer) throws DatabaseException
     {
         try
         {
-            RemoveComputerWithLogsFromDb(computer, logsMaintainer);
+            RemoveComputerWithLogsFromDb(computer);
             _computers.remove(computer);
         }
         catch (DatabaseException e)
@@ -164,21 +149,57 @@ public class ComputerManager
         }
     }
 
-    private void RemoveComputerWithLogsFromDb(Computer computer, LogsMaintainer logsMaintainer) throws DatabaseException
+    private void RemoveComputerWithLogsFromDb(Computer computer) throws DatabaseException
     {
-        Session session = DatabaseManager.GetInstance().GetSession();
-        session.beginTransaction();
+        String attemptErrorMessage = "[ERROR] ComputerManager: Attempt of " +
+                "removing computer entity with logs from db failed.";
 
+        Session session = DatabaseManager.GetInstance().GetSession();
         try
         {
-            logsMaintainer.RemoveAllLogsAssociatedWithComputerFromDb(computer, session);
-            RemoveComputerEntityFromDb(computer.ComputerEntity, session);
+            session.beginTransaction();
+
+            LogsMaintainer.RemoveAllLogsAssociatedWithComputerFromDb(computer, session);
+            session.remove(computer.ComputerEntity);
 
             session.getTransaction().commit();
         }
-        catch (PersistenceException e)
+        catch (Exception e)
         {
-            throw new DatabaseException("Unable to remove computer with logs.");
+            session.getTransaction().rollback();
+
+            System.out.println(attemptErrorMessage);
+
+            int retryNum = 1;
+            while(retryNum <= Utilities.RemoveNumOfRetries)
+            {
+                int randomFactor = new Random().ints(0,100).findFirst().getAsInt();
+                try
+                {
+                    Thread.sleep(Utilities.RemoveCooldown + randomFactor);
+
+                    session.beginTransaction();
+
+                    LogsMaintainer.RemoveAllLogsAssociatedWithComputerFromDb(computer, session);
+                    session.remove(computer.ComputerEntity);
+
+                    session.getTransaction().commit();
+                }
+                catch (InterruptedException ex)
+                {
+                    throw new DatabaseException("[FATAL ERROR] ComputerManager: Unable to " +
+                            "remove computer entity with logs from db.");
+                }
+                catch (Exception ex)
+                {
+                    session.getTransaction().rollback();
+                    ++retryNum;
+                    System.out.println(attemptErrorMessage);
+                }
+            }
+
+            throw new DatabaseException("[FATAL ERROR] ComputerManager: Unable to " +
+                    "remove computer entity with logs from db.");
         }
         finally
         {
@@ -186,18 +207,12 @@ public class ComputerManager
         }
     }
 
-    private void RemoveComputerEntityFromDb(ComputerEntity computerEntity, Session session)
-    {
-        session.remove(computerEntity);
-    }
-
     // -----------------------------------------------------------------------------------------------------------------
     // ------------------------------------------------ USER -----------------------------------------------------------
 
     public void RemoveUserAssignmentFromComputer(Computer computer, Session session, boolean clearUserFields)
     {
-            computer.ComputerEntity.RemoveUser(clearUserFields);
-            session.update(computer.ComputerEntity);
+        session.update(computer.ComputerEntity);
     }
 
     // -----------------------------------------------------------------------------------------------------------------
@@ -210,7 +225,6 @@ public class ComputerManager
         try
         {
             List<ComputerEntity> computerEntities = GetComputerEntitiesFromDb();
-
             for (ComputerEntity computerEntity : computerEntities)
             {
                 List<IPreference> computerIPreferences = new ArrayList<>();
@@ -229,31 +243,27 @@ public class ComputerManager
         }
         catch (DatabaseException e)
         {
-            DatabaseException ex = new DatabaseException("Unable get computers from db.");
-            ex.initCause(e);
-            throw ex;
+            throw e;
         }
     }
 
     private List<ComputerEntity> GetComputerEntitiesFromDb() throws DatabaseException
     {
+        String attemptErrorMessage = "[ERROR] ComputerManager: Attempt of getting computer entities from db failed.";
         String hql = "from ComputerEntity";
+
         Session session = DatabaseManager.GetInstance().GetSession();
-
-        try
+        Query query = session.createQuery(hql);
+        List<ComputerEntity> computerEntities =
+                DatabaseManager.ExecuteSelectQueryWithRetryPolicy(session, query, attemptErrorMessage);
+        session.close();
+        if(computerEntities != null)
         {
-            Query query = session.createQuery(hql);
-            List computers = query.getResultList();
-
-            return  computers;
+            return computerEntities;
         }
-        catch (PersistenceException e)
+        else
         {
-            throw new DatabaseException("Unable to get computer entities from db.");
-        }
-        finally
-        {
-            session.close();
+            throw new DatabaseException("[FATAL ERROR] ComputerManager: Unable to get computer entities from db.");
         }
     }
 
