@@ -1,8 +1,15 @@
 package Healthcheck.DatabaseManagement;
 
+import Healthcheck.Utilities;
+import jdk.jshell.execution.Util;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
+
+import javax.persistence.Query;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 public class DatabaseManager
 {
@@ -24,5 +31,224 @@ public class DatabaseManager
     public Session GetSession()
     {
         return _sessionFactory.openSession();
+    }
+
+    public static boolean PersistWithRetryPolicy(
+            Session session,
+            Object objectToPersist,
+            String attemptErrorMessage)
+    {
+        try
+        {
+            // First attempt
+            session.beginTransaction();
+            session.persist(objectToPersist);
+            session.getTransaction().commit();
+
+            return true;
+        }
+        catch (Exception e)
+        {
+            session.getTransaction().rollback();
+
+            System.out.println(attemptErrorMessage);
+
+            // Retries
+            int retryNum = 1;
+            while (retryNum <= Utilities.PersistNumOfRetries)
+            {
+                int randomFactor = new Random().ints(0,100).findFirst().getAsInt();
+                try
+                {
+                    Thread.sleep(Utilities.PersistCooldown + randomFactor);
+
+                    session.beginTransaction();
+                    session.persist(objectToPersist);
+                    session.getTransaction().commit();
+
+                    return true;
+                }
+                catch (InterruptedException ex)
+                {
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    session.getTransaction().rollback();
+                    ++retryNum;
+                    System.out.println(attemptErrorMessage);
+                }
+            }
+
+            return false;
+        }
+    }
+
+    public static boolean UpdateWithRetryPolicy(
+            Session session,
+            Object objectToUpdate,
+            String attemptErrorMessage)
+    {
+        try
+        {
+            // First attempt
+            session.beginTransaction();
+            session.update(objectToUpdate);
+            session.getTransaction().commit();
+
+            return true;
+        }
+        catch (Exception e)
+        {
+            session.getTransaction().rollback();
+
+            System.out.println(attemptErrorMessage);
+
+            // Retries
+            int retryNum = 1;
+            while (retryNum <= Utilities.UpdateNumOfRetries)
+            {
+                int randomFactor = new Random().ints(0,100).findFirst().getAsInt();
+                try
+                {
+                    Thread.sleep(Utilities.UpdateCooldown + randomFactor);
+
+                    session.beginTransaction();
+                    session.update(objectToUpdate);
+                    session.getTransaction().commit();
+
+                    return true;
+                }
+                catch (InterruptedException ex)
+                {
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    session.getTransaction().rollback();
+                    ++retryNum;
+                    System.out.println(attemptErrorMessage);
+                }
+            }
+
+            return false;
+        }
+    }
+
+    public static boolean RemoveWithRetryPolicy(
+            Session session,
+            Object objectToUpdate,
+            String attemptErrorMessage)
+    {
+        try
+        {
+            // First attempt
+            session.beginTransaction();
+            session.remove(objectToUpdate);
+            session.getTransaction().commit();
+
+            return true;
+        }
+        catch (Exception e)
+        {
+            session.getTransaction().rollback();
+
+            System.out.println(attemptErrorMessage);
+
+            // Retries
+            int retryNum = 1;
+            while (retryNum <= Utilities.RemoveNumOfRetries)
+            {
+                int randomFactor = new Random().ints(0,100).findFirst().getAsInt();
+                try
+                {
+                    Thread.sleep(Utilities.RemoveCooldown + randomFactor);
+
+                    session.beginTransaction();
+                    session.remove(objectToUpdate);
+                    session.getTransaction().commit();
+
+                    return true;
+                }
+                catch (InterruptedException ex)
+                {
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    session.getTransaction().rollback();
+                    ++retryNum;
+                    System.out.println(attemptErrorMessage);
+                }
+            }
+
+            return false;
+        }
+    }
+
+    public static List ExecuteSelectQueryWithRetryPolicy(
+            Session session,
+            Query query,
+            String attemptErrorMessage)
+    {
+        try
+        {
+            // First attempt
+            session.beginTransaction();
+
+            List results = query.getResultList();
+            session.getTransaction().commit();
+
+            if(results == null)
+            {
+                return new ArrayList<>();
+            }
+            else
+            {
+                return results;
+            }
+        }
+        catch (Exception e)
+        {
+            session.getTransaction().rollback();
+
+            System.out.println(attemptErrorMessage);
+
+            // Retries
+            int retryNum = 1;
+            while (retryNum <= Utilities.SelectNumOfRetries)
+            {
+                int randomFactor = new Random().ints(0,100).findFirst().getAsInt();
+                try
+                {
+                    Thread.sleep(Utilities.SelectCooldown + randomFactor);
+
+                    session.beginTransaction();
+                    List results = query.getResultList();
+                    session.getTransaction().commit();
+
+                    if(results == null)
+                    {
+                        return new ArrayList<>();
+                    }
+                    else
+                    {
+                        return results;
+                    }
+                }
+                catch (InterruptedException ex)
+                {
+                    return null;
+                }
+                catch (Exception ex)
+                {
+                    session.getTransaction().rollback();
+                    ++retryNum;
+                    System.out.println(attemptErrorMessage);
+                }
+            }
+
+            return null;
+        }
     }
 }
