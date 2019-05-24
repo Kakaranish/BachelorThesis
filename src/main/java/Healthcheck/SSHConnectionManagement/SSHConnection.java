@@ -40,7 +40,8 @@ public class SSHConnection
     {
         if (IsConnectionEstablished() == false)
         {
-            throw new SSHConnectionException("Can't execute command. Connection is not established.");
+            throw new SSHConnectionException("[FATAL ERROR] SSHConnection: Unable to execute command. " +
+                    "Connection is not established.");
         }
 
         String result = new String();
@@ -70,24 +71,32 @@ public class SSHConnection
                 {
                     break;
                 }
+
                 try
                 {
                     Thread.sleep(30);
                 }
-                catch (Exception ee)
+                catch (InterruptedException e)
                 {
-                    throw new SSHConnectionException("Unable to execute command. Sleep can't be executed.");
+                    throw new SSHConnectionException("[FATAL ERROR] SSHConnection: Unable to execute command. " +
+                            "Thread sleep interrupted.");
                 }
             }
             channel.disconnect();
         }
         catch (JSchException ex)
         {
-            throw new SSHConnectionException("Unable to execute command. Channel can't be opened.");
+            throw new SSHConnectionException("[FATAL ERROR] SSHConnection: Unable to execute command. " +
+                    "Channel can't be opened.");
         }
         catch (IOException ex)
         {
-            throw new SSHConnectionException("Unable to execute command. InputStream can't be get from channel.");
+            throw new SSHConnectionException("[FATAL ERROR] SSHConnection: Unable to execute command. " +
+                    "InputStream can't be get from channel.");
+        }
+        catch (Exception ex)
+        {
+            throw new SSHConnectionException("[FATAL ERROR] SSHConnection: Some problem occured.");
         }
 
         return result;
@@ -114,9 +123,9 @@ public class SSHConnection
             session.connect(timeout);
             return session;
         }
-        catch (JSchException ex)
+        catch (Exception ex)
         {
-            throw new SSHConnectionException("Unable to get session.");
+            throw new SSHConnectionException("[FATAL ERROR] SSHConnection: Unable to get session.");
         }
     }
 
@@ -127,9 +136,9 @@ public class SSHConnection
         {
             channel = _session.openChannel(type);
         }
-        catch (JSchException ex)
+        catch (Exception ex)
         {
-            throw new SSHConnectionException("Unable to get channel.");
+            throw new SSHConnectionException("[FATAL ERROR] SSHConnection: Unable to get channel.");
         }
 
         return channel;
