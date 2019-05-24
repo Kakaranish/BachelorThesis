@@ -14,36 +14,20 @@ import java.util.stream.Collectors;
 
 public class Utilities
 {
-    public static final int GetLogsUsingSSHNumOfRetries = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("GetLogsUsingSSHNumOfRetries"));
-
-    public static final int PersistNumOfRetries = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("PersistNumOfRetries"));
-
-    public static final int PersistCooldown = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("PersistCooldown"));
-
-    public static final int UpdateNumOfRetries = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("UpdateNumOfRetries"));
-
-    public static final int UpdateCooldown = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("UpdateCooldown"));
-
-    public static final int RemoveNumOfRetries = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("RemoveNumOfRetries"));
-
-    public static final int RemoveCooldown = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("RemoveCooldown"));
-
-    public static final int SelectNumOfRetries = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("SelectNumOfRetries"));
-
-    public static final int SelectCooldown = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("SelectCooldown"));
-
-    public static final int GetLogsUsingSSHCooldown = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("GetLogsUsingSSHCooldown"));
-
     public static final int SSHTimeout = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("SSHTimeout"));
-
-    public static final int LogSaveNumOfRetries = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("LogSaveNumOfRetries"));
-
-    public static final int LogSaveRetryCooldown = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("LogSaveRetryCooldown"));
-
+    public static final int PersistNumOfRetries = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("PersistNumOfRetries"));
+    public static final int PersistCooldown = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("PersistCooldown"));
+    public static final int UpdateNumOfRetries = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("UpdateNumOfRetries"));
+    public static final int UpdateCooldown = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("UpdateCooldown"));
+    public static final int RemoveNumOfRetries = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("RemoveNumOfRetries"));
+    public static final int RemoveCooldown = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("RemoveCooldown"));
+    public static final int SelectNumOfRetries = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("SelectNumOfRetries"));
+    public static final int SelectCooldown = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("SelectCooldown"));
+    public static final int DeleteNumOfRetries = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("DeleteNumOfRetries"));
+    public static final int DeleteCooldown = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("DeleteCooldown"));
     public static final int GatheringStartDelay = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("GatheringStartDelay"));
 
     public static final List<Preference> AvailablePreferences = GetAvailablePreferencesFromDb();
-
     public static final List<Classroom> AvailableClassrooms = GetAvailableClassroomsFromDb();
 
     public static final Classroom GetClassroom(String classroomName)
@@ -52,14 +36,6 @@ public class Utilities
                 .filter(c -> c.Name.equals(classroomName)).collect(Collectors.toList());
 
         return results.isEmpty()? null : results.get(0);
-    }
-
-    public static List<Computer> GetComputersWithSetPreferences(List<Computer> computers)
-    {
-        List<Computer> results = computers.stream()
-                .filter(c -> c.Preferences.isEmpty() == false).collect(Collectors.toList());
-
-        return results;
     }
 
     public static List<IPreference> ConvertListOfPreferencesToIPreferences(List<Preference> preferences)
@@ -165,7 +141,8 @@ public class Utilities
         }
     }
 
-    public static boolean AreEqual(Object obj1, Object obj2) {
+    public static boolean AreEqual(Object obj1, Object obj2)
+    {
         return (obj1 == null ? obj2 == null : obj1.equals(obj2));
     }
 }
