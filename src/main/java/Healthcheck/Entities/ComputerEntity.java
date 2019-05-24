@@ -177,6 +177,12 @@ public class ComputerEntity
         }
     }
 
+    public boolean HasSetRequiredFields()
+    {
+        return Host != null
+                && (User != null || (SSH_Username != null && SSH_EncryptedPassword != null && SSH_Key != null));
+    }
+
     public String GetUsername()
     {
         return User == null ? SSH_Username : User.SSH_Username;

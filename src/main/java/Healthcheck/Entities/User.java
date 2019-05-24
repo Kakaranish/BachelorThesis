@@ -62,6 +62,14 @@ public class User
                 SSH_Key == null;
     }
 
+    public boolean HasSetRequiredFields()
+    {
+        return  DisplayedUsername != null &&
+                SSH_Username != null &&
+                SSH_EncryptedPassword != null &&
+                SSH_Key != null;
+    }
+
     @Override
     public boolean equals(Object obj)
     {

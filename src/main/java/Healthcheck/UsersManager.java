@@ -25,6 +25,12 @@ public class UsersManager
 
     public void AddUser(User user) throws DatabaseException, IllegalArgumentException
     {
+        if(user.HasSetRequiredFields() == false)
+        {
+            throw new IllegalArgumentException("[FATAL ERROR] UsersManager: " +
+                    "Unable to add user. User contains not filled required fields.");
+        }
+
         if (UserExists(user.DisplayedUsername, user.SSH_Username))
         {
             throw new IllegalArgumentException("[FATAL ERROR] UsersManager: " +
@@ -78,7 +84,6 @@ public class UsersManager
                     computerManager.GetComputersAssociatedWithUser(userToUpdate);
 
             UpdateUserInDb(userToUpdate, newUser, computerManager);
-            UpdateUserFieldLocallyInComputersAssociatedWithUser(computersAssociatedWithUser, userToUpdate);
         }
         catch (DatabaseException e)
         {
@@ -99,14 +104,6 @@ public class UsersManager
         if(updateSucceed == false)
         {
             throw new DatabaseException("[FATAL ERROR] UsersManager: Unable to update user in db.");
-        }
-    }
-
-    private void UpdateUserFieldLocallyInComputersAssociatedWithUser(List<Computer> associatedComputers, User newUser)
-    {
-        for (Computer computer : associatedComputers)
-        {
-            computer.ComputerEntity.User = newUser;
         }
     }
 

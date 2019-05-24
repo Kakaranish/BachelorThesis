@@ -33,6 +33,12 @@ public class ComputerManager
                     "Unable to add computer. User with same host name exists.");
         }
 
+        if(computer.ComputerEntity.HasSetRequiredFields() == false)
+        {
+            throw new IllegalArgumentException("[FATAL ERROR] ComputerManager: " +
+                    "Unable to add computer. Computer contains empty required fields.");
+        }
+
         try
         {
             AddComputerToDb(computer);
@@ -87,6 +93,24 @@ public class ComputerManager
             throw new NothingToDoException("[INFO] ComputerManager: Nothing to update.");
         }
 
+        try
+        {
+            UpdateComputerInDb(computerToUpdate, newComputerEntity);
+
+            computerToUpdate.Preferences =
+                    Utilities.ConvertListOfPreferencesToIPreferences(newComputerEntity.Preferences);
+
+        }
+        catch (DatabaseException e)
+        {
+            throw e;
+        }
+    }
+
+    public void UpdateComputerInDb(Computer computerToUpdate, ComputerEntity newComputerEntity) throws DatabaseException
+    {
+        ComputerEntity beforeUpdateComputerEntity = new ComputerEntity(computerToUpdate.ComputerEntity);
+
         computerToUpdate.ComputerEntity.CopyFrom(newComputerEntity);
         String attemptErrorMessage = "[ERROR] ComputerManager: Attempt of updating computer entity in db failed.";
 
@@ -95,13 +119,9 @@ public class ComputerManager
                 = DatabaseManager.UpdateWithRetryPolicy(session, computerToUpdate.ComputerEntity, attemptErrorMessage);
         session.close();
 
-        if(updateSucceed == true)
+        if(updateSucceed == false)
         {
-            computerToUpdate.Preferences =
-                    Utilities.ConvertListOfPreferencesToIPreferences(newComputerEntity.Preferences);
-        }
-        else
-        {
+            computerToUpdate.ComputerEntity.CopyFrom(beforeUpdateComputerEntity);
             throw new DatabaseException("[FATAL ERROR] ComputerManager: Unable to update computer entity in db.");
         }
     }
