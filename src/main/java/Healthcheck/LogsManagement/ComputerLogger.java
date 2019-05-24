@@ -55,6 +55,7 @@ public class ComputerLogger extends Thread
             {
                 List<BaseEntity> logsToSave =
                         GetLogsForGivenPreferenceTypeWithRetryPolicy(_sshConnection, computerPreference, timestamp);
+
                 if(logsToSave == null)
                 {
                     _sshConnection.CloseConnection();
@@ -64,13 +65,16 @@ public class ComputerLogger extends Thread
                 for (BaseEntity log : logsToSave)
                 {
                     Session session = DatabaseManager.GetInstance().GetSession();
+
                     boolean logSaved = SaveLogToSessionWithRetryPolicy(session, log);
                     if (logSaved == false)
                     {
                         _sshConnection.CloseConnection();
                         session.close();
+
                         return;
                     }
+
                     session.close();
                 }
             }
@@ -91,6 +95,107 @@ public class ComputerLogger extends Thread
         }
     }
 
+    private boolean SaveLogToSessionWithRetryPolicy(Session session, BaseEntity log)
+    {
+        try
+        {
+            // First attempt
+            session.beginTransaction();
+            session.persist(log);
+            session.getTransaction().commit();
+
+            return true;
+        }
+        catch (Exception e)
+        {
+            session.getTransaction().rollback();
+
+            System.out.println("[ERROR] '" + _computer.ComputerEntity.Host
+                    + "': LogsGatherer - transaction commit attempt failed. Database is locked.");
+
+            // Retries
+            int retryNum = 1;
+            while(retryNum <= Utilities.PersistNumOfRetries)
+            {
+                try
+                {
+                    Thread.sleep(Utilities.PersistCooldown
+                            + new Random().ints(0,100).findFirst().getAsInt());
+
+                    session.beginTransaction();
+                    session.persist(log);
+                    session.getTransaction().commit();
+
+                    return true;
+                }
+                catch (InterruptedException ex)
+                {
+                    _logsManager.Callback_Gatherer_ThreadSleepInterrupted(this);
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    session.getTransaction().rollback();
+                    ++retryNum;
+
+                    System.out.println("[ERROR] '" + _computer.ComputerEntity.Host
+                            + "': LogsGatherer - transaction commit attempt failed. Database is locked.");
+                }
+            }
+
+            return false;
+        }
+    }
+
+    // TODO: Move logic to ssh connection class?
+    private List<BaseEntity> GetLogsForGivenPreferenceTypeWithRetryPolicy(
+            SSHConnection sshConnection, IPreference computerIPreference, Timestamp timestamp)
+    {
+        try
+        {
+            // First attempt
+            String sshResultNotProcessed = sshConnection.ExecuteCommand(computerIPreference.GetCommandToExecute());
+            IInfo model = computerIPreference.GetInformationModel(sshResultNotProcessed);
+            List<BaseEntity> logs = model.ToLogList(_computer.ComputerEntity, timestamp);
+
+            return logs;
+        }
+        catch (SSHConnectionException e)
+        {
+            // Retries
+            int retryNum = 1;
+            while(retryNum <= Utilities.SelectNumOfRetries)
+            {
+                try
+                {
+                    System.out.println("[FATAL ERROR] '" + _computer.ComputerEntity.Host
+                            + "': SSH connection command execution attempt failed.");
+
+                    Thread.sleep(Utilities.SelectCooldown);
+
+                    String sshResultNotProcessed = sshConnection.ExecuteCommand(computerIPreference.GetCommandToExecute());
+                    IInfo model = computerIPreference.GetInformationModel(sshResultNotProcessed);
+                    List<BaseEntity> logs = model.ToLogList(_computer.ComputerEntity, timestamp);
+
+                    return logs;
+                }
+                catch (SSHConnectionException ex)
+                {
+                    ++retryNum;
+                }
+                catch (InterruptedException ex)
+                {
+                    sshConnection.CloseConnection();
+                    _logsManager.Callback_Gatherer_ThreadSleepInterrupted(this);
+                    return null;
+                }
+            }
+
+            _logsManager.Callback_Gatherer_SSHConnectionExecuteCommandFailedAfterRetries(this);
+            return null;
+        }
+    }
+
     public void ConnectWithComputerThroughSSH()
     {
         if(_computer.Preferences.isEmpty())
@@ -103,11 +208,6 @@ public class ComputerLogger extends Thread
         new Thread(() -> {
             _sshConnection = GetSSHConnectionWithComputer(_computer);
         }).start();
-    }
-
-    public boolean IsConnectedUsingSSH()
-    {
-        return _sshConnection != null;
     }
 
     private SSHConnection GetSSHConnectionWithComputer(Computer computer)
@@ -148,105 +248,9 @@ public class ComputerLogger extends Thread
         }
     }
 
-    private boolean SaveLogToSessionWithRetryPolicy(Session session, BaseEntity log)
+    public boolean IsConnectedUsingSSH()
     {
-        try
-        {
-            // First attempt
-            session.beginTransaction();
-            session.persist(log);
-            session.getTransaction().commit();
-
-            return true;
-        }
-        catch (Exception e)
-        {
-            session.getTransaction().rollback();
-
-            System.out.println("[ERROR] '" + _computer.ComputerEntity.Host
-                    + "': LogsGatherer - transaction commit attempt failed. Database is locked.");
-            // Retries
-            int retryNum = 1;
-            while(retryNum <= Utilities.LogSaveNumOfRetries)
-            {
-                try
-                {
-                    Thread.sleep(Utilities.LogSaveRetryCooldown
-                            + new Random().ints(0,100).findFirst().getAsInt());
-
-                    session.beginTransaction();
-                    session.persist(log);
-                    session.getTransaction().commit();
-
-                    return true;
-                }
-                catch (InterruptedException ex)
-                {
-                    _logsManager.Callback_Gatherer_ThreadSleepInterrupted(this);
-                    return false;
-                }
-                catch (Exception ex)
-                {
-                    session.getTransaction().rollback();
-                    ++retryNum;
-
-                    System.out.println("[ERROR] '" + _computer.ComputerEntity.Host
-                            + "': LogsGatherer - transaction commit attempt failed. Database is locked.");
-                }
-            }
-
-            _logsManager.Callback_Gatherer_DatabaseTransactionCommitFailedAfterRetries(this);
-            return false;
-        }
-    }
-
-    // TODO: Exception instead of SSHException?
-    private List<BaseEntity> GetLogsForGivenPreferenceTypeWithRetryPolicy(
-            SSHConnection sshConnection, IPreference computerIPreference, Timestamp timestamp)
-    {
-        try
-        {
-            // First attempt
-            String sshResultNotProcessed = sshConnection.ExecuteCommand(computerIPreference.GetCommandToExecute());
-            IInfo model = computerIPreference.GetInformationModel(sshResultNotProcessed);
-            List<BaseEntity> logs = model.ToLogList(_computer.ComputerEntity, timestamp);
-
-            return logs;
-        }
-        catch (SSHConnectionException e)
-        {
-            // Retries
-            int retryNum = 1;
-            while(retryNum <= Utilities.GetLogsUsingSSHNumOfRetries)
-            {
-                try
-                {
-                    System.out.println("[FATAL ERROR] '" + _computer.ComputerEntity.Host
-                            + "': SSH connection command execution attempt failed.");
-
-                    Thread.sleep(Utilities.GetLogsUsingSSHCooldown);
-
-                    String sshResultNotProcessed = sshConnection.ExecuteCommand(computerIPreference.GetCommandToExecute());
-                    IInfo model = computerIPreference.GetInformationModel(sshResultNotProcessed);
-                    List<BaseEntity> logs = model.ToLogList(_computer.ComputerEntity, timestamp);
-
-                    return logs;
-                }
-                catch (SSHConnectionException ex)
-                {
-                    ++retryNum;
-                }
-                catch (InterruptedException ex)
-                {
-                    sshConnection.CloseConnection();
-                    _logsManager.Callback_Gatherer_ThreadSleepInterrupted(this);
-                    return null;
-                }
-            }
-
-            _logsManager.Callback_Gatherer_SSHConnectionExecuteCommandFailedAfterRetries(this);
-            return null;
-        }
+        return _sshConnection != null;
     }
 
     public final Computer GetComputer()
