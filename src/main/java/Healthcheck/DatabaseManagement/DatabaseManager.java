@@ -251,4 +251,55 @@ public class DatabaseManager
             return null;
         }
     }
+
+    public static boolean ExecuteDeleteQueryWithRetryPolicy(
+            Session session,
+            Query query,
+            String attemptErrorMessage)
+    {
+        try
+        {
+            // First attempt
+            session.beginTransaction();
+            query.executeUpdate();
+            session.getTransaction().commit();
+
+            return true;
+        }
+        catch (Exception e)
+        {
+            session.getTransaction().rollback();
+
+            System.out.println(attemptErrorMessage);
+
+            // Retries
+            int retryNum = 1;
+            while (retryNum <= Utilities.DeleteNumOfRetries)
+            {
+                int randomFactor = new Random().ints(0,100).findFirst().getAsInt();
+                try
+                {
+                    Thread.sleep(Utilities.DeleteCooldown + randomFactor);
+
+                    session.beginTransaction();
+                    query.executeUpdate();
+                    session.getTransaction().commit();
+
+                    return true;
+                }
+                catch (InterruptedException ex)
+                {
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    session.getTransaction().rollback();
+                    ++retryNum;
+                    System.out.println(attemptErrorMessage);
+                }
+            }
+
+            return false;
+        }
+    }
 }
