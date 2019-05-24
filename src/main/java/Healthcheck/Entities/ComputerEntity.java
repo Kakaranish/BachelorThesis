@@ -235,6 +235,8 @@ public class ComputerEntity
                 Utilities.AreEqual(this.LogExpiration, other.LogExpiration) &&
                 Utilities.AreEqual(this.RequestInterval, other.RequestInterval) &&
                 Utilities.AreEqual(this.LastMaintenance, other.LastMaintenance) &&
-                this.Preferences == other.Preferences;
+                (this.Preferences == other.Preferences ||
+                        (this.Preferences.containsAll(other.Preferences) &&
+                                other.Preferences.containsAll(this.Preferences)));
     }
 }

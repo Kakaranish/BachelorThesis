@@ -1,7 +1,6 @@
 package Healthcheck.Entities;
 
 import javax.persistence.*;
-import java.util.List;
 
 @Entity
 @Table(name = "Preferences")
@@ -14,9 +13,6 @@ public class Preference
     @Column(unique = true, nullable = false)
     public String ClassName;
 
-    @ManyToMany(mappedBy = "Preferences")
-    public List<ComputerEntity> ComputerEntities;
-
     private Preference()
     {
     }
@@ -25,5 +21,18 @@ public class Preference
     {
         Id = null;
         ClassName = className;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if(obj == null)
+        {
+            return false;
+        }
+
+        Preference other = (Preference) obj;
+        return  this.Id == other.Id &&
+                this.ClassName.equals(other.ClassName);
     }
 }
