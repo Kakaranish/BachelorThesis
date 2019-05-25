@@ -17,32 +17,42 @@ import java.util.Random;
 public class ComputerLogger extends Thread
 {
     private Computer _computer;
-    private LogsManager _logsManager;
+    private String _host;
+    private LogsGatherer _logsGatherer;
     private SSHConnection _sshConnection;
+    private boolean _isGathering = false;
 
-    public ComputerLogger(LogsManager logsManager, Computer computer)
+    public ComputerLogger(LogsGatherer logsGatherer, Computer computer)
     {
-        _logsManager = logsManager;
+        _logsGatherer = logsGatherer;
         _computer = computer;
+        _host = _computer.ComputerEntity.Host;
     }
 
-    public void StartGatheringLogs()
+    public boolean StartGatheringLogs()
     {
-        this.start();
-    }
-
-    public void StopGatheringLogs()
-    {
-        this.interrupt();
-    }
-
-    public void CloseSSHConnection()
-    {
-        if(_sshConnection != null)
+        if(_isGathering == true)
         {
-            _sshConnection.CloseConnection();
-            _sshConnection = null;
+            return false;
         }
+
+        this.start();
+        _isGathering = true;
+
+        return true;
+    }
+
+    public boolean StopGatheringLogs()
+    {
+        if(_isGathering == false)
+        {
+            return false;
+        }
+
+        this.interrupt();
+        _isGathering = false;
+
+        return true;
     }
 
     public void run()
@@ -55,7 +65,6 @@ public class ComputerLogger extends Thread
             {
                 List<BaseEntity> logsToSave =
                         GetLogsForGivenPreferenceTypeWithRetryPolicy(_sshConnection, computerPreference, timestamp);
-
                 if(logsToSave == null)
                 {
                     _sshConnection.CloseConnection();
@@ -79,7 +88,7 @@ public class ComputerLogger extends Thread
                 }
             }
 
-            System.out.println("[INFO] '" + _computer.ComputerEntity.Host + "': Logs have been gathered.");
+            _logsGatherer.Callback_InfoMessage("Logs for '" + _host + "' were gathered.");
 
             try
             {
@@ -87,11 +96,64 @@ public class ComputerLogger extends Thread
             }
             catch (InterruptedException e)
             {
-                _logsManager.Callback_Gatherer_SSHThreadSleepInterrupted(this);
+                _logsGatherer.Callback_StoppedGathering(this);
 
                 _sshConnection.CloseConnection();
                 return;
             }
+        }
+    }
+
+    private List<BaseEntity> GetLogsForGivenPreferenceTypeWithRetryPolicy(
+            SSHConnection sshConnection, IPreference computerIPreference, Timestamp timestamp)
+    {
+        try
+        {
+            // First attempt
+            String sshResultNotProcessed = sshConnection.ExecuteCommand(computerIPreference.GetCommandToExecute());
+            IInfo model = computerIPreference.GetInformationModel(sshResultNotProcessed);
+            List<BaseEntity> logs = model.ToLogList(_computer.ComputerEntity, timestamp);
+
+            return logs;
+        }
+        catch (SSHConnectionException e)
+        {
+            _logsGatherer.Callback_ErrorMessage("Attempt of getting logs for '" + _host + "' failed.");
+
+            // Retries
+            int retryNum = 1;
+            while(retryNum <= Utilities.SelectNumOfRetries)
+            {
+                try
+                {
+                    Thread.sleep(Utilities.SelectCooldown);
+
+                    String sshResultNotProcessed = sshConnection.ExecuteCommand(computerIPreference.GetCommandToExecute());
+                    IInfo model = computerIPreference.GetInformationModel(sshResultNotProcessed);
+                    List<BaseEntity> logs = model.ToLogList(_computer.ComputerEntity, timestamp);
+
+                    return logs;
+                }
+                catch (InterruptedException ex)
+                {
+                    sshConnection.CloseConnection();
+
+                    _logsGatherer.Callback_FatalError(this,
+                            "Sleep was interrupted for '" + _host + "' in getting logs method.");
+
+                    return null;
+                }
+                catch (Exception ex)
+                {
+                    _logsGatherer.Callback_ErrorMessage("Attempt of getting logs for '" + _host + "' failed.");
+
+                    ++retryNum;
+                }
+            }
+
+            _logsGatherer.Callback_FatalError(this,
+                    "Getting logs for '" + _host + "' failed after retries.");
+            return null;
         }
     }
 
@@ -110,8 +172,7 @@ public class ComputerLogger extends Thread
         {
             session.getTransaction().rollback();
 
-            System.out.println("[ERROR] '" + _computer.ComputerEntity.Host
-                    + "': LogsGatherer - transaction commit attempt failed. Database is locked.");
+            _logsGatherer.Callback_ErrorMessage("Attempt of saving logs for '" + _host + "' failed. Database is locked.");
 
             // Retries
             int retryNum = 1;
@@ -130,7 +191,9 @@ public class ComputerLogger extends Thread
                 }
                 catch (InterruptedException ex)
                 {
-                    _logsManager.Callback_Gatherer_ThreadSleepInterrupted(this);
+                    _logsGatherer.Callback_FatalError(this,
+                            "'" + _host + "' sleep was interrupted in saving logs method.");
+
                     return false;
                 }
                 catch (Exception ex)
@@ -138,61 +201,14 @@ public class ComputerLogger extends Thread
                     session.getTransaction().rollback();
                     ++retryNum;
 
-                    System.out.println("[ERROR] '" + _computer.ComputerEntity.Host
-                            + "': LogsGatherer - transaction commit attempt failed. Database is locked.");
+                    _logsGatherer.Callback_ErrorMessage(
+                            "Attempt of saving logs for '" + _host + "' failed. Database is locked.");
                 }
             }
 
+            _logsGatherer.Callback_FatalError(this,
+                    "Saving logs for '" + _host + "' failed after retries.");
             return false;
-        }
-    }
-
-    // TODO: Move logic to ssh connection class?
-    private List<BaseEntity> GetLogsForGivenPreferenceTypeWithRetryPolicy(
-            SSHConnection sshConnection, IPreference computerIPreference, Timestamp timestamp)
-    {
-        try
-        {
-            // First attempt
-            String sshResultNotProcessed = sshConnection.ExecuteCommand(computerIPreference.GetCommandToExecute());
-            IInfo model = computerIPreference.GetInformationModel(sshResultNotProcessed);
-            List<BaseEntity> logs = model.ToLogList(_computer.ComputerEntity, timestamp);
-
-            return logs;
-        }
-        catch (SSHConnectionException e)
-        {
-            // Retries
-            int retryNum = 1;
-            while(retryNum <= Utilities.SelectNumOfRetries)
-            {
-                try
-                {
-                    System.out.println("[FATAL ERROR] '" + _computer.ComputerEntity.Host
-                            + "': SSH connection command execution attempt failed.");
-
-                    Thread.sleep(Utilities.SelectCooldown);
-
-                    String sshResultNotProcessed = sshConnection.ExecuteCommand(computerIPreference.GetCommandToExecute());
-                    IInfo model = computerIPreference.GetInformationModel(sshResultNotProcessed);
-                    List<BaseEntity> logs = model.ToLogList(_computer.ComputerEntity, timestamp);
-
-                    return logs;
-                }
-                catch (SSHConnectionException ex)
-                {
-                    ++retryNum;
-                }
-                catch (InterruptedException ex)
-                {
-                    sshConnection.CloseConnection();
-                    _logsManager.Callback_Gatherer_ThreadSleepInterrupted(this);
-                    return null;
-                }
-            }
-
-            _logsManager.Callback_Gatherer_SSHConnectionExecuteCommandFailedAfterRetries(this);
-            return null;
         }
     }
 
@@ -200,8 +216,8 @@ public class ComputerLogger extends Thread
     {
         if(_computer.Preferences.isEmpty())
         {
-            System.out.println("[INFO] '" + _computer.ComputerEntity.Host
-                    + "': SSH connection failed - computer has no preferences.");
+            _logsGatherer.Callback_InfoMessage(
+                    "'" + _host + "' has no preferences. No need to establish SSH connection with computer.");
             return;
         }
 
@@ -219,8 +235,8 @@ public class ComputerLogger extends Thread
         }
         catch (EncrypterException e)
         {
-            System.out.println("[FATAL ERROR] '" + _computer.ComputerEntity.Host
-                    + "': SSH connection failed - unable to decrypt password.");
+            _logsGatherer.Callback_FatalErrorBeforeEstablishingConnection(
+                    "SSH connection with '" + _host + "' failed. Unable to decrypt password.");
 
             return null;
         }
@@ -236,15 +252,24 @@ public class ComputerLogger extends Thread
                     Utilities.SSHTimeout
             );
 
-            System.out.println("[INFO] '" + _computer.ComputerEntity.Host + "': SSH connection established.");
+            _logsGatherer.Callback_InfoMessage("SSH connection with '" + _host + "' established.");
             return sshConnection;
         }
         catch (SSHConnectionException e)
         {
-            System.out.println("[FATAL ERROR] '" + _computer.ComputerEntity.Host
-                    + "': SSH connection failed - timeout.");
+            _logsGatherer.Callback_FatalErrorBeforeEstablishingConnection(
+                    "SSH connection with '" + _host + "' failed because of timeout");
 
             return null;
+        }
+    }
+
+    public void CloseSSHConnection()
+    {
+        if(_sshConnection != null)
+        {
+            _sshConnection.CloseConnection();
+            _sshConnection = null;
         }
     }
 
