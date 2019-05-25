@@ -6,12 +6,10 @@ import Healthcheck.DatabaseManagement.DatabaseManager;
 import Healthcheck.Preferences.IPreference;
 import Healthcheck.Preferences.Preferences;
 import org.hibernate.Session;
-import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.ArrayDeque;
-import java.util.Random;
 
 public class LogsMaintainer extends Thread
 {
@@ -28,7 +26,6 @@ public class LogsMaintainer extends Thread
     }
 
     private LogsManager _logsManager;
-
     private volatile boolean _isMaintaining = false;
 
     public LogsMaintainer(LogsManager logsManager)
@@ -40,10 +37,11 @@ public class LogsMaintainer extends Thread
     {
         if(_isMaintaining == true)
         {
-            throw new LogsException("[FATAL ERROR] Unable to start maintaining logs. Other maintainer currently is working.");
+            throw new LogsException(
+                    "[FATAL ERROR] Unable to start maintaining logs. Other maintainer currently is working.");
         }
 
-        System.out.println("[INFO] LogsMaintainer started its work.");
+        Callback_InfoMessage("Started work.");
 
         _isMaintaining = true;
 
@@ -57,7 +55,7 @@ public class LogsMaintainer extends Thread
             throw new LogsException("[FATAL ERROR] LogsMaintainer: Unable to stop maintaining logs. No maintainer is working.");
         }
 
-        System.out.println("[INFO] LogsMaintainer stopped its work.");
+        Callback_InfoMessage("Stopped work.");
 
         _isMaintaining = false;
 
@@ -96,13 +94,13 @@ public class LogsMaintainer extends Thread
                     MaintainComputer(computerToMaintain);
 
                     String host = computerToMaintain.ComputerEntity.Host;
-                    System.out.println("[INFO] '" + host + "' was maintained.");
+                    Callback_InfoMessage("'" + host + "' was maintained.");
                 }
             }
             else
             {
                 long timeToNextMaintain = Duration.ofMillis(computerWithLowestTimeToMaintain.TimeToMaintain).toSeconds();
-                System.out.println("[INFO] LogsMaintainer: Next maintenance will be taken in " + timeToNextMaintain + "s");
+                Callback_InfoMessage("Next maintenance will be taken in " + timeToNextMaintain + "s");
 
                 try
                 {
@@ -110,22 +108,24 @@ public class LogsMaintainer extends Thread
                 }
                 catch (InterruptedException|IllegalArgumentException e)
                 {
-                    _logsManager.Callback_Maintainer_ThreadSleepInterrupted();
+                    _logsManager.Callback_Maintainer_StopWorkForAllComputerLoggers();
                 }
 
                 MaintainComputer(computerWithLowestTimeToMaintain.Computer);
 
                 String host = computerWithLowestTimeToMaintain.Computer.ComputerEntity.Host;
-                System.out.println("[INFO] '" + host+ "' was maintained.");
+                Callback_InfoMessage("'" + host + "' was maintained.");
             }
         }
     }
 
     public boolean MaintainComputer(Computer computer)
     {
+        String host = computer.ComputerEntity.Host;
         long logExpiration = computer.ComputerEntity.LogExpiration.toMillis();
-        String attemptErrorMessage = "[ERROR] LogsMaintainer: Attempt of deleting logs for '"
-                + computer.ComputerEntity.Host + "' failed.";
+
+        String attemptErrorMessage =
+                "[ERROR] LogsMaintainer: Attempt of deleting logs for '" + host+ "' failed.";
 
         for (IPreference computerPreference : computer.Preferences)
         {
@@ -143,8 +143,8 @@ public class LogsMaintainer extends Thread
                     DatabaseManager.ExecuteDeleteQueryWithRetryPolicy(session, query, attemptErrorMessage);
             if (removingLogsSucceed == false)
             {
-                String host = computer.ComputerEntity.Host;
-                System.out.println("[FATAL ERROR] LogsMaintainer: Deleting logs for '" + host + "' failed.");
+                Callback_FatalErrorForComputerLogger(_logsManager.GetComputerLoggerForComputer(computer),
+                        "Deleting logs for '" + host + "' failed.");
 
                 session.close();
                 return false;
@@ -152,6 +152,7 @@ public class LogsMaintainer extends Thread
 
             session.close();
         }
+
         Timestamp nowTimestamp = new Timestamp(System.currentTimeMillis());
         try
         {
@@ -164,7 +165,6 @@ public class LogsMaintainer extends Thread
 
         return true;
     }
-
 
     public static void RemoveAllLogsAssociatedWithComputerFromDb(Computer computer, Session session)
     {
@@ -193,5 +193,32 @@ public class LogsMaintainer extends Thread
     private boolean IsComputerReadyForMaintenance(long computerTimeToMaintenance)
     {
         return computerTimeToMaintenance <= 0;
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+    // ---------------------------------------------- CALLBACKS --------------------------------------------------------
+
+    public void Callback_InfoMessage(String message)
+    {
+        System.out.println("[INFO] LogsMaintainer: " + message);
+    }
+
+    public void Callback_ErrorMessage(String message)
+    {
+        System.out.println("[ERROR] LogsMaintainer: " + message);
+    }
+
+    public void Callback_FatalErrorForComputerLogger(ComputerLogger computerLogger, String message)
+    {
+        System.out.println("[FATAL ERROR] LogsMaintainer: " + message);
+
+        _logsManager.Callback_Maintainer_StopWorkForComputerLogger(computerLogger);
+    }
+
+    public void Callback_FatalErrorForAllComputerLoggers(String message)
+    {
+        System.out.println("[FATAL ERROR] LogsMaintainer: " + message);
+
+        _logsManager.Callback_Maintainer_StopWorkForAllComputerLoggers();
     }
 }

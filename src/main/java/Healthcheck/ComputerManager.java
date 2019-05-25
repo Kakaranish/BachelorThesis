@@ -277,6 +277,7 @@ public class ComputerManager
         List<ComputerEntity> computerEntities =
                 DatabaseManager.ExecuteSelectQueryWithRetryPolicy(session, query, attemptErrorMessage);
         session.close();
+
         if(computerEntities != null)
         {
             return computerEntities;

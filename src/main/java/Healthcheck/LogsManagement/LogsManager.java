@@ -2,6 +2,8 @@ package Healthcheck.LogsManagement;
 
 import Healthcheck.Computer;
 import Healthcheck.ComputerManager;
+import Healthcheck.DatabaseManagement.DatabaseException;
+import Healthcheck.Entities.ComputerEntity;
 import Healthcheck.Utilities;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -40,6 +42,7 @@ public class LogsManager
             throw new NothingToDoException("[INFO] LogsManager: No computers to maintenance & logs gathering.");
         }
 
+        Callback_InfoMessage("----------- Started work -----------");
         _logsGatherer.StartGatheringLogs();
         _logsMaintainer.StartMaintainingLogs();
 
@@ -53,13 +56,12 @@ public class LogsManager
             throw new LogsException("[FATAL ERROR] Unable to start LogsManager work because it's currently working.");
         }
 
-        _logsGatherer.StopGatheringLogsForAllComputerLoggers();
+        Callback_InfoMessage("----------- Stopped work -----------");
 
-        _logsGatherer = null;
-        _logsMaintainer = null;
-        _connectedComputerLoggers = null;
+        _logsGatherer.StopGatheringLogs();
+        _logsMaintainer.StopMaintainingLogs();
 
-        _isWorking = false;
+        CleanUp();
     }
 
     public void StartWorkForSingleComputer(Computer computer) throws NothingToDoException
@@ -70,157 +72,169 @@ public class LogsManager
         }
     }
 
-    public List<ComputerLogger> GetConnectedComputerLoggers()
+    private void CleanUp()
     {
-        return _connectedComputerLoggers;
+        _logsGatherer = null;
+        _logsMaintainer = null;
+        _connectedComputerLoggers = null;
+        _isWorking = false;
     }
 
-    public List<Computer> GetConnectedComputers()
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // TODO
+    public void UpdateGatheredComputers(List<Computer> selectedComputers) throws LogsException
     {
-        List<Computer> connectedComputers = _connectedComputerLoggers.stream()
-                .map(ComputerLogger::GetComputer).collect(Collectors.toList());
+        if(_isWorking == false)
+        {
+            throw new LogsException("[FATAL ERROR] LogsManager: " +
+                    "Unable to update gathered computers because it's not currently working.");
+        }
+//        List<Computer> newSelectedComputers = _computerManager.GetSelectedComputers();
+        List<Computer> newSelectedComputers = selectedComputers;
 
-        return connectedComputers;
+        List<ComputerLogger> computerLoggersToBeStopped
+                = GetComputerLoggersToBeStopped(GetConnectedComputers(), newSelectedComputers);
+        List<Computer> computersToBeStarted = GetComputersToBeStarted(GetConnectedComputers(), newSelectedComputers);
+        List<ComputerLogger> computerLoggersToBeStarted = GetReachableComputerLoggers(computersToBeStarted);
+
+
+        _logsGatherer.StopGatheringLogsForBatchOfComputerLoggers(computerLoggersToBeStopped);
+        for (ComputerLogger computerLogger : computerLoggersToBeStopped)
+        {
+
+        }
+
+        _logsGatherer.StartGatheringLogsForBatchOfComputerLoggers(computerLoggersToBeStarted);
     }
 
-    public void SetComputerLastMaintenance(Computer computer, Timestamp timestamp)
+    private void StopWorkForBatchOfComputerLoggers(List<ComputerLogger> computerLoggers)
     {
-        Computer newComputer = new Computer(computer);
-        newComputer.ComputerEntity.LastMaintenance = timestamp;
+        for (ComputerLogger computerLogger : computerLoggers)
+        {
+            boolean stopSucceed = _logsGatherer.StopGatheringLogsForComputerLogger(computerLogger);
+//            if(stopSucceed)
+        }
+    }
+
+    private void StopWorkForComputerLogger(ComputerLogger computerLogger)
+    {
+
+    }
+
+    private List<ComputerLogger> GetComputerLoggersToBeStopped(
+            List<Computer> currentlyGatheredComputers, List<Computer> newSelectedComputers)
+    {
+        List<Computer> computersToBeStopped = new ArrayList<>(currentlyGatheredComputers);
+        computersToBeStopped.removeAll(newSelectedComputers);
+        List<ComputerLogger> computerLoggersToBeStopped = computersToBeStopped
+                .stream().map(c -> GetComputerLoggerForComputer(c)).collect(Collectors.toList());
+
+        return computerLoggersToBeStopped;
+    }
+
+    private List<Computer> GetComputersToBeStarted(
+            List<Computer> currentlyGatheredComputers, List<Computer> newSelectedComputers)
+    {
+        List<Computer> computersToBeStarted = new ArrayList<>(newSelectedComputers);
+        computersToBeStarted.removeAll(currentlyGatheredComputers);
+
+        return computersToBeStarted;
+    }
+
+
+    public void SetComputerLastMaintenance(Computer computerToUpdate, Timestamp lastMaintenance)
+    {
+        ComputerEntity newComputerEntity = new ComputerEntity(computerToUpdate.ComputerEntity);
+        newComputerEntity.LastMaintenance = lastMaintenance;
+
         try
         {
-            _computerManager.UpdateComputer(computer, newComputer.ComputerEntity);
+            _computerManager.UpdateComputerInDb(computerToUpdate, newComputerEntity);
         }
-        catch (NothingToDoException e)
+        catch (DatabaseException e)
         {
+            throw e;
         }
     }
 
-    /////////////////////////////////////////////////////////////////////////
-    // Top-level callbacks
-    /////////////////////////////////////////////////////////////////////////
+    // -----------------------------------------------------------------------------------------------------------------
+    // ----------------------------------------------- CALLBACKS -------------------------------------------------------
 
-    public void Callback_General_UnableToStopWorkForComputerLogger(ComputerLogger computerLogger, String message)
+    public void Callback_LogsManager_StoppedWork()
     {
-        System.out.println("[FATAL ERROR] LogsManager: " + message + ".");
+        // TODO: To implement
+    }
+
+    public void Callback_Gatherer_StartGatheringLogsFailed()
+    {
+        Callback_FatalError("Failed with starting gathering logs.");
+        Callback_InfoMessage("Stopped gathering logs for all computer loggers." );
+
+        _logsMaintainer.StopMaintainingLogs();
+    }
+
+    public void Callback_InfoMessage(String message)
+    {
+        System.out.println("[INFO] LogsManager: " + message);
+    }
+
+    public void Callback_ErrorMessage(String message)
+    {
+        System.out.println("[ERROR] LogsManager: " + message);
+    }
+
+    public void Callback_FatalError(String message)
+    {
+        System.out.println("[FATAL ERROR] LogsManager: " + message);
     }
 
     public void Callback_Gatherer_StopWorkForComputerLogger(ComputerLogger computerLogger)
     {
-        System.out.println("[INFO] LogsMaintainer stopped maintaining logs for '"
-                + computerLogger.GetComputer().ComputerEntity.Host + "'.");
-
+        String host = computerLogger.GetComputer().ComputerEntity.Host;
         if(_connectedComputerLoggers.contains(computerLogger))
         {
             _connectedComputerLoggers.remove(computerLogger);
-            System.out.println("[INFO] LogsGatherer stopped gathering logs for '"
-                + computerLogger.GetComputer().ComputerEntity.Host + "'.");
+
+            Callback_InfoMessage("Stopped gathering logs for '" + host + "'." );
+            Callback_InfoMessage("Stopped maintaining logs for '" + host + "'." );
         }
         else
         {
-            String message = "Unable to stop gathering logs for '" + computerLogger.GetComputer().ComputerEntity.Host;
-            Callback_General_UnableToStopWorkForComputerLogger(computerLogger, message);
+            Callback_FatalError("Unable to stop gathering logs for '" + host + "'.");
         }
     }
 
     public void Callback_Maintainer_StopWorkForComputerLogger(ComputerLogger computerLogger)
     {
-        boolean gatheringStopSucceed = _logsGatherer.StopGatheringLogsForSingleComputerLogger(computerLogger);
+        String host = computerLogger.GetComputer().ComputerEntity.Host;
+
+        boolean gatheringStopSucceed = _logsGatherer.StopGatheringLogsForComputerLogger(computerLogger);
         if(gatheringStopSucceed == false)
         {
-            String message = "Unable to stop gathering logs for '" + computerLogger.GetComputer().ComputerEntity.Host;
-            Callback_General_UnableToStopWorkForComputerLogger(computerLogger, message);
+            return;
         }
-        System.out.println("[INFO] LogsManager: LogsGatherer stopped gathering logs for '"
-                + computerLogger.GetComputer().ComputerEntity.Host + "'.");
 
-        if(_connectedComputerLoggers.contains(computerLogger))
-        {
-            _connectedComputerLoggers.remove(computerLogger);
-            System.out.println("[INFO] LogsManager: LogsMaintainer stopped maintaining logs for '"
-                    + computerLogger.GetComputer().ComputerEntity.Host + "'.");
-        }
-        else
-        {
-            String message = "Unable to stop maintaining logs for '" + computerLogger.GetComputer().ComputerEntity.Host;
-            Callback_General_UnableToStopWorkForComputerLogger(computerLogger, message);
-        }
+        _connectedComputerLoggers.remove(computerLogger);
+
+        Callback_InfoMessage("Stopped gathering logs for '" + host + "'.");
+        Callback_InfoMessage("Stopped maintaining logs for '" + host + "'.");
     }
 
-    /////////////////////////////////////////////////////////////////////////
-    // Callbacks connected with GATHERING
-    /////////////////////////////////////////////////////////////////////////
-
-    public void Callback_Gatherer_SSHThreadSleepInterrupted(ComputerLogger computerLogger)
+    public void Callback_Maintainer_StopWorkForAllComputerLoggers()
     {
-        String host = computerLogger.GetComputer().ComputerEntity.Host;
-        System.out.println("[FATAL ERROR] '" + host + "': SSH connection failed. Thread sleep interrupted.");
+        _logsGatherer.StopGatheringLogs();
 
-        Callback_Gatherer_StopWorkForComputerLogger(computerLogger);
+        Callback_InfoMessage("Stopped work");
     }
 
-    public void Callback_Gatherer_ThreadSleepInterrupted(ComputerLogger computerLogger)
-    {
-        String host = computerLogger.GetComputer().ComputerEntity.Host;
-        System.out.println("[FATAL ERROR] '" + host + "': Gathering failed. Thread sleep interrupted.");
-
-        Callback_Gatherer_StopWorkForComputerLogger(computerLogger);
-    }
-
-    public void Callback_Gatherer_DatabaseTransactionCommitFailedAfterRetries(ComputerLogger computerLogger)
-    {
-        String host = computerLogger.GetComputer().ComputerEntity.Host;
-        System.out.println("[FATAL ERROR] '" + host + "': Database transaction commit failed after retries.");
-
-        Callback_Gatherer_StopWorkForComputerLogger(computerLogger);
-    }
-
-    public void Callback_Gatherer_SSHConnectionExecuteCommandFailedAfterRetries(ComputerLogger computerLogger)
-    {
-        String host = computerLogger.GetComputer().ComputerEntity.Host;
-        System.out.println("[FATAL ERROR] '" + host + "': SSH connection command execution failed after retries.");
-
-        Callback_Gatherer_StopWorkForComputerLogger(computerLogger);
-    }
-
-    /////////////////////////////////////////////////////////////////////////
-    // Callbacks connected with MAINTAINING
-    /////////////////////////////////////////////////////////////////////////
-
-//    public void Callback_Maintainer_StopWork()
-//    {
-//        StopWork();
-//    }
-
-    public void Callback_Maintainer_ThreadSleepInterrupted()
-    {
-        System.out.println("[FATAL ERROR] Maintaining logs for all computer loggers failed. Main thread sleep interrupted.");
-
-//        Callback_Maintainer_StopWork();
-    }
-
-    public void Callback_Maintainer_ComputerLoggerThreadSleepInterrupted(ComputerLogger computerLogger)
-    {
-        System.out.println("[FATAL ERROR] '" + computerLogger.GetComputer().ComputerEntity.Host
-                + "': Maintaining logs failed - thread sleep interrupted.");
-
-        Callback_Maintainer_StopWorkForComputerLogger(computerLogger);
-    }
-
-    public void Callback_Maintainer_ExecuteQueryFailedAfterRetries(ComputerLogger computerLogger)
-    {
-        System.out.println("[FATAL ERROR] '" + computerLogger.GetComputer().ComputerEntity.Host
-                + "': Maintaining logs failed - executing query failed after retries.");
-
-        Callback_Maintainer_StopWorkForComputerLogger(computerLogger);
-    }
+    // ----------------------------------------------------------------------------------------------------------------
 
     private List<ComputerLogger> GetReachableComputerLoggers(List<Computer> selectedComputers) throws LogsException
     {
         List<ComputerLogger> connectedComputerLoggers = new ArrayList<>();
         for (Computer selectedComputer : selectedComputers)
         {
-            ComputerLogger computerLogger = new ComputerLogger(this, selectedComputer);
+            ComputerLogger computerLogger = new ComputerLogger(_logsGatherer, selectedComputer);
             computerLogger.ConnectWithComputerThroughSSH();
 
             connectedComputerLoggers.add(computerLogger);
@@ -245,18 +259,24 @@ public class LogsManager
         return  connectedComputerLoggers;
     }
 
+    public List<ComputerLogger> GetConnectedComputerLoggers()
+    {
+        return _connectedComputerLoggers;
+    }
+
+    public List<Computer> GetConnectedComputers()
+    {
+        List<Computer> connectedComputers = _connectedComputerLoggers.stream()
+                .map(ComputerLogger::GetComputer).collect(Collectors.toList());
+
+        return connectedComputers;
+    }
+
     public ComputerLogger GetComputerLoggerForComputer(Computer computer)
     {
         List<ComputerLogger> results = _connectedComputerLoggers.stream()
                 .filter(c -> c.GetComputer() == computer).collect(Collectors.toList());
 
         return results.isEmpty()? null : results.get(0);
-    }
-
-    private void CleanUp()
-    {
-        _logsGatherer = null;
-        _logsMaintainer = null;
-        _connectedComputerLoggers = null;
     }
 }
