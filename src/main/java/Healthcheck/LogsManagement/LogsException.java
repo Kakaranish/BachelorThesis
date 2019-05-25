@@ -1,6 +1,6 @@
 package Healthcheck.LogsManagement;
 
-public class LogsException extends Exception
+public class LogsException extends RuntimeException
 {
     public LogsException(String s)
     {
