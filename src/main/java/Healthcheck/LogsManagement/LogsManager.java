@@ -63,15 +63,6 @@ public class LogsManager
         CleanUp();
     }
 
-    private void CleanUp()
-    {
-        _logsGatherer = null;
-        _logsMaintainer = null;
-        _connectedComputerLoggers = null;
-        _isWorking = false;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public void UpdateGatheredComputers(List<Computer> selectedComputers) throws LogsException
     {
         if(_isWorking == false)
@@ -146,7 +137,6 @@ public class LogsManager
             throw e;
         }
     }
-
 
     // -----------------------------------------------------------------------------------------------------------------
     // ---  GENERAL CALLBACKS  -----------------------------------------------------------------------------------------
@@ -250,8 +240,6 @@ public class LogsManager
     public void Callback_Maintainer_InterruptionIntended_StopWorkForAllComputerLoggers()
     {
         CleanUp();
-
-        Callback_InfoMessage("Stopped work.");
     }
 
     public void Callback_Maintainer_InterruptionNotIntended_StopWorkForAllComputerLoggers()
@@ -262,7 +250,8 @@ public class LogsManager
         Callback_FatalError("LogsMaintainer sleep interrupted.");
     }
 
-    // ----------------------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------
 
     private List<ComputerLogger> GetReachableComputerLoggers(List<Computer> selectedComputers) throws LogsException
     {
@@ -318,5 +307,13 @@ public class LogsManager
     public final boolean HasConnectedComputersLoggers()
     {
         return !_connectedComputerLoggers.isEmpty();
+    }
+
+    private void CleanUp()
+    {
+        _logsGatherer = null;
+        _logsMaintainer = null;
+        _connectedComputerLoggers = null;
+        _isWorking = false;
     }
 }

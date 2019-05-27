@@ -130,7 +130,7 @@ public class ComputerLogger extends Thread
         }
         catch (SSHConnectionException e)
         {
-            _logsGatherer.Callback_ErrorMessage("Attempt of getting logs for '" + _host + "' failed. Database is locked.");
+            _logsGatherer.Callback_ErrorMessage("Attempt of getting logs for '" + _host + "' failed. SSH connection failed");
 
             // Retries
             int retryNum = 1;
@@ -164,7 +164,7 @@ public class ComputerLogger extends Thread
                 }
                 catch (Exception ex)
                 {
-                    _logsGatherer.Callback_ErrorMessage("Attempt of getting logs for '" + _host + "' failed. Database is locked.");
+                    _logsGatherer.Callback_ErrorMessage("Attempt of getting logs for '" + _host + "' failed. SSH connection failed.");
 
                     ++retryNum;
                 }
@@ -210,14 +210,18 @@ public class ComputerLogger extends Thread
                 }
                 catch (InterruptedException ex)
                 {
+                    if(session.isOpen())
+                    {
+                        session.close();
+                    }
+                    _sshConnection.CloseConnection();
+
                     if(_logsGatherer.IsInterruptionIntended())
                     {
-                        _sshConnection.CloseConnection();
                         _logsGatherer.Callback_StoppedGathering(this);
                     }
                     else
                     {
-                        _sshConnection.CloseConnection();
                         _logsGatherer.Callback_FatalError(this,
                                 "'" + _host + "' sleep was interrupted in saving logs method.");
                     }
@@ -230,7 +234,7 @@ public class ComputerLogger extends Thread
                     ++retryNum;
 
                     _logsGatherer.Callback_ErrorMessage(
-                            "Attempt of saving logs for '" + _host + "' failed. Database is locked. Database is locked.");
+                            "Attempt of saving logs for '" + _host + "' failed. Database is locked.");
                 }
             }
 

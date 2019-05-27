@@ -75,7 +75,6 @@ public class LogsGatherer
         Callback_InfoMessage("Stopped work.");
     }
 
-    // TODO
     public void StartGatheringLogsForBatchOfComputerLoggers(List<ComputerLogger> computerLoggers) throws LogsException
     {
         if (_isGathering == false)
