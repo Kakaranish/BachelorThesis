@@ -7,11 +7,12 @@ import Healthcheck.Preferences.IPreference;
 import Healthcheck.Preferences.Preferences;
 import org.hibernate.Session;
 import javax.persistence.Query;
+import javax.security.auth.callback.Callback;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.ArrayDeque;
 
-public class LogsMaintainer extends Thread
+public class LogsMaintainer
 {
     private class ComputerAndTimeToMaintainPair
     {
@@ -26,7 +27,18 @@ public class LogsMaintainer extends Thread
     }
 
     private LogsManager _logsManager;
-    private volatile boolean _isMaintaining = false;
+    private Thread _maintainingThread;
+    private boolean _isMaintaining = false;
+    private boolean _interruptionIntended = false;
+    private boolean _interruptionForRestart = false;
+
+    private Thread GetMaintainingThread()
+    {
+        Thread maintainingThread = new Thread(this::run);
+
+        return maintainingThread;
+    }
+
 
     public LogsMaintainer(LogsManager logsManager)
     {
@@ -44,8 +56,8 @@ public class LogsMaintainer extends Thread
         Callback_InfoMessage("Started work.");
 
         _isMaintaining = true;
-
-        this.start();
+        _maintainingThread = GetMaintainingThread();
+        _maintainingThread.start();
     }
 
     public void StopMaintainingLogs() throws LogsException
@@ -55,16 +67,36 @@ public class LogsMaintainer extends Thread
             throw new LogsException("[FATAL ERROR] LogsMaintainer: Unable to stop maintaining logs. No maintainer is working.");
         }
 
-        Callback_InfoMessage("Stopped work.");
+        _interruptionIntended = true;
+
+        _maintainingThread.interrupt();
+        _maintainingThread = null;
+
+        _interruptionIntended = false;
 
         _isMaintaining = false;
-
-        this.interrupt();
+        Callback_InfoMessage("Stopped work.");
     }
 
-    public void run()
+    public void RestartMaintainingLogs() throws LogsException
     {
-        while(_isMaintaining)
+        if(_isMaintaining == false)
+        {
+            throw new LogsException("[FATAL ERROR] LogsMaintainer: Unable to restart maintaining logs. No maintainer is working.");
+        }
+        Callback_InfoMessage("Restarting.");
+
+        _interruptionIntended = true;
+        _interruptionForRestart = true;
+
+        _maintainingThread.interrupt();
+        _maintainingThread = GetMaintainingThread();
+        _maintainingThread.start();
+    }
+
+    private void run()
+    {
+        while (_isMaintaining)
         {
             ArrayDeque<Computer> computersToMaintain = new ArrayDeque<>();
             ComputerAndTimeToMaintainPair computerWithLowestTimeToMaintain = null;
@@ -73,13 +105,12 @@ public class LogsMaintainer extends Thread
             {
                 long computerTimeToMaintenance = GetComputerTimeToMaintenance(computer);
 
-                if( computerWithLowestTimeToMaintain == null ||
-                        computerTimeToMaintenance < computerWithLowestTimeToMaintain.TimeToMaintain)
+                if (computerWithLowestTimeToMaintain == null || computerTimeToMaintenance < computerWithLowestTimeToMaintain.TimeToMaintain)
                 {
-                    computerWithLowestTimeToMaintain = new ComputerAndTimeToMaintainPair(computer, computerTimeToMaintenance);;
+                    computerWithLowestTimeToMaintain = new ComputerAndTimeToMaintainPair(computer, computerTimeToMaintenance);
                 }
 
-                if(IsComputerReadyForMaintenance(computerTimeToMaintenance))
+                if (IsComputerReadyForMaintenance(computerTimeToMaintenance))
                 {
                     computersToMaintain.add(computer);
                 }
@@ -87,7 +118,7 @@ public class LogsMaintainer extends Thread
 
             if (computersToMaintain.isEmpty() == false)
             {
-                while(computersToMaintain.isEmpty() == false)
+                while (computersToMaintain.isEmpty() == false)
                 {
                     Computer computerToMaintain = computersToMaintain.remove();
 
@@ -100,15 +131,33 @@ public class LogsMaintainer extends Thread
             else
             {
                 long timeToNextMaintain = Duration.ofMillis(computerWithLowestTimeToMaintain.TimeToMaintain).toSeconds();
-                Callback_InfoMessage("Next maintenance will be taken in " + timeToNextMaintain + "s");
+                Callback_InfoMessage("Next maintenance will be taken in " + timeToNextMaintain + "s.");
 
                 try
                 {
                     Thread.sleep(computerWithLowestTimeToMaintain.TimeToMaintain);
                 }
-                catch (InterruptedException|IllegalArgumentException e)
+                catch (InterruptedException | IllegalArgumentException e)
                 {
-                    _logsManager.Callback_Maintainer_StopWorkForAllComputerLoggers();
+                    if (_interruptionIntended == false)
+                    {
+                        Callback_InfoMessage("Stopped work");
+                        _isMaintaining = false;
+                        _logsManager.Callback_Maintainer_InterruptionNotIntended_StopWorkForAllComputerLoggers();
+                    }
+                    else if (_interruptionIntended && _interruptionForRestart == false)
+                    {
+                        _logsManager.Callback_Maintainer_InterruptionIntended_StopWorkForAllComputerLoggers();
+                        _interruptionIntended = false;
+                        _isMaintaining = false;
+                    }
+                    else if (_interruptionIntended && _interruptionForRestart)
+                    {
+                        _interruptionIntended = false;
+                        _interruptionForRestart = false;
+                    }
+
+                    return;
                 }
 
                 MaintainComputer(computerWithLowestTimeToMaintain.Computer);
@@ -143,7 +192,7 @@ public class LogsMaintainer extends Thread
                     DatabaseManager.ExecuteDeleteQueryWithRetryPolicy(session, query, attemptErrorMessage);
             if (removingLogsSucceed == false)
             {
-                Callback_FatalErrorForComputerLogger(_logsManager.GetComputerLoggerForComputer(computer),
+                Callback_FatalError(_logsManager.GetComputerLoggerForComputer(computer),
                         "Deleting logs for '" + host + "' failed.");
 
                 session.close();
@@ -160,6 +209,9 @@ public class LogsMaintainer extends Thread
         }
         catch (DatabaseException e)
         {
+            Callback_FatalError(_logsManager.GetComputerLoggerForComputer(computer),
+                    "Setting last maintenance time for '" + host + "' failed.");
+
             return false;
         }
 
@@ -203,22 +255,10 @@ public class LogsMaintainer extends Thread
         System.out.println("[INFO] LogsMaintainer: " + message);
     }
 
-    public void Callback_ErrorMessage(String message)
-    {
-        System.out.println("[ERROR] LogsMaintainer: " + message);
-    }
-
-    public void Callback_FatalErrorForComputerLogger(ComputerLogger computerLogger, String message)
+    public void Callback_FatalError(ComputerLogger computerLogger, String message)
     {
         System.out.println("[FATAL ERROR] LogsMaintainer: " + message);
 
         _logsManager.Callback_Maintainer_StopWorkForComputerLogger(computerLogger);
-    }
-
-    public void Callback_FatalErrorForAllComputerLoggers(String message)
-    {
-        System.out.println("[FATAL ERROR] LogsMaintainer: " + message);
-
-        _logsManager.Callback_Maintainer_StopWorkForAllComputerLoggers();
     }
 }

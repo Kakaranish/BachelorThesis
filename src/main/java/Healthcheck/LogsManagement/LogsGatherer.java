@@ -3,12 +3,12 @@ package Healthcheck.LogsManagement;
 import Healthcheck.Utilities;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class LogsGatherer
 {
     private LogsManager _logsManager;
-    private boolean _isGathering;
+    private boolean _isGathering = false;
+    private boolean _interruptionIntended = false;
 
     public LogsGatherer(LogsManager logsManager)
     {
@@ -17,7 +17,7 @@ public class LogsGatherer
 
     public void StartGatheringLogs() throws LogsException
     {
-        if(_isGathering == true)
+        if(_isGathering)
         {
             throw new LogsException(
                     "[FATAL ERROR] LogsGatherer: Unable to start gathering logs. Other gatherer currently is working.");
@@ -34,19 +34,20 @@ public class LogsGatherer
                 }
                 catch (InterruptedException e)
                 {
-                    Callback_StartGatheringLogsFailedForComputerLogger(gatheredComputerLoggers);
+                    Callback_FatalErrorWithoutAction(
+                            "Unable to start gathering logs. Sleep interrupted.");
+                    Callback_StartGatheringLogsFailed(gatheredComputerLoggers);
 
-                    throw new LogsException("[FATAL ERROR] LogsGatherer: Unable to start gathering logs. " +
-                            "Gathering start sleep interrupted");
+                    return;
                 }
 
-                boolean gatheringSucceed = computerLogger.StartGatheringLogs();
-                if(gatheringSucceed == false)
+                boolean startSucceed = computerLogger.StartGatheringLogs();
+                if(startSucceed == false)
                 {
-                    Callback_StartGatheringLogsFailedForComputerLogger(gatheredComputerLoggers);
+                    Callback_FatalErrorWithoutAction("Unable to start gathering logs due to some ComputerLogger.");
+                    Callback_StartGatheringLogsFailed(gatheredComputerLoggers);
 
-                    throw new LogsException(
-                            "[FATAL ERROR] LogsGatherer: Unable to start gathering logs due to some ComputerLogger.");
+                    return;
                 }
 
                 gatheredComputerLoggers.add(computerLogger);
@@ -64,6 +65,7 @@ public class LogsGatherer
                     "[FATAL ERROR] LogsGatherer: Unable to stop gathering logs. No gatherer currently is working.");
         }
 
+        _interruptionIntended = true;
         for (ComputerLogger gatheredComputer : _logsManager.GetConnectedComputerLoggers())
         {
             gatheredComputer.StopGatheringLogs();
@@ -74,9 +76,15 @@ public class LogsGatherer
     }
 
     // TODO
-    public void StartGatheringLogsForBatchOfComputerLoggers(List<ComputerLogger> computerLoggers)
+    public void StartGatheringLogsForBatchOfComputerLoggers(List<ComputerLogger> computerLoggers) throws LogsException
     {
-        System.out.println("[INFO] LogsGatherer is starting work for batch of computer loggers.");
+        if (_isGathering == false)
+        {
+            throw new LogsException("[FATAL ERROR] LogsGatherer: Unable to start gathering logs " +
+                    "for batch of ComputerLoggers. LogsGatherer is not working now.");
+        }
+
+        Callback_InfoMessage("Starting gathering for batch of computer loggers.");
 
         new Thread(() -> {
             for (ComputerLogger computerLogger : computerLoggers)
@@ -87,46 +95,53 @@ public class LogsGatherer
                 }
                 catch (InterruptedException e)
                 {
-                    // TODO: Implement custom action. LogsManager cannot be started.
+                    Callback_FatalErrorWithoutAction(
+                            "Unable to start gathering logs for batch of computer loggers. Sleep interrupted.");
+                    Callback_StartGatheringLogsFailedForBatchOfComputerLoggers(computerLoggers);
+
+                    return;
                 }
 
+                boolean gatheringSucceed = computerLogger.StartGatheringLogs();
+                if(gatheringSucceed == false)
+                {
+                    Callback_FatalErrorWithoutAction("Unable to start gathering logs for batch of computer loggers " +
+                            "due to some error while start of one ComputerLogger.");
+                    Callback_StartGatheringLogsFailedForBatchOfComputerLoggers(computerLoggers);
+
+                    return;
+                }
                 computerLogger.StartGatheringLogs();
             }
         }).start();
     }
 
-    // TODO
-    public void StopGatheringLogsForBatchOfComputerLoggers(List<ComputerLogger> computerLoggers)
+    public void StopGatheringLogsForBatchOfComputerLoggers(List<ComputerLogger> computerLoggers) throws LogsException
     {
-        System.out.println("[INFO] LogsGatherer is stopping work for batch of computer loggers.");
+        Callback_InfoMessage("Stopping work for batch of computer loggers.");
 
         for (ComputerLogger computerLogger : computerLoggers)
         {
-            computerLogger.StopGatheringLogs();
+            StopGatheringLogsForComputerLogger(computerLogger);
         }
     }
 
-    public boolean StopGatheringLogsForComputerLogger(ComputerLogger computerLogger)
+    private void StopGatheringLogsForComputerLogger(ComputerLogger computerLogger) throws LogsException
     {
-        if(_logsManager.GetConnectedComputerLoggers().contains(computerLogger) == false)
-        {
-            String host = computerLogger.GetComputer().ComputerEntity.Host;
-            Callback_ErrorMessage(
-                    "Unable to stop gathering logs for '" + host + "' is not set as gathered.");
+        String host = computerLogger.GetComputer().ComputerEntity.Host;
 
-            return false;
+        if(_isGathering == false)
+        {
+            throw new LogsException(
+                    "[FATAL ERROR] LogsGatherer: Unable to stop gathering logs '" + host + "'. LogsGatherer is not working.");
         }
 
-        List<ComputerLogger> results = _logsManager.GetConnectedComputerLoggers().stream()
-                .filter(c -> c == computerLogger).collect(Collectors.toList());
-        if(results.isEmpty() == false)
+        boolean stopSucceed = computerLogger.StopGatheringLogs();
+        if(stopSucceed == false)
         {
-            results.get(0).StopGatheringLogs();
-            computerLogger.CloseSSHConnection();
-
-            return true;
+            throw new LogsException(
+                    "[FATAL ERROR] LogsGatherer: Unable to stop gathering logs '" + host + "'.");
         }
-        return false;
     }
 
     // -----------------------------------------------------------------------------------------------------------------
@@ -142,17 +157,19 @@ public class LogsGatherer
         System.out.println("[ERROR] LogsGatherer: " + message);
     }
 
+    public void Callback_FatalErrorWithoutAction(String message)
+    {
+        System.out.println("[FATAL ERROR] LogsGatherer: " + message);
+    }
+
     public void Callback_FatalError(ComputerLogger computerLogger, String message)
     {
         System.out.println("[FATAL ERROR] LogsGatherer: " + message);
 
-        _logsManager.Callback_Gatherer_StopWorkForComputerLogger(computerLogger);
+        _logsManager.Callback_Gatherer_FatalError_StopWorkForComputerLogger(computerLogger);
     }
 
-    public void Callback_FatalErrorBeforeEstablishingConnection(String message)
-    {
-        System.out.println("[FATAL ERROR] LogsGatherer: " + message);
-    }
+    // -----------------------------------------------------------------------------------------------------------------
 
     public void Callback_StoppedGathering(ComputerLogger computerLogger)
     {
@@ -162,16 +179,32 @@ public class LogsGatherer
         _logsManager.Callback_Gatherer_StopWorkForComputerLogger(computerLogger);
     }
 
-    public void Callback_StartGatheringLogsFailedForComputerLogger(List<ComputerLogger> gatheredComputerLoggers)
+    public void Callback_StartGatheringLogsFailed(List<ComputerLogger> gatheredComputerLoggers)
     {
         for (ComputerLogger startedComputerLogger : gatheredComputerLoggers)
         {
             StopGatheringLogsForComputerLogger(startedComputerLogger);
         }
+
         _isGathering = false;
 
         Callback_InfoMessage("Stopped work.");
 
         _logsManager.Callback_Gatherer_StartGatheringLogsFailed();
+    }
+
+    public void Callback_StartGatheringLogsFailedForBatchOfComputerLoggers(List<ComputerLogger> gatheredComputerLoggers)
+    {
+        for (ComputerLogger startedComputerLogger : gatheredComputerLoggers)
+        {
+            StopGatheringLogsForComputerLogger(startedComputerLogger);
+        }
+
+        _logsManager.Callback_Gatherer_StartGatheringLogsForBatchOfComputerLoggersFailed();
+    }
+
+    public final boolean IsInterruptionIntended()
+    {
+        return _interruptionIntended;
     }
 }
