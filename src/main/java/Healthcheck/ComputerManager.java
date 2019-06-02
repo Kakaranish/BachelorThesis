@@ -27,10 +27,16 @@ public class ComputerManager
 
     public void AddComputer(Computer computer) throws DatabaseException
     {
-        if(GetComputer(computer.ComputerEntity.Host) != null)
+        if(GetComputerByHost(computer.ComputerEntity.Host) != null)
         {
             throw new IllegalArgumentException("[FATAL ERROR] ComputerManager: " +
-                    "Unable to add computer. User with same host name exists.");
+                    "Unable to add computer. User with same host exists.");
+        }
+
+        if(GetComputerByDisplayedName(computer.ComputerEntity.DisplayedName) != null)
+        {
+            throw new IllegalArgumentException("[FATAL ERROR] ComputerManager: " +
+                    "Unable to add computer. User with same displayed name exists.");
         }
 
         if(computer.ComputerEntity.HasSetRequiredFields() == false)
@@ -76,10 +82,24 @@ public class ComputerManager
     public void UpdateComputer(Computer computerToUpdate, ComputerEntity newComputerEntity)
             throws DatabaseException, IllegalArgumentException, NothingToDoException
     {
-        if(CanComputerEntityBeUpdated(computerToUpdate.ComputerEntity, newComputerEntity) == false)
+        if(ComputerEntityCanBeUpdated(computerToUpdate.ComputerEntity, newComputerEntity) == false)
         {
             throw new IllegalArgumentException("[ERROR] ComputerManager: " +
                     "Unable to update computer entity. Provided user and data connection fields are empty");
+        }
+
+        if(Utilities.AreEqual(computerToUpdate.ComputerEntity.Host, newComputerEntity.Host) == false &&
+                GetComputerByHost(newComputerEntity.Host) != null)
+        {
+            throw new IllegalArgumentException("[FATAL ERROR] ComputerManager: " +
+                    "Unable to add computer. User with same host exists.");
+        }
+
+        if(Utilities.AreEqual(computerToUpdate.ComputerEntity.DisplayedName, newComputerEntity.DisplayedName) == false &&
+                GetComputerByDisplayedName(newComputerEntity.DisplayedName) != null)
+        {
+            throw new IllegalArgumentException("[FATAL ERROR] ComputerManager: " +
+                    "Unable to add computer. User with same displayed name exists.");
         }
 
         if(newComputerEntity.User != null)
@@ -288,10 +308,10 @@ public class ComputerManager
         }
     }
 
-    public boolean CanComputerEntityBeUpdated(ComputerEntity computerEntityToUpdate, ComputerEntity newComputerEntity)
+    public boolean ComputerEntityCanBeUpdated(ComputerEntity computerEntityToUpdate, ComputerEntity newComputerEntity)
     {
-        if(IsUserToReset(computerEntityToUpdate, newComputerEntity) &&
-            AreSomeConnectionDataFieldsEmpty(newComputerEntity))
+        if(UserIsToReset(computerEntityToUpdate, newComputerEntity) &&
+            SomeConnectionDataFieldsAreEmpty(newComputerEntity))
         {
             return false;
         }
@@ -299,16 +319,26 @@ public class ComputerManager
         return true;
     }
 
-    private boolean IsUserToReset(ComputerEntity computerEntityToUpdate, ComputerEntity newComputerEntity)
+    private boolean UserIsToReset(ComputerEntity computerEntityToUpdate, ComputerEntity newComputerEntity)
     {
         return computerEntityToUpdate.User != null && newComputerEntity.User == null;
     }
 
-    private boolean AreSomeConnectionDataFieldsEmpty(ComputerEntity computerEntityToUpdate)
+    private boolean SomeConnectionDataFieldsAreEmpty(ComputerEntity computerEntityToUpdate)
     {
         return  computerEntityToUpdate.GetUsernameConnectionField() == null ||
                 computerEntityToUpdate.GetEncryptedPasswordConnectionField() == null ||
                 computerEntityToUpdate.GetSSHKeyConnectionField() == null;
+    }
+
+    public boolean ComputerWithGivenDisplayedNameExists(String displayedName)
+    {
+        return GetComputerByDisplayedName(displayedName) != null;
+    }
+
+    public boolean ComputerWithGivenHostExists(String host)
+    {
+        return GetComputerByHost(host) != null;
     }
 
     // -----------------------------------------------------------------------------------------------------------------
@@ -319,10 +349,31 @@ public class ComputerManager
         return _computers;
     }
 
-    public Computer GetComputer(String host)
+    public Computer GetComputerByComputerEntity(ComputerEntity computerEntity)
+    {
+        List<Computer> results = _computers.stream()
+                .filter(c -> c.ComputerEntity.equals(computerEntity)).collect(Collectors.toList());
+        return results.isEmpty()? null : results.get(0);
+    }
+
+    public Computer GetComputerById(int id)
+    {
+        List<Computer> results = _computers.stream()
+                .filter(c -> c.ComputerEntity.Id == id).collect(Collectors.toList());
+        return results.isEmpty()? null : results.get(0);
+    }
+
+    public Computer GetComputerByHost(String host)
     {
         List<Computer> results = _computers.stream()
                 .filter(c -> c.ComputerEntity.Host.equals(host)).collect(Collectors.toList());
+        return results.isEmpty()? null : results.get(0);
+    }
+
+    public Computer GetComputerByDisplayedName(String displayedName)
+    {
+        List<Computer> results = _computers.stream()
+                .filter(c -> c.ComputerEntity.DisplayedName.equals(displayedName)).collect(Collectors.toList());
         return results.isEmpty()? null : results.get(0);
     }
 
