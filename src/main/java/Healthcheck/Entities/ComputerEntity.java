@@ -1,12 +1,11 @@
 package Healthcheck.Entities;
 
 import Healthcheck.Utilities;
-
 import javax.persistence.*;
-import javax.sound.sampled.Port;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "Computers")
@@ -18,6 +17,9 @@ public class ComputerEntity
 
     @Column(nullable = false, unique = true)
     public String Host;
+
+    @Column(nullable = false, unique = true)
+    public String DisplayedName;
 
     @ManyToOne
     @JoinColumn(name = "User_Id", referencedColumnName = "Id")
@@ -61,6 +63,7 @@ public class ComputerEntity
 
     public ComputerEntity(
             String host,
+            String displayedName,
             String _SSH_Username,
             String _SSH_EncryptedPassword,
             String _SSH_Key,
@@ -72,6 +75,7 @@ public class ComputerEntity
             boolean isSelected)
     {
         Host = host;
+        DisplayedName = displayedName;
         SSH_Username = _SSH_Username;
         SSH_EncryptedPassword = _SSH_EncryptedPassword;
         SSH_Key = _SSH_Key;
@@ -86,6 +90,7 @@ public class ComputerEntity
 
     public ComputerEntity(
             String host,
+            String displayedName,
             User user,
             int port,
             Duration maintainPeriod,
@@ -95,6 +100,7 @@ public class ComputerEntity
             boolean isSelected)
     {
         Host = host;
+        DisplayedName = displayedName;
         User = user;
         Port = port;
         MaintainPeriod = maintainPeriod;
@@ -110,6 +116,7 @@ public class ComputerEntity
     {
         Id = computerEntity.Id;
         Host = computerEntity.Host;
+        DisplayedName = computerEntity.DisplayedName;
         User = computerEntity.User != null ? new User(computerEntity.User) : null;
         Classroom = computerEntity.Classroom;
         SSH_Username = computerEntity.SSH_Username;
@@ -128,6 +135,7 @@ public class ComputerEntity
     {
         Id = computerEntity.Id;
         Host = computerEntity.Host;
+        DisplayedName = computerEntity.DisplayedName;
         User = computerEntity.User;
         Classroom = computerEntity.Classroom;
         SSH_Username = computerEntity.SSH_Username;
@@ -213,6 +221,11 @@ public class ComputerEntity
         return SSH_Key;
     }
 
+    public boolean HasSetUser()
+    {
+        return User != null;
+    }
+
     @Override
     public boolean equals(Object obj)
     {
@@ -224,6 +237,7 @@ public class ComputerEntity
         ComputerEntity other = (ComputerEntity) obj;
         return  this.Id == other.Id &&
                 Utilities.AreEqual(this.Host, other.Host) &&
+                Utilities.AreEqual(this.DisplayedName, other.DisplayedName) &&
                 Utilities.AreEqual(this.User, other.User) &&
                 Utilities.AreEqual(this.Classroom, other.Classroom) &&
                 Utilities.AreEqual(this.SSH_Username, other.SSH_Username) &&
@@ -238,5 +252,28 @@ public class ComputerEntity
                 (this.Preferences == other.Preferences ||
                         (this.Preferences.containsAll(other.Preferences) &&
                                 other.Preferences.containsAll(this.Preferences)));
+    }
+
+    public void CopyId(ComputerEntity computerEntity)
+    {
+        Id = computerEntity.Id;
+    }
+
+    public void CopyLastMaintenance(ComputerEntity computerEntity)
+    {
+        LastMaintenance = computerEntity.LastMaintenance;
+    }
+
+    public void CopyPreferences(ComputerEntity computerEntity)
+    {
+        Preferences = computerEntity.Preferences;
+    }
+
+    public boolean HasPreferenceWithGivenClassName(String preferenceClassName)
+    {
+        List<Preference> results = Preferences.stream()
+                .filter(p -> p.ClassName.equals(preferenceClassName)).collect(Collectors.toList());
+
+        return !results.isEmpty();
     }
 }
