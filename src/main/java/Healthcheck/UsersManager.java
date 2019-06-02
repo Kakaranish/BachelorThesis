@@ -210,6 +210,13 @@ public class UsersManager
                 UserExists(newUser.DisplayedUsername, newUser.SSH_Username);
     }
 
+    private boolean UserExists(String displayedUsername, String SSH_Username)
+    {
+        User receivedUser = GetUserByDisplayedUsernameAndSSHUsername(displayedUsername, SSH_Username);
+
+        return receivedUser != null;
+    }
+
     // -----------------------------------------------------------------------------------------------------------------
     // -------------------------------------------------- GETTERS ------------------------------------------------------
 
@@ -233,7 +240,14 @@ public class UsersManager
         }
     }
 
-    public User GetUser(String displayedUsername, String SSH_Username)
+    public User GetUserById(int id)
+    {
+        List<User> results = _users.stream()
+                .filter(u -> u.Id == id).collect(Collectors.toList());
+        return results.isEmpty()? null : results.get(0);
+    }
+
+    public User GetUserByDisplayedUsernameAndSSHUsername(String displayedUsername, String SSH_Username)
     {
         List<User> results = _users.stream()
                 .filter(u ->
@@ -243,10 +257,8 @@ public class UsersManager
         return results.isEmpty()? null : results.get(0);
     }
 
-    private boolean UserExists(String displayedUsername, String SSH_Username)
+    public List<User> GetUsers()
     {
-        User receivedUser = GetUser(displayedUsername, SSH_Username);
-
-        return receivedUser != null;
+        return _users;
     }
 }
