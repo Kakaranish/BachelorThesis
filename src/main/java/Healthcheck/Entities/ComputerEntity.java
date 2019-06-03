@@ -25,9 +25,8 @@ public class ComputerEntity
     @JoinColumn(name = "User_Id", referencedColumnName = "Id")
     public User User;
 
-    @ManyToOne
-    @JoinColumn(name = "Classroom_Id", referencedColumnName = "Id")
-    public Classroom Classroom;
+    @Column(nullable = false)
+    public String Classroom;
 
     // SSH connection data fields
     private String SSH_Username;
@@ -71,7 +70,7 @@ public class ComputerEntity
             Duration maintainPeriod,
             Duration requestInterval,
             Duration logExpiration,
-            Classroom classroom,
+            String classroom,
             boolean isSelected)
     {
         Host = host;
@@ -96,7 +95,7 @@ public class ComputerEntity
             Duration maintainPeriod,
             Duration requestInterval,
             Duration logExpiration,
-            Classroom classroom,
+            String classroom,
             boolean isSelected)
     {
         Host = host;

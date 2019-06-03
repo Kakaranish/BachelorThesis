@@ -4,7 +4,6 @@ import Healthcheck.Computer;
 import Healthcheck.ComputerManager;
 import Healthcheck.DatabaseManagement.DatabaseException;
 import Healthcheck.DatabaseManagement.DatabaseManager;
-import Healthcheck.Entities.Classroom;
 import Healthcheck.Entities.ComputerEntity;
 import Healthcheck.Entities.Logs.BaseEntity;
 import Healthcheck.Preferences.IPreference;
@@ -55,16 +54,15 @@ public class LogsGetter
     }
 
     public static List<BaseEntity> GetCertainTypeLogsForClassroom(
-            Classroom classroom, IPreference preference, Timestamp fromDate, Timestamp toDate)
+            String classroom, IPreference preference, Timestamp fromDate, Timestamp toDate)
     {
         Session session = DatabaseManager.GetInstance().GetSession();
         try
         {
             String hql = "from " + preference.GetClassName() + " t" +
                     " where t.Timestamp > " + fromDate.getTime() + " and t.Timestamp < " + toDate.getTime() +
-                    " and t.ComputerEntity.Classroom = :classroom";
+                    " and t.ComputerEntity.Classroom = '" + classroom + "'";
             Query query = session.createQuery(hql);
-            query.setParameter("classroom", classroom);
 
             List<BaseEntity> receivedLogs = query.getResultList();
 

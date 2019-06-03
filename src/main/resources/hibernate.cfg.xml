@@ -23,6 +23,5 @@
         <mapping class="Healthcheck.Entities.Logs.UserLog"/>
         <mapping class="Healthcheck.Entities.Preference"/>
         <mapping class="Healthcheck.Entities.ComputerEntity"/>
-        <mapping class="Healthcheck.Entities.Classroom"/>
     </session-factory>
 </hibernate-configuration>

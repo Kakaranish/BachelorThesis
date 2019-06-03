@@ -156,7 +156,7 @@ public class ComputerInfoController implements Initializable
             isSelectedCheckBox.setSelected(_computerEntity.IsSelected);
             displayedNameTextField.setText(_computerEntity.DisplayedName);
             hostTextField.setText(_computerEntity.Host);
-            classroomTextField.setText(_computerEntity.Classroom.Name);
+            classroomTextField.setText(_computerEntity.Classroom);
 
             SetAssignedUser(indexOfSelectedUserBeforeChanges);
 
@@ -258,7 +258,7 @@ public class ComputerInfoController implements Initializable
         isSelectedCheckBox.setSelected(_computerEntity.IsSelected);
         displayedNameTextField.setText(_computerEntity.DisplayedName);
         hostTextField.setText(_computerEntity.Host);
-        classroomTextField.setText(_computerEntity.Classroom.Name);
+        classroomTextField.setText(_computerEntity.Classroom);
 
         PopulateAssignedUserChoiceBox();
         SetAssignedUser(indexOfSelectedUserBeforeChanges);
@@ -326,7 +326,7 @@ public class ComputerInfoController implements Initializable
                     maintenancePeriodDuration,
                     requestIntervalDuration,
                     logExpirationDuration,
-                    Utilities.GetClassroom(classroomTextField.getText()),
+                    classroomTextField.getText(),
                     isSelectedCheckBox.isSelected()
             );
         }
@@ -341,7 +341,7 @@ public class ComputerInfoController implements Initializable
                     maintenancePeriodDuration,
                     requestIntervalDuration,
                     logExpirationDuration,
-                    Utilities.GetClassroom(classroomTextField.getText()),
+                    classroomTextField.getText(),
                     isSelectedCheckBox.isSelected()
             );
         }

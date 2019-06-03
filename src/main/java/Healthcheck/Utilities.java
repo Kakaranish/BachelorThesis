@@ -2,7 +2,6 @@ package Healthcheck;
 
 import Healthcheck.DatabaseManagement.DatabaseException;
 import Healthcheck.DatabaseManagement.DatabaseManager;
-import Healthcheck.Entities.Classroom;
 import Healthcheck.Entities.Preference;
 import Healthcheck.Preferences.IPreference;
 import javafx.scene.control.Alert;
@@ -14,8 +13,8 @@ import javax.persistence.Query;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Utilities
@@ -34,14 +33,13 @@ public class Utilities
     public static final int GatheringStartDelay = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("GatheringStartDelay"));
 
     public static final List<Preference> AvailablePreferences = GetAvailablePreferencesFromDb();
-    public static final List<Classroom> AvailableClassrooms = GetAvailableClassroomsFromDb();
 
-    public static final Classroom GetClassroom(String classroomName)
+    public static Map<String, List<Computer>> GetComputersGroupedByClassroom(List<Computer> computers)
     {
-        List<Classroom> results = AvailableClassrooms.stream()
-                .filter(c -> c.Name.equals(classroomName)).collect(Collectors.toList());
+        Map<String, List<Computer>> groupedComputers =
+                computers.stream().collect(Collectors.groupingBy(c -> c.ComputerEntity.Classroom));
 
-        return results.isEmpty()? null : results.get(0);
+        return groupedComputers;
     }
 
     public static List<IPreference> ConvertListOfPreferencesToIPreferences(List<Preference> preferences)
@@ -118,28 +116,6 @@ public class Utilities
         catch (PersistenceException e)
         {
             return null;
-        }
-        finally
-        {
-            session.close();
-        }
-    }
-
-    private static List<Classroom> GetAvailableClassroomsFromDb() throws DatabaseException
-    {
-        String hql = "from Classroom";
-        Session session = DatabaseManager.GetInstance().GetSession();
-
-        try
-        {
-            Query query = session.createQuery(hql);
-            List<Classroom> classrooms = query.getResultList();
-
-            return classrooms;
-        }
-        catch (PersistenceException e)
-        {
-            throw new DatabaseException("Unable to get available preferences.");
         }
         finally
         {

@@ -164,8 +164,6 @@ public class TestController implements Initializable
             data.add(new CustomThing(computer.ComputerEntity.DisplayedName, computer.ComputerEntity.Host));
         }
 
-
-
 //        final ListView<CustomThing> listView2 = new ListView<CustomThing>(data);
         listView.setItems(data);
         listView.setCellFactory(new Callback<ListView<CustomThing>, ListCell<CustomThing>>() {
@@ -174,8 +172,6 @@ public class TestController implements Initializable
                 return new CustomListCell();
             }
         });
-
-
     }
 
     @Override
