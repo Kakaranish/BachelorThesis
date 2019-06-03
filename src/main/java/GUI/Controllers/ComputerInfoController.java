@@ -6,6 +6,7 @@ import Healthcheck.DatabaseManagement.DatabaseException;
 import Healthcheck.Encryption.Encrypter;
 import Healthcheck.Encryption.EncrypterException;
 import Healthcheck.Entities.ComputerEntity;
+import Healthcheck.Entities.Preference;
 import Healthcheck.Entities.User;
 import Healthcheck.LogsManagement.NothingToDoException;
 import Healthcheck.SSHConnectionManagement.SSHConnection;
@@ -34,42 +35,45 @@ import java.util.stream.Collectors;
 public class ComputerInfoController implements Initializable
 {
     @FXML
-    private TextField displayedName;
+    private TextField displayedNameTextField;
 
     @FXML
-    private TextField host;
+    private TextField hostTextField;
 
     @FXML
-    private TextField classroom;
+    private TextField classroomTextField;
 
     @FXML
-    private ChoiceBox<User> assignedUser;
+    private ChoiceBox<User> assignedUserChoiceBox;
 
     @FXML
-    private TextField sshUsername;
+    private TextField sshUsernameTextField;
 
     @FXML
-    private PasswordField sshPassword;
+    private PasswordField sshPasswordPasswordField;
 
     @FXML
-    private TextField sshKey;
+    private TextField sshKeyTextField;
 
     @FXML
-    private TextField port;
+    private TextField portTextField;
 
     @FXML
-    private TextField requestInterval;
+    private TextField requestIntervalTextField;
 
     @FXML
-    private TextField maintainPeriod;
+    private TextField maintainPeriodTextField;
 
     @FXML
-    private TextField logExpiration;
+    private TextField logExpirationTextField;
 
     @FXML
     private GridPane preferencesGridPane;
 
-    private ObservableList usersObservableList = FXCollections.observableArrayList();
+    @FXML
+    private CheckBox isSelectedCheckBox;
+
+    private ObservableList assignedUserObservableList = FXCollections.observableArrayList();
 
     // -----------------------------------------------------------------------------------------------------------------
 
@@ -109,8 +113,8 @@ public class ComputerInfoController implements Initializable
     @FXML
     void SaveChanges(ActionEvent event)
     {
-        String newDisplayedName = displayedName.getText();
-        String newHost = host.getText();
+        String newDisplayedName = displayedNameTextField.getText();
+        String newHost = hostTextField.getText();
 
         List<String> errors = ValidateBeforeSave(newDisplayedName, newHost);
 
@@ -137,7 +141,7 @@ public class ComputerInfoController implements Initializable
 
             Utilities.ShowInfoDialog("Saving computer has succeed.");
 
-            indexOfSelectedUserBeforeChanges = assignedUser.getSelectionModel().getSelectedIndex();
+            indexOfSelectedUserBeforeChanges = assignedUserChoiceBox.getSelectionModel().getSelectedIndex();
             selectedCheckboxesBeforeChanges.clear();
             selectedCheckboxesBeforeChanges = GetListOfSelectedPreferenceCheckboxes();
         }
@@ -149,9 +153,10 @@ public class ComputerInfoController implements Initializable
         boolean response = Utilities.ShowYesNoDialog("Discard changes?", "Do you want to discard changes?");
         if(response == true)
         {
-            displayedName.setText(_computerEntity.DisplayedName);
-            host.setText(_computerEntity.Host);
-            classroom.setText(_computerEntity.Classroom.Name);
+            isSelectedCheckBox.setSelected(_computerEntity.IsSelected);
+            displayedNameTextField.setText(_computerEntity.DisplayedName);
+            hostTextField.setText(_computerEntity.Host);
+            classroomTextField.setText(_computerEntity.Classroom.Name);
 
             SetAssignedUser(indexOfSelectedUserBeforeChanges);
 
@@ -167,21 +172,21 @@ public class ComputerInfoController implements Initializable
                     // This exception will be never caught
                 }
 
-                sshUsername.setText(_computerEntity.GetUsername());
-                sshPassword.setText(decryptedPassword);
-                sshKey.setText(_computerEntity.GetSSHKey());
+                sshUsernameTextField.setText(_computerEntity.GetUsername());
+                sshPasswordPasswordField.setText(decryptedPassword);
+                sshKeyTextField.setText(_computerEntity.GetSSHKey());
             }
             else
             {
-                sshUsername.setDisable(true);
-                sshPassword.setDisable(true);
-                sshKey.setDisable(true);
+                sshUsernameTextField.setDisable(true);
+                sshPasswordPasswordField.setDisable(true);
+                sshKeyTextField.setDisable(true);
             }
 
-            logExpiration.setText(String.valueOf(_computerEntity.LogExpiration.toSeconds()));
-            maintainPeriod.setText(String.valueOf(_computerEntity.MaintainPeriod.toSeconds()));
-            port.setText(String.valueOf(_computerEntity.Port));
-            requestInterval.setText(String.valueOf(_computerEntity.RequestInterval.toSeconds()));
+            logExpirationTextField.setText(String.valueOf(_computerEntity.LogExpiration.toSeconds()));
+            maintainPeriodTextField.setText(String.valueOf(_computerEntity.MaintainPeriod.toSeconds()));
+            portTextField.setText(String.valueOf(_computerEntity.Port));
+            requestIntervalTextField.setText(String.valueOf(_computerEntity.RequestInterval.toSeconds()));
 
             SetPreferencesCheckBoxesAsBeforeChanges();
 
@@ -198,19 +203,19 @@ public class ComputerInfoController implements Initializable
             return;
         }
 
-        int newPort = Integer.parseInt(port.getText());
-        String newHost = host.getText();
+        int newPort = Integer.parseInt(portTextField.getText());
+        String newHost = hostTextField.getText();
         String newSSHUsername;
         String decryptedNewSSHPassowrd = null;
 
-        if(assignedUser.getSelectionModel().getSelectedIndex() == 0)
+        if(assignedUserChoiceBox.getSelectionModel().getSelectedIndex() == 0)
         {
-            newSSHUsername = sshUsername.getText();
-            decryptedNewSSHPassowrd = sshPassword.getText();
+            newSSHUsername = sshUsernameTextField.getText();
+            decryptedNewSSHPassowrd = sshPasswordPasswordField.getText();
         }
         else
         {
-            User newAssignedUser = assignedUser.getSelectionModel().getSelectedItem();
+            User newAssignedUser = assignedUserChoiceBox.getSelectionModel().getSelectedItem();
             newSSHUsername = newAssignedUser.SSH_Username;
             try
             {
@@ -236,7 +241,7 @@ public class ComputerInfoController implements Initializable
         }
         catch (SSHConnectionException e)
         {
-            Utilities.ShowErrorDialog("Connection with computer cannot be established");
+            Utilities.ShowErrorDialog("Connection with computer cannot be established.");
         }
     }
 
@@ -250,9 +255,10 @@ public class ComputerInfoController implements Initializable
 
     private void InitGUIComponentsFromComputerEntityContent()
     {
-        displayedName.setText(_computerEntity.DisplayedName);
-        host.setText(_computerEntity.Host);
-        classroom.setText(_computerEntity.Classroom.Name);
+        isSelectedCheckBox.setSelected(_computerEntity.IsSelected);
+        displayedNameTextField.setText(_computerEntity.DisplayedName);
+        hostTextField.setText(_computerEntity.Host);
+        classroomTextField.setText(_computerEntity.Classroom.Name);
 
         PopulateAssignedUserChoiceBox();
         SetAssignedUser(indexOfSelectedUserBeforeChanges);
@@ -270,21 +276,21 @@ public class ComputerInfoController implements Initializable
                 // it's checked before running computer settings window if password can be decrypted
             }
 
-            sshUsername.setText(_computerEntity.GetUsername());
-            sshPassword.setText(decryptedPassword);
-            sshKey.setText(_computerEntity.GetSSHKey());
+            sshUsernameTextField.setText(_computerEntity.GetUsername());
+            sshPasswordPasswordField.setText(decryptedPassword);
+            sshKeyTextField.setText(_computerEntity.GetSSHKey());
         }
         else
         {
-            sshUsername.setDisable(true);
-            sshPassword.setDisable(true);
-            sshKey.setDisable(true);
+            sshUsernameTextField.setDisable(true);
+            sshPasswordPasswordField.setDisable(true);
+            sshKeyTextField.setDisable(true);
         }
 
-        logExpiration.setText(String.valueOf(_computerEntity.LogExpiration.toSeconds()));
-        maintainPeriod.setText(String.valueOf(_computerEntity.MaintainPeriod.toSeconds()));
-        port.setText(String.valueOf(_computerEntity.Port));
-        requestInterval.setText(String.valueOf(_computerEntity.RequestInterval.toSeconds()));
+        logExpirationTextField.setText(String.valueOf(_computerEntity.LogExpiration.toSeconds()));
+        maintainPeriodTextField.setText(String.valueOf(_computerEntity.MaintainPeriod.toSeconds()));
+        portTextField.setText(String.valueOf(_computerEntity.Port));
+        requestIntervalTextField.setText(String.valueOf(_computerEntity.RequestInterval.toSeconds()));
 
         PopulatePreferencesCheckboxes();
         SetPreferencesCheckBoxesAsBeforeChanges();
@@ -292,14 +298,14 @@ public class ComputerInfoController implements Initializable
 
     private ComputerEntity GetChangedComputerEntity()
     {
-        Duration maintenancePeriodDuration = Utilities.ConvertSecondsToDurationInNanos(Long.parseLong(maintainPeriod.getText()));
-        Duration requestIntervalDuration = Utilities.ConvertSecondsToDurationInNanos(Long.parseLong(requestInterval.getText()));
-        Duration logExpirationDuration = Utilities.ConvertSecondsToDurationInNanos(Long.parseLong(logExpiration.getText()));
+        Duration maintenancePeriodDuration = Utilities.ConvertSecondsToDurationInNanos(Long.parseLong(maintainPeriodTextField.getText()));
+        Duration requestIntervalDuration = Utilities.ConvertSecondsToDurationInNanos(Long.parseLong(requestIntervalTextField.getText()));
+        Duration logExpirationDuration = Utilities.ConvertSecondsToDurationInNanos(Long.parseLong(logExpirationTextField.getText()));
 
         String encryptedPassword = null;
         try
         {
-            encryptedPassword = Encrypter.GetInstance().Encrypt(sshPassword.getText());
+            encryptedPassword = Encrypter.GetInstance().Encrypt(sshPasswordPasswordField.getText());
         }
         catch (EncrypterException e)
         {
@@ -308,46 +314,41 @@ public class ComputerInfoController implements Initializable
         }
 
         ComputerEntity changedComputerEntity;
-        if(assignedUser.getSelectionModel().getSelectedIndex() == 0)
+        if(assignedUserChoiceBox.getSelectionModel().getSelectedIndex() == 0)
         {
             changedComputerEntity = new ComputerEntity(
-                    host.getText(),
-                    displayedName.getText(),
-                    sshUsername.getText(),
+                    hostTextField.getText(),
+                    displayedNameTextField.getText(),
+                    sshUsernameTextField.getText(),
                     encryptedPassword,
-                    sshKey.getText(),
-                    Integer.parseInt(port.getText()),
+                    sshKeyTextField.getText(),
+                    Integer.parseInt(portTextField.getText()),
                     maintenancePeriodDuration,
                     requestIntervalDuration,
                     logExpirationDuration,
-                    Utilities.GetClassroom(classroom.getText()),
-                    true
+                    Utilities.GetClassroom(classroomTextField.getText()),
+                    isSelectedCheckBox.isSelected()
             );
         }
         else
         {
-            User user = assignedUser.getSelectionModel().getSelectedItem();
+            User user = assignedUserChoiceBox.getSelectionModel().getSelectedItem();
             changedComputerEntity = new ComputerEntity(
-                    host.getText(),
-                    displayedName.getText(),
+                    hostTextField.getText(),
+                    displayedNameTextField.getText(),
                     user,
-                    Integer.parseInt(port.getText()),
+                    Integer.parseInt(portTextField.getText()),
                     maintenancePeriodDuration,
                     requestIntervalDuration,
                     logExpirationDuration,
-                    Utilities.GetClassroom(classroom.getText()),
-                    true
+                    Utilities.GetClassroom(classroomTextField.getText()),
+                    isSelectedCheckBox.isSelected()
             );
         }
 
         changedComputerEntity.CopyId(_computerEntity);
         changedComputerEntity.CopyLastMaintenance(_computerEntity);
-        changedComputerEntity.CopyPreferences(_computerEntity); // TODO: To remove
-
-        if(_computerEntity.equals(changedComputerEntity))
-        {
-            System.out.println("Nothing changed in computer entity.");
-        }
+        changedComputerEntity.Preferences = GetListOfSelectedPreferences();
 
         return changedComputerEntity;
     }
@@ -391,13 +392,13 @@ public class ComputerInfoController implements Initializable
     private void PopulateAssignedUserChoiceBox()
     {
         User currAssignedUser = _computerEntity.User;
-        usersObservableList.add(emptyUser);
+        assignedUserObservableList.add(emptyUser);
         int selectedUserIndex = 0;
 
         int i=1;
         for (User user : _usersManager.GetUsers())
         {
-            usersObservableList.add(user);
+            assignedUserObservableList.add(user);
             if(Utilities.AreEqual(currAssignedUser, user))
             {
                 selectedUserIndex = i;
@@ -408,9 +409,9 @@ public class ComputerInfoController implements Initializable
 
         indexOfSelectedUserBeforeChanges = selectedUserIndex;
 
-        assignedUser.setItems(usersObservableList);
-        assignedUser.setConverter(new UserConverter());
-        assignedUser.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>()
+        assignedUserChoiceBox.setItems(assignedUserObservableList);
+        assignedUserChoiceBox.setConverter(new UserConverter());
+        assignedUserChoiceBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>()
         {
             @Override
             public void changed(ObservableValue<? extends Number> observableValue, Number oldValue, Number newValue)
@@ -430,7 +431,7 @@ public class ComputerInfoController implements Initializable
     private void SetAssignedUser(int selectedUserIndex)
     {
         userFieldsDisabled = selectedUserIndex == 0 ? false : true;
-        assignedUser.getSelectionModel().select(selectedUserIndex);
+        assignedUserChoiceBox.getSelectionModel().select(selectedUserIndex);
     }
 
     // -----------------------------------------------------------------------------------------------------------------
@@ -457,6 +458,11 @@ public class ComputerInfoController implements Initializable
 
     private void SetPreferencesCheckBoxesAsBeforeChanges()
     {
+        for (CheckBox preferenceCheckbox : preferenceCheckboxes)
+        {
+            preferenceCheckbox.setSelected(false);
+        }
+
         for (CheckBox selectedCheckBox : selectedCheckboxesBeforeChanges)
         {
             selectedCheckBox.setSelected(true);
@@ -468,10 +474,10 @@ public class ComputerInfoController implements Initializable
 
     private void SetUpIntegerValidators()
     {
-        SetUpIntegerValidator(port, portIsIncorrect);
-        SetUpIntegerValidator(requestInterval, requestIntervalIsIncorrect);
-        SetUpIntegerValidator(maintainPeriod, maintainPeriodIsIncorrect);
-        SetUpIntegerValidator(logExpiration, logExpirationIsIncorrect);
+        SetUpIntegerValidator(portTextField, portIsIncorrect);
+        SetUpIntegerValidator(requestIntervalTextField, requestIntervalIsIncorrect);
+        SetUpIntegerValidator(maintainPeriodTextField, maintainPeriodIsIncorrect);
+        SetUpIntegerValidator(logExpirationTextField, logExpirationIsIncorrect);
     }
 
     private void SetUpIntegerValidator(TextField textField, AtomicBoolean flag)
@@ -508,12 +514,12 @@ public class ComputerInfoController implements Initializable
 
     private void SetUpEmptinessValidators()
     {
-        SetUpEmptinessRuntimeValidator(displayedName);
-        SetUpEmptinessRuntimeValidator(host);
-        SetUpEmptinessRuntimeValidator(classroom);
-        SetUpEmptinessRuntimeValidator(sshUsername);
-        SetUpEmptinessRuntimeValidator(sshPassword);
-        SetUpEmptinessRuntimeValidator(sshKey);
+        SetUpEmptinessRuntimeValidator(displayedNameTextField);
+        SetUpEmptinessRuntimeValidator(hostTextField);
+        SetUpEmptinessRuntimeValidator(classroomTextField);
+        SetUpEmptinessRuntimeValidator(sshUsernameTextField);
+        SetUpEmptinessRuntimeValidator(sshPasswordPasswordField);
+        SetUpEmptinessRuntimeValidator(sshKeyTextField);
     }
 
     private void SetUpEmptinessRuntimeValidator(TextField textField)
@@ -583,7 +589,7 @@ public class ComputerInfoController implements Initializable
         {
             if(displayedNameIsIncorrect == false)
             {
-                displayedName.getStyleClass().add("validation-error");
+                displayedNameTextField.getStyleClass().add("validation-error");
                 displayedNameIsIncorrect = true;
             }
 
@@ -599,7 +605,7 @@ public class ComputerInfoController implements Initializable
             {
                 if(displayedNameIsIncorrect)
                 {
-                    displayedName.getStyleClass().remove("validation-error");
+                    displayedNameTextField.getStyleClass().remove("validation-error");
                     displayedNameIsIncorrect = false;
                 }
             }
@@ -607,7 +613,7 @@ public class ComputerInfoController implements Initializable
             {
                 if(displayedNameIsIncorrect == false)
                 {
-                    displayedName.getStyleClass().add("validation-error");
+                    displayedNameTextField.getStyleClass().add("validation-error");
                     displayedNameIsIncorrect = true;
 
                     return "Other computer has same displayed name.";
@@ -618,7 +624,7 @@ public class ComputerInfoController implements Initializable
         {
             if(displayedNameIsIncorrect)
             {
-                displayedName.getStyleClass().remove("validation-error");
+                displayedNameTextField.getStyleClass().remove("validation-error");
             }
         }
 
@@ -631,7 +637,7 @@ public class ComputerInfoController implements Initializable
         {
             if(hostIsIncorrect == false)
             {
-                host.getStyleClass().add("validation-error");
+                hostTextField.getStyleClass().add("validation-error");
                 hostIsIncorrect = true;
             }
 
@@ -646,7 +652,7 @@ public class ComputerInfoController implements Initializable
             {
                 if(hostIsIncorrect)
                 {
-                    host.getStyleClass().remove("validation-error");
+                    hostTextField.getStyleClass().remove("validation-error");
                     hostIsIncorrect = false;
                 }
             }
@@ -654,10 +660,10 @@ public class ComputerInfoController implements Initializable
             {
                 if(hostIsIncorrect == false)
                 {
-                    host.getStyleClass().add("validation-error");
+                    hostTextField.getStyleClass().add("validation-error");
                     hostIsIncorrect= true;
 
-                    return "Other computer has same host.";
+                    return "Other computer has same hostTextField.";
                 }
             }
         }
@@ -665,7 +671,7 @@ public class ComputerInfoController implements Initializable
         {
             if(hostIsIncorrect)
             {
-                host.getStyleClass().remove("validation-error");
+                hostTextField.getStyleClass().remove("validation-error");
             }
         }
 
@@ -688,45 +694,58 @@ public class ComputerInfoController implements Initializable
     private void EnableSSHFields()
     {
         userFieldsDisabled = false;
-        sshUsername.setDisable(false);
-        sshPassword.setDisable(false);
-        sshKey.setDisable(false);
+        sshUsernameTextField.setDisable(false);
+        sshPasswordPasswordField.setDisable(false);
+        sshKeyTextField.setDisable(false);
 
-        if(sshUsername.getText().trim().equals(""))
+        if(sshUsernameTextField.getText().trim().equals(""))
         {
-            sshUsername.getStyleClass().add("validation-error");
+            sshUsernameTextField.getStyleClass().add("validation-error");
         }
 
-        if(sshPassword.getText().trim().equals(""))
+        if(sshPasswordPasswordField.getText().trim().equals(""))
         {
-            sshPassword.getStyleClass().add("validation-error");
+            sshPasswordPasswordField.getStyleClass().add("validation-error");
         }
 
-        if(sshKey.getText().trim().equals(""))
+        if(sshKeyTextField.getText().trim().equals(""))
         {
-            sshKey.getStyleClass().add("validation-error");
+            sshKeyTextField.getStyleClass().add("validation-error");
         }
     }
 
     private void DisableSSHFields()
     {
         userFieldsDisabled = true;
-        sshUsername.setDisable(true);
-        sshPassword.setDisable(true);
-        sshKey.setDisable(true);
+        sshUsernameTextField.setDisable(true);
+        sshPasswordPasswordField.setDisable(true);
+        sshKeyTextField.setDisable(true);
 
-        sshUsername.getStyleClass().removeAll("validation-error");
-        sshPassword.getStyleClass().removeAll("validation-error");
-        sshKey.getStyleClass().removeAll("validation-error");
+        sshUsernameTextField.getStyleClass().removeAll("validation-error");
+        sshPasswordPasswordField.getStyleClass().removeAll("validation-error");
+        sshKeyTextField.getStyleClass().removeAll("validation-error");
+    }
+
+    private List<Preference> GetListOfSelectedPreferences()
+    {
+        List<Preference> preferences = new ArrayList<>();
+        List<CheckBox> selectedCheckBoxes = GetListOfSelectedPreferenceCheckboxes();
+
+        for (CheckBox selectedCheckBox : selectedCheckBoxes)
+        {
+            String preferenceClassName = Utilities.GetClassNameForPreferenceName(selectedCheckBox.getText());
+            Preference preference = Utilities.GetPreferenceFromClassName(preferenceClassName);
+            preferences.add(preference);
+        }
+
+        return preferences;
     }
 
     private List<CheckBox> GetListOfSelectedPreferenceCheckboxes()
     {
-        List<CheckBox> selectedCheckboxes = preferenceCheckboxes.stream()
+        List<CheckBox> selectedCheckBoxes = preferenceCheckboxes.stream()
                 .filter(cb -> cb.isSelected() == true).collect(Collectors.toList());
 
-        return selectedCheckboxes;
+        return selectedCheckBoxes;
     }
-
-
 }
