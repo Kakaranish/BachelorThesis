@@ -1,6 +1,6 @@
 package Healthcheck.Models.Info;
 
-import Healthcheck.Entities.ComputerEntity;
+import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.Logs.BaseEntity;
 import Healthcheck.Entities.Logs.UserLog;
 import java.sql.Timestamp;
@@ -42,12 +42,12 @@ public class UsersInfo implements IInfo
         }
     }
 
-    public List<BaseEntity> ToLogList(ComputerEntity computerEntity, Timestamp timestamp)
+    public List<BaseEntity> ToLogList(Computer computer, Timestamp timestamp)
     {
         List<BaseEntity> logList = new ArrayList<>();
         for (UserInfo userInfo: UsersInfo)
         {
-            logList.add(new UserLog(computerEntity, userInfo, timestamp));
+            logList.add(new UserLog(computer, userInfo, timestamp));
         }
 
         return logList;

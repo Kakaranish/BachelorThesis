@@ -1,6 +1,6 @@
 package Healthcheck.Models.Info;
 
-import Healthcheck.Entities.ComputerEntity;
+import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.Logs.BaseEntity;
 import Healthcheck.Entities.Logs.DiskLog;
 
@@ -41,12 +41,12 @@ public class DisksInfo implements IInfo
         }
     }
 
-    public List<BaseEntity> ToLogList(ComputerEntity computerEntity, Timestamp timestamp)
+    public List<BaseEntity> ToLogList(Computer computer, Timestamp timestamp)
     {
         List<BaseEntity> logList = new ArrayList<>();
         for (DiskInfo diskInfo: DisksInfo)
         {
-            logList.add(new DiskLog(computerEntity, diskInfo, timestamp));
+            logList.add(new DiskLog(computer, diskInfo, timestamp));
         }
 
         return logList;

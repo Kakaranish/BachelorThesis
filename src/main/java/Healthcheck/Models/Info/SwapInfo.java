@@ -1,6 +1,6 @@
 package Healthcheck.Models.Info;
 
-import Healthcheck.Entities.ComputerEntity;
+import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.Logs.BaseEntity;
 import Healthcheck.Entities.Logs.SwapLog;
 import javax.persistence.Embeddable;
@@ -35,10 +35,10 @@ public class SwapInfo implements IInfo
         Free = Long.parseLong(commandExecutionResultSplit[3]);
     }
 
-    public List<BaseEntity> ToLogList(ComputerEntity computerEntity, Timestamp timestamp)
+    public List<BaseEntity> ToLogList(Computer computer, Timestamp timestamp)
     {
         List<BaseEntity> logList = new ArrayList<>();
-        logList.add(new SwapLog(computerEntity, this, timestamp));
+        logList.add(new SwapLog(computer, this, timestamp));
 
         return logList;
     }

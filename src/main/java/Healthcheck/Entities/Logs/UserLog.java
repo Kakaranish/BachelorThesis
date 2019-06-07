@@ -1,6 +1,6 @@
 package Healthcheck.Entities.Logs;
 
-import Healthcheck.Entities.ComputerEntity;
+import Healthcheck.Entities.Computer;
 import Healthcheck.Models.Info.UserInfo;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -18,15 +18,15 @@ public class UserLog extends BaseEntity
     {
     }
 
-    public UserLog(ComputerEntity computerEntity, UserInfo userInfo)
+    public UserLog(Computer computer, UserInfo userInfo)
     {
-        super(computerEntity);
+        super(computer);
         UserInfo = userInfo;
     }
 
-    public UserLog(ComputerEntity computerEntity, UserInfo userInfo, Timestamp timestamp)
+    public UserLog(Computer computer, UserInfo userInfo, Timestamp timestamp)
     {
-        super(computerEntity, timestamp);
+        super(computer, timestamp);
         UserInfo = userInfo;
     }
 }

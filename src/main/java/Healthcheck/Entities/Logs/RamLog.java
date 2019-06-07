@@ -1,6 +1,6 @@
 package Healthcheck.Entities.Logs;
 
-import Healthcheck.Entities.ComputerEntity;
+import Healthcheck.Entities.Computer;
 import Healthcheck.Models.Info.RamInfo;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -18,15 +18,15 @@ public class RamLog extends BaseEntity
     {
     }
 
-    public RamLog(ComputerEntity computerEntity, RamInfo ramInfo)
+    public RamLog(Computer computer, RamInfo ramInfo)
     {
-        super(computerEntity);
+        super(computer);
         RamInfo = ramInfo;
     }
 
-    public RamLog(ComputerEntity computerEntity, RamInfo ramInfo, Timestamp timestamp)
+    public RamLog(Computer computer, RamInfo ramInfo, Timestamp timestamp)
     {
-        super(computerEntity, timestamp);
+        super(computer, timestamp);
         RamInfo = ramInfo;
     }
 }

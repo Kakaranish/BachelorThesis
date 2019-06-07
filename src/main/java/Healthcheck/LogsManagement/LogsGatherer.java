@@ -127,7 +127,7 @@ public class LogsGatherer
 
     private void StopGatheringLogsForComputerLogger(ComputerLogger computerLogger) throws LogsException
     {
-        String host = computerLogger.GetComputer().ComputerEntity.Host;
+        String host = computerLogger.GetComputer().Host;
 
         if(_isGathering == false)
         {
@@ -172,7 +172,7 @@ public class LogsGatherer
 
     public void Callback_StoppedGathering(ComputerLogger computerLogger)
     {
-        String host = computerLogger.GetComputer().ComputerEntity.Host;
+        String host = computerLogger.GetComputer().Host;
         System.out.println("[INFO] LogsGatherer: Gathering logs stopped for '" + host + "'.");
 
         _logsManager.Callback_Gatherer_StopWorkForComputerLogger(computerLogger);

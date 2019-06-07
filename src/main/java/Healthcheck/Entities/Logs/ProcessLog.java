@@ -1,6 +1,6 @@
 package Healthcheck.Entities.Logs;
 
-import Healthcheck.Entities.ComputerEntity;
+import Healthcheck.Entities.Computer;
 import Healthcheck.Models.Info.ProcessInfo;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -18,15 +18,15 @@ public class ProcessLog extends BaseEntity
     {
     }
 
-    public ProcessLog(ComputerEntity computerEntity, ProcessInfo processInfo)
+    public ProcessLog(Computer computer, ProcessInfo processInfo)
     {
-        super(computerEntity);
+        super(computer);
         ProcessInfo = processInfo;
     }
 
-    public ProcessLog(ComputerEntity computerEntity, ProcessInfo processInfo, Timestamp timestamp)
+    public ProcessLog(Computer computer, ProcessInfo processInfo, Timestamp timestamp)
     {
-        super(computerEntity, timestamp);
+        super(computer, timestamp);
         ProcessInfo = processInfo;
     }
 }

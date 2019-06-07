@@ -1,7 +1,7 @@
 package Healthcheck;
 
-import Healthcheck.DatabaseManagement.DatabaseException;
 import Healthcheck.DatabaseManagement.DatabaseManager;
+import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.Preference;
 import Healthcheck.Preferences.IPreference;
 import javafx.scene.control.Alert;
@@ -37,7 +37,7 @@ public class Utilities
     public static Map<String, List<Computer>> GetComputersGroupedByClassroom(List<Computer> computers)
     {
         Map<String, List<Computer>> groupedComputers =
-                computers.stream().collect(Collectors.groupingBy(c -> c.ComputerEntity.Classroom));
+                computers.stream().collect(Collectors.groupingBy(c -> c.Classroom));
 
         return groupedComputers;
     }

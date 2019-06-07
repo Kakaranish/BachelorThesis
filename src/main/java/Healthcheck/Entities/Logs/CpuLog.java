@@ -1,6 +1,6 @@
 package Healthcheck.Entities.Logs;
 
-import Healthcheck.Entities.ComputerEntity;
+import Healthcheck.Entities.Computer;
 import Healthcheck.Models.Info.CpuInfo;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -18,15 +18,15 @@ public class CpuLog extends BaseEntity
     {
     }
 
-    public CpuLog(ComputerEntity computerEntity, CpuInfo cpuInfo)
+    public CpuLog(Computer computer, CpuInfo cpuInfo)
     {
-        super(computerEntity);
+        super(computer);
         CPUInfo = cpuInfo;
     }
 
-    public CpuLog(ComputerEntity computerEntity, CpuInfo cpuInfo, Timestamp timestamp)
+    public CpuLog(Computer computer, CpuInfo cpuInfo, Timestamp timestamp)
     {
-        super(computerEntity, timestamp);
+        super(computer, timestamp);
         CPUInfo = cpuInfo;
     }
 }

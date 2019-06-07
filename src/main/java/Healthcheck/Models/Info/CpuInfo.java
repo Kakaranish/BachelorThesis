@@ -1,6 +1,6 @@
 package Healthcheck.Models.Info;
 
-import Healthcheck.Entities.ComputerEntity;
+import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.Logs.BaseEntity;
 import Healthcheck.Entities.Logs.CpuLog;
 import javax.persistence.Embeddable;
@@ -28,10 +28,10 @@ public class CpuInfo implements IInfo
         CpuPercentage = Double.parseDouble(commandExecutionResult);
     }
 
-    public List<BaseEntity> ToLogList(ComputerEntity computerEntity, Timestamp timestamp)
+    public List<BaseEntity> ToLogList(Computer computer, Timestamp timestamp)
     {
         List<BaseEntity> logList = new ArrayList<>();
-        logList.add(new CpuLog(computerEntity, this, timestamp));
+        logList.add(new CpuLog(computer, this, timestamp));
 
         return logList;
     }

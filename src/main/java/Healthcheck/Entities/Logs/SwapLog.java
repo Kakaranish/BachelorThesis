@@ -1,6 +1,6 @@
 package Healthcheck.Entities.Logs;
 
-import Healthcheck.Entities.ComputerEntity;
+import Healthcheck.Entities.Computer;
 import Healthcheck.Models.Info.SwapInfo;
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -16,15 +16,15 @@ public class SwapLog extends BaseEntity
     {
     }
 
-    public SwapLog(ComputerEntity computerEntity, SwapInfo swapInfo)
+    public SwapLog(Computer computer, SwapInfo swapInfo)
     {
-        super(computerEntity);
+        super(computer);
         SwapInfo = swapInfo;
     }
 
-    public SwapLog(ComputerEntity computerEntity, SwapInfo swapInfo, Timestamp timestamp)
+    public SwapLog(Computer computer, SwapInfo swapInfo, Timestamp timestamp)
     {
-        super(computerEntity, timestamp);
+        super(computer, timestamp);
         SwapInfo = swapInfo;
     }
 }

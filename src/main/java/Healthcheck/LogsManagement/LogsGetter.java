@@ -1,10 +1,9 @@
 package Healthcheck.LogsManagement;
 
-import Healthcheck.Computer;
 import Healthcheck.ComputerManager;
 import Healthcheck.DatabaseManagement.DatabaseException;
 import Healthcheck.DatabaseManagement.DatabaseManager;
-import Healthcheck.Entities.ComputerEntity;
+import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.Logs.BaseEntity;
 import Healthcheck.Preferences.IPreference;
 import org.hibernate.Session;
@@ -18,10 +17,10 @@ import java.util.stream.Collectors;
 
 public class LogsGetter
 {
-    public static Map<ComputerEntity, List<BaseEntity>> GetLogsGroupedByComputer(List<BaseEntity> logs)
+    public static Map<Computer, List<BaseEntity>> GetLogsGroupedByComputer(List<BaseEntity> logs)
     {
-        Map<ComputerEntity, List<BaseEntity>> grouped =
-                logs.stream().collect(Collectors.groupingBy(l -> l.ComputerEntity));
+        Map<Computer, List<BaseEntity>> grouped =
+                logs.stream().collect(Collectors.groupingBy(l -> l.Computer));
 
         return grouped;
     }
@@ -35,9 +34,9 @@ public class LogsGetter
         {
             String hql = "from " + preference.GetClassName() + " t" +
                     " where t.Timestamp > " + fromDate.getTime() + " and t.Timestamp < " + toDate.getTime() +
-                    " and t.ComputerEntity = :computerEntity";
+                    " and t.Computer = :computer";
             Query query = session.createQuery(hql);
-            query.setParameter("computerEntity", computer.ComputerEntity);
+            query.setParameter("computer", computer);
 
             List<BaseEntity> receivedLogs = query.getResultList();
 
@@ -61,7 +60,7 @@ public class LogsGetter
         {
             String hql = "from " + preference.GetClassName() + " t" +
                     " where t.Timestamp > " + fromDate.getTime() + " and t.Timestamp < " + toDate.getTime() +
-                    " and t.ComputerEntity.Classroom = '" + classroom + "'";
+                    " and t.Computer.Classroom = '" + classroom + "'";
             Query query = session.createQuery(hql);
 
             List<BaseEntity> receivedLogs = query.getResultList();
@@ -117,9 +116,9 @@ public class LogsGetter
             {
                 String hql = "from " + preference.GetClassName() +" t" +
                         " where t.Timestamp > " + fromDate.getTime() + " and t.Timestamp < " + toDate.getTime() +
-                        " and t.ComputerEntity = :computerEntity";
+                        " and t.Computer = :computerEntity";
                 Query query = session.createQuery(hql);
-                query.setParameter("computerEntity", selectedComputer.ComputerEntity);
+                query.setParameter("computerEntity", selectedComputer);
 
                 logsList.addAll(query.getResultList());
             }

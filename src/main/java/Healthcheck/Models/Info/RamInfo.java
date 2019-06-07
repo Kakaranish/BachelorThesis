@@ -1,6 +1,6 @@
 package Healthcheck.Models.Info;
 
-import Healthcheck.Entities.ComputerEntity;
+import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.Logs.BaseEntity;
 import Healthcheck.Entities.Logs.RamLog;
 import javax.persistence.Embeddable;
@@ -41,10 +41,10 @@ public class RamInfo implements IInfo
         Cached = Long.parseLong(commandExecutionResultSplit[6]);
     }
 
-    public List<BaseEntity> ToLogList(ComputerEntity computerEntity, Timestamp timestamp)
+    public List<BaseEntity> ToLogList(Computer computer, Timestamp timestamp)
     {
         List<BaseEntity> logList = new ArrayList<>();
-        logList.add(new RamLog(computerEntity, this, timestamp));
+        logList.add(new RamLog(computer, this, timestamp));
 
         return logList;
     }

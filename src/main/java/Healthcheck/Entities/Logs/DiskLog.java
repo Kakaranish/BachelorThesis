@@ -1,6 +1,6 @@
 package Healthcheck.Entities.Logs;
 
-import Healthcheck.Entities.ComputerEntity;
+import Healthcheck.Entities.Computer;
 import Healthcheck.Models.Info.DiskInfo;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -18,15 +18,15 @@ public class DiskLog extends BaseEntity
     {
     }
 
-    public DiskLog(ComputerEntity computerEntity, DiskInfo diskInfo)
+    public DiskLog(Computer computer, DiskInfo diskInfo)
     {
-        super(computerEntity);
+        super(computer);
         DiskInfo = diskInfo;
     }
 
-    public DiskLog(ComputerEntity computerEntity, DiskInfo diskInfo, Timestamp timestamp)
+    public DiskLog(Computer computer, DiskInfo diskInfo, Timestamp timestamp)
     {
-        super(computerEntity, timestamp);
+        super(computer, timestamp);
         DiskInfo = diskInfo;
     }
 }

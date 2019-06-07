@@ -1,6 +1,7 @@
 package Healthcheck.Entities.Logs;
 
-import Healthcheck.Entities.ComputerEntity;
+import Healthcheck.Entities.Computer;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 
@@ -15,23 +16,23 @@ public class BaseEntity
 
     @ManyToOne
     @JoinColumn(name = "Computer_Id", referencedColumnName = "Id")
-    public ComputerEntity ComputerEntity;
+    public Computer Computer;
 
     protected BaseEntity()
     {
     }
 
-    public BaseEntity(ComputerEntity computerEntity)
+    public BaseEntity(Computer computer)
     {
         Id = null;
-        ComputerEntity = computerEntity;
+        Computer = computer;
         Timestamp = new Timestamp(System.currentTimeMillis());
     }
 
-    public BaseEntity(ComputerEntity computerEntity, Timestamp timestamp)
+    public BaseEntity(Computer computer, Timestamp timestamp)
     {
         Id = null;
-        ComputerEntity = computerEntity;
+        Computer = computer;
         Timestamp = timestamp;
     }
 }
