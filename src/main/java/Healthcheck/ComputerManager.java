@@ -5,17 +5,22 @@ import Healthcheck.DatabaseManagement.DatabaseManager;
 import Healthcheck.Entities.*;
 import Healthcheck.LogsManagement.LogsMaintainer;
 import Healthcheck.LogsManagement.NothingToDoException;
-import Healthcheck.Preferences.IPreference;
 import org.hibernate.Session;
 import javax.persistence.Query;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
 public class ComputerManager
 {
+    private SSHConfigurationsManager _sshConfigurationsManager;
     private List<Computer> _computers;
+
+    public ComputerManager(SSHConfigurationsManager sshConfigurationsManager) throws DatabaseException
+    {
+        _sshConfigurationsManager = sshConfigurationsManager;
+        _computers = GetComputersFromDb();
+    }
 
     public ComputerManager() throws DatabaseException
     {
@@ -25,124 +30,187 @@ public class ComputerManager
     // -----------------------------------------------------------------------------------------------------------------
     // -------------------------------------------------- ADD ----------------------------------------------------------
 
-    public void AddComputer(Computer computer) throws DatabaseException
+    public void AddComputer(Computer computer) throws DatabaseException, IllegalArgumentException
     {
-        if(GetComputerByHost(computer.ComputerEntity.Host) != null)
+        if(GetComputerByDisplayedName(computer.DisplayedName) != null)
         {
-            throw new IllegalArgumentException("[FATAL ERROR] ComputerManager: " +
-                    "Unable to add computer. User with same host exists.");
+            throw new IllegalArgumentException("Unable to add computer - other computer has same displayed name.");
         }
 
-        if(GetComputerByDisplayedName(computer.ComputerEntity.DisplayedName) != null)
+        if(GetComputerByHost(computer.Host) != null)
         {
-            throw new IllegalArgumentException("[FATAL ERROR] ComputerManager: " +
-                    "Unable to add computer. User with same displayed name exists.");
+            throw new IllegalArgumentException("Unable to add computer - other computer has same host.");
         }
 
-        if(computer.ComputerEntity.HasSetRequiredFields() == false)
+        if(computer.HasSetRequiredFields() == false)
         {
-            throw new IllegalArgumentException("[FATAL ERROR] ComputerManager: " +
-                    "Unable to add computer. Computer contains empty required fields.");
+            throw new IllegalArgumentException("Unable to add computer - some required fields are empty.");
         }
 
-        try
+        if(computer.SSHConfiguration.Scope == SSHConfigurationScope.GLOBAL)
         {
-            AddComputerToDb(computer);
+            SSHConfiguration foundGlobalSSHConfiguration =
+                    _sshConfigurationsManager.GetGlobalSSHConfigurationWithIdUsingOther(computer.SSHConfiguration);
+
+            if(foundGlobalSSHConfiguration == null)
+            {
+                throw new IllegalArgumentException("Unable to add computer - " +
+                        "provided ssh configuration with global scope is wrong.");
+            }
+            else
+            {
+                computer.SSHConfiguration = foundGlobalSSHConfiguration;
+            }
+        }
+
+        boolean addComputerToDbSucceed = AddComputerToDb(computer);
+        if(addComputerToDbSucceed)
+        {
             _computers.add(computer);
-        }
-        catch (DatabaseException e)
-        {
-            throw e;
-        }
-    }
-
-    private void AddComputerToDb(Computer computer) throws DatabaseException
-    {
-        String attemptErrorMessage = "[ERROR] ComputerManager: Attempt of adding computer entity to db failed.";
-
-        Session session = DatabaseManager.GetInstance().GetSession();
-        boolean persistSucceed
-                = DatabaseManager.PersistWithRetryPolicy(session, computer.ComputerEntity, attemptErrorMessage);
-        session.close();
-
-        if(persistSucceed == true)
-        {
-            computer.ComputerEntity.Preferences =
-                    Utilities.ConvertListOfIPreferencesToPreferences(computer.Preferences);
         }
         else
         {
-            throw new DatabaseException("[FATAL ERROR] ComputerManager: Unable to add computer entity to db.");
+            throw new DatabaseException("Unable to add computer to db.");
+        }
+    }
+
+    private boolean AddComputerToDb(Computer computer)
+    {
+        String attemptErrorMessage = "[ERROR] ComputerManager: Attempt of adding computer entity to db failed.";
+        Session session = DatabaseManager.GetInstance().GetSession();
+
+        boolean sshConfigurationPersistSucceed = true;
+        if(computer.SSHConfiguration.Scope == SSHConfigurationScope.COMPUTER)
+        {
+            sshConfigurationPersistSucceed = AddComputerSSHConfigurationToDb(session, computer.SSHConfiguration);
+        }
+
+        boolean computerPersistSucceed =
+                DatabaseManager.PersistWithRetryPolicy(session, computer, attemptErrorMessage);
+
+        session.close();
+
+        return computerPersistSucceed && sshConfigurationPersistSucceed;
+    }
+
+    private boolean AddComputerSSHConfigurationToDb(Session session, SSHConfiguration sshConfiguration)
+    {
+        try
+        {
+            _sshConfigurationsManager.AddSSHConfigurationWithComputerScopeToDb(session, sshConfiguration);
+            return true;
+        }
+        catch (IllegalArgumentException e)
+        {
+            throw e;
+        }
+        catch (DatabaseException e)
+        {
+            return false;
         }
     }
 
     // -----------------------------------------------------------------------------------------------------------------
     // ------------------------------------------------ UPDATE ---------------------------------------------------------
 
-    public void UpdateComputer(Computer computerToUpdate, ComputerEntity newComputerEntity)
-            throws DatabaseException, IllegalArgumentException, NothingToDoException
+    private void Validate_UpdateComputer(Computer computerToUpdate, Computer newComputer)
+            throws IllegalArgumentException, NothingToDoException
     {
-        if(ComputerEntityCanBeUpdated(computerToUpdate.ComputerEntity, newComputerEntity) == false)
+        if(newComputer.HasSetRequiredFields() == false)
         {
-            throw new IllegalArgumentException("[ERROR] ComputerManager: " +
-                    "Unable to update computer entity. Provided user and data connection fields are empty");
+            throw new IllegalArgumentException("Unable to update computer entity - some required fields are empty.");
         }
 
-        if(Utilities.AreEqual(computerToUpdate.ComputerEntity.Host, newComputerEntity.Host) == false &&
-                GetComputerByHost(newComputerEntity.Host) != null)
+        if(Utilities.AreEqual(computerToUpdate.DisplayedName, newComputer.DisplayedName) == false &&
+                ComputerWithGivenDisplayedNameExists(newComputer.DisplayedName))
         {
-            throw new IllegalArgumentException("[FATAL ERROR] ComputerManager: " +
-                    "Unable to add computer. User with same host exists.");
+            throw new IllegalArgumentException("Unable to update computer - computer with same displayed name already exists.");
         }
 
-        if(Utilities.AreEqual(computerToUpdate.ComputerEntity.DisplayedName, newComputerEntity.DisplayedName) == false &&
-                GetComputerByDisplayedName(newComputerEntity.DisplayedName) != null)
+        if(Utilities.AreEqual(computerToUpdate.Host, newComputer.Host) == false && ComputerWithGivenHostExists(newComputer.Host))
         {
-            throw new IllegalArgumentException("[FATAL ERROR] ComputerManager: " +
-                    "Unable to add computer. User with same displayed name exists.");
+            throw new IllegalArgumentException("Unable to update computer - computer with same host already exists.");
         }
 
-        if(newComputerEntity.User != null)
+        if(computerToUpdate == newComputer || computerToUpdate.equals(newComputer))
         {
-            newComputerEntity.ResetConnectionDataFields();
-        }
-
-        if(computerToUpdate.ComputerEntity == newComputerEntity
-                || computerToUpdate.ComputerEntity.equals(newComputerEntity))
-        {
-            throw new NothingToDoException("[INFO] ComputerManager: Nothing to update.");
-        }
-
-        try
-        {
-            UpdateComputerInDb(computerToUpdate, newComputerEntity);
-
-            computerToUpdate.Preferences =
-                    Utilities.ConvertListOfPreferencesToIPreferences(newComputerEntity.Preferences);
-
-        }
-        catch (DatabaseException e)
-        {
-            throw e;
+            throw new NothingToDoException("Nothing to update.");
         }
     }
 
-    public void UpdateComputerInDb(Computer computerToUpdate, ComputerEntity newComputerEntity) throws DatabaseException
+    public void UpdateComputer(Computer computerToUpdate, Computer newComputer)
+            throws DatabaseException, IllegalArgumentException, NothingToDoException
     {
-        ComputerEntity beforeUpdateComputerEntity = new ComputerEntity(computerToUpdate.ComputerEntity);
+        Validate_UpdateComputer(computerToUpdate, newComputer);
 
-        computerToUpdate.ComputerEntity.CopyFrom(newComputerEntity);
+
+
+        boolean updateSucceed = UpdateComputerInDb(computerToUpdate, newComputer);
+        if(updateSucceed == false)
+        {
+            throw new DatabaseException("[FATAL ERROR] ComputerManager: Unable to update computer in db.");
+        }
+    }
+
+    public boolean UpdateComputerInDb(Computer computerToUpdate, Computer newComputer)
+            throws DatabaseException
+    {
+        Computer computerToUpdateBackup = new Computer(computerToUpdate);
+        computerToUpdate.CopyFrom(newComputer);
+
         String attemptErrorMessage = "[ERROR] ComputerManager: Attempt of updating computer entity in db failed.";
-
         Session session = DatabaseManager.GetInstance().GetSession();
-        boolean updateSucceed
-                = DatabaseManager.UpdateWithRetryPolicy(session, computerToUpdate.ComputerEntity, attemptErrorMessage);
+        boolean updateSucceed = DatabaseManager.UpdateWithRetryPolicy(session, computerToUpdate, attemptErrorMessage);
         session.close();
 
         if(updateSucceed == false)
         {
-            computerToUpdate.ComputerEntity.CopyFrom(beforeUpdateComputerEntity);
-            throw new DatabaseException("[FATAL ERROR] ComputerManager: Unable to update computer entity in db.");
+            computerToUpdate.CopyFrom(computerToUpdateBackup);
+        }
+
+        return updateSucceed;
+    }
+
+    public void UpdateComputerSSHConfiguration(Session session, Computer computer, SSHConfiguration newSshConfiguration)
+    {
+        if(computer.SSHConfiguration.Scope == SSHConfigurationScope.COMPUTER &&
+                newSshConfiguration.Scope == SSHConfigurationScope.COMPUTER)
+        {
+            _sshConfigurationsManager.UpdateSSHConfigurationWithComputerScopeInDb(
+                    session, computer.SSHConfiguration, newSshConfiguration);
+        }
+        else if(computer.SSHConfiguration.Scope == SSHConfigurationScope.COMPUTER &&
+                newSshConfiguration.Scope == SSHConfigurationScope.GLOBAL)
+        {
+            // REMOVE OLD AND ASSIGN EXISTING GLOBAL
+            _sshConfigurationsManager.RemoveSSHConfigurationWithComputerScopeFromDb(session, computer.SSHConfiguration);
+            computer.SSHConfiguration = newSshConfiguration;
+            computer.SSHConfiguration.AddComputer(computer);
+
+            String attemptFailed = "temp attempt failure message";
+            boolean updateSucceed = DatabaseManager.UpdateWithRetryPolicy(session, computer, attemptFailed);
+        }
+        else if(computer.SSHConfiguration.Scope == SSHConfigurationScope.GLOBAL &&
+                newSshConfiguration.Scope == SSHConfigurationScope.COMPUTER)
+        {
+            computer.SSHConfiguration = newSshConfiguration;
+            computer.SSHConfiguration.AddComputer(computer);
+            boolean updateSucceed = AddComputerSSHConfigurationToDb(session, computer.SSHConfiguration);
+
+            String attemptFailed = "temp attempt failure message";
+
+            boolean updateSucceed2 = DatabaseManager.UpdateWithRetryPolicy(session, computer, attemptFailed);
+
+        }
+        else if(computer.SSHConfiguration.Scope == SSHConfigurationScope.GLOBAL &&
+                newSshConfiguration.Scope == SSHConfigurationScope.GLOBAL)
+        {
+            computer.SSHConfiguration.RemoveComputer(computer);
+            computer.SSHConfiguration = newSshConfiguration;
+            computer.SSHConfiguration.AddComputer(computer);
+
+            String attemptFailed = "temp attempt failure message";
+            boolean updateSucceed = DatabaseManager.UpdateWithRetryPolicy(session, computer, attemptFailed);
         }
     }
 
@@ -151,29 +219,25 @@ public class ComputerManager
 
     public void RemoveComputerWithoutLogs(Computer computer) throws DatabaseException
     {
-        try
-        {
-            RemoveComputerWithoutLogsFromDb(computer);
-            _computers.remove(computer);
-        }
-        catch (DatabaseException e)
-        {
-            throw e;
-        }
-    }
-
-    private void RemoveComputerWithoutLogsFromDb(Computer computer) throws DatabaseException
-    {
-        String attemptErrorMessage = "[ERROR] ComputerManager: Attempt of removing computer entity from db failed.";
-        Session session = DatabaseManager.GetInstance().GetSession();
-        boolean removeSucceed
-                = DatabaseManager.RemoveWithRetryPolicy(session, computer.ComputerEntity, attemptErrorMessage);
-        session.close();
-
+        boolean removeSucceed = RemoveComputerWithoutLogsFromDb(computer);
         if(removeSucceed == false)
         {
             throw new DatabaseException("[FATAL ERROR] ComputerManager: Unable to remove computer entity from db.");
         }
+        else
+        {
+            _computers.remove(computer);
+        }
+    }
+
+    private boolean RemoveComputerWithoutLogsFromDb(Computer computer) throws DatabaseException
+    {
+        String attemptErrorMessage = "[ERROR] ComputerManager: Attempt of removing computer entity from db failed.";
+        Session session = DatabaseManager.GetInstance().GetSession();
+        boolean removeSucceed = DatabaseManager.RemoveWithRetryPolicy(session, computer, attemptErrorMessage);
+        session.close();
+
+        return removeSucceed;
     }
 
     public void RemoveComputerWithLogs(Computer computer) throws DatabaseException
@@ -192,7 +256,7 @@ public class ComputerManager
     private void RemoveComputerWithLogsFromDb(Computer computer) throws DatabaseException
     {
         String attemptErrorMessage = "[ERROR] ComputerManager: Attempt of " +
-                "removing computer entity with logs from db failed.";
+                "removing computer with logs from db failed.";
 
         Session session = DatabaseManager.GetInstance().GetSession();
         try
@@ -200,7 +264,7 @@ public class ComputerManager
             session.beginTransaction();
 
             LogsMaintainer.RemoveAllLogsAssociatedWithComputerFromDb(computer, session);
-            session.remove(computer.ComputerEntity);
+            session.remove(computer);
 
             session.getTransaction().commit();
         }
@@ -221,14 +285,14 @@ public class ComputerManager
                     session.beginTransaction();
 
                     LogsMaintainer.RemoveAllLogsAssociatedWithComputerFromDb(computer, session);
-                    session.remove(computer.ComputerEntity);
+                    session.remove(computer);
 
                     session.getTransaction().commit();
                 }
                 catch (InterruptedException ex)
                 {
                     throw new DatabaseException("[FATAL ERROR] ComputerManager: Unable to " +
-                            "remove computer entity with logs from db.");
+                            "remove computer with logs from db.");
                 }
                 catch (Exception ex)
                 {
@@ -239,7 +303,7 @@ public class ComputerManager
             }
 
             throw new DatabaseException("[FATAL ERROR] ComputerManager: Unable to " +
-                    "remove computer entity with logs from db.");
+                    "remove computer with logs from db.");
         }
         finally
         {
@@ -248,53 +312,16 @@ public class ComputerManager
     }
 
     // -----------------------------------------------------------------------------------------------------------------
-    // ------------------------------------------------ USER -----------------------------------------------------------
-
-    public void RemoveUserAssignmentFromComputer(Computer computer, Session session, boolean clearUserFields)
-    {
-        session.update(computer.ComputerEntity);
-    }
-
-    // -----------------------------------------------------------------------------------------------------------------
     // -------------------------------------------------- MISC ---------------------------------------------------------
 
     private List<Computer> GetComputersFromDb() throws DatabaseException
     {
-        List<Computer> computers = new ArrayList<>();
-
-        try
-        {
-            List<ComputerEntity> computerEntities = GetComputerEntitiesFromDb();
-            for (ComputerEntity computerEntity : computerEntities)
-            {
-                List<IPreference> computerIPreferences = new ArrayList<>();
-
-                for (Preference preference : computerEntity.Preferences)
-                {
-                    IPreference iPreference =
-                            Utilities.ConvertPreferenceEntityToIPreference(preference);
-                    computerIPreferences.add(iPreference);
-                }
-
-                computers.add(new Computer(computerEntity, computerIPreferences));
-            }
-
-            return computers;
-        }
-        catch (DatabaseException e)
-        {
-            throw e;
-        }
-    }
-
-    private List<ComputerEntity> GetComputerEntitiesFromDb() throws DatabaseException
-    {
         String attemptErrorMessage = "[ERROR] ComputerManager: Attempt of getting computer entities from db failed.";
-        String hql = "from ComputerEntity";
+        String hql = "from Computer";
 
         Session session = DatabaseManager.GetInstance().GetSession();
         Query query = session.createQuery(hql);
-        List<ComputerEntity> computerEntities =
+        List<Computer> computerEntities =
                 DatabaseManager.ExecuteSelectQueryWithRetryPolicy(session, query, attemptErrorMessage);
         session.close();
 
@@ -308,35 +335,13 @@ public class ComputerManager
         }
     }
 
-    public boolean ComputerEntityCanBeUpdated(ComputerEntity computerEntityToUpdate, ComputerEntity newComputerEntity)
-    {
-        if(UserIsToReset(computerEntityToUpdate, newComputerEntity) &&
-            SomeConnectionDataFieldsAreEmpty(newComputerEntity))
-        {
-            return false;
-        }
 
-        return true;
-    }
-
-    private boolean UserIsToReset(ComputerEntity computerEntityToUpdate, ComputerEntity newComputerEntity)
-    {
-        return computerEntityToUpdate.User != null && newComputerEntity.User == null;
-    }
-
-    private boolean SomeConnectionDataFieldsAreEmpty(ComputerEntity computerEntityToUpdate)
-    {
-        return  computerEntityToUpdate.GetUsernameConnectionField() == null ||
-                computerEntityToUpdate.GetEncryptedPasswordConnectionField() == null ||
-                computerEntityToUpdate.GetSSHKeyConnectionField() == null;
-    }
-
-    public boolean ComputerWithGivenDisplayedNameExists(String displayedName)
+    private boolean ComputerWithGivenDisplayedNameExists(String displayedName)
     {
         return GetComputerByDisplayedName(displayedName) != null;
     }
 
-    public boolean ComputerWithGivenHostExists(String host)
+    private boolean ComputerWithGivenHostExists(String host)
     {
         return GetComputerByHost(host) != null;
     }
@@ -349,47 +354,40 @@ public class ComputerManager
         return _computers;
     }
 
-    public Computer GetComputerByComputerEntity(ComputerEntity computerEntity)
-    {
-        List<Computer> results = _computers.stream()
-                .filter(c -> c.ComputerEntity.equals(computerEntity)).collect(Collectors.toList());
-        return results.isEmpty()? null : results.get(0);
-    }
-
     public Computer GetComputerById(int id)
     {
         List<Computer> results = _computers.stream()
-                .filter(c -> c.ComputerEntity.Id == id).collect(Collectors.toList());
+                .filter(c -> c.Id == id).collect(Collectors.toList());
         return results.isEmpty()? null : results.get(0);
     }
 
     public Computer GetComputerByHost(String host)
     {
         List<Computer> results = _computers.stream()
-                .filter(c -> c.ComputerEntity.Host.equals(host)).collect(Collectors.toList());
+                .filter(c -> c.Host.equals(host)).collect(Collectors.toList());
         return results.isEmpty()? null : results.get(0);
     }
 
     public Computer GetComputerByDisplayedName(String displayedName)
     {
         List<Computer> results = _computers.stream()
-                .filter(c -> c.ComputerEntity.DisplayedName.equals(displayedName)).collect(Collectors.toList());
+                .filter(c -> c.DisplayedName.equals(displayedName)).collect(Collectors.toList());
         return results.isEmpty()? null : results.get(0);
-    }
-
-    public List<Computer> GetComputersAssociatedWithUser(User user)
-    {
-        List<Computer> results = _computers.stream()
-                .filter(c -> c.ComputerEntity.User != null && c.ComputerEntity.User.equals(user))
-                .collect(Collectors.toList());
-
-        return results;
     }
 
     public List<Computer> GetSelectedComputers()
     {
         List<Computer> results = _computers.stream()
-                .filter(c -> c.ComputerEntity.IsSelected == true).collect(Collectors.toList());
+                .filter(c -> c.IsSelected == true).collect(Collectors.toList());
         return results;
     }
+
+    //    public List<Computer> GetComputersAssociatedWithUser(User user)
+    //    {
+    //        List<Computer> results = _computers.stream()
+    //                .filter(c -> c.User != null && c.Computer.User.equals(user))
+    //                .collect(Collectors.toList());
+    //
+    //        return results;
+    //    }
 }
