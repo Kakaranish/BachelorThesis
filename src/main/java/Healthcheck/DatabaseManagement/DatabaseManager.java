@@ -1,7 +1,6 @@
 package Healthcheck.DatabaseManagement;
 
 import Healthcheck.Utilities;
-import jdk.jshell.execution.Util;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
