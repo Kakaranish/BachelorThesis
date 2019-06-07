@@ -1,6 +1,8 @@
 package Healthcheck.Entities;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "Preferences")
@@ -13,7 +15,10 @@ public class Preference
     @Column(unique = true, nullable = false)
     public String ClassName;
 
-    private Preference()
+    @ManyToMany(mappedBy = "Preferences", cascade = { CascadeType.MERGE }, fetch = FetchType.EAGER)
+    private List<Computer> _computers = new ArrayList<>();
+
+    public Preference()
     {
     }
 
@@ -21,6 +26,16 @@ public class Preference
     {
         Id = null;
         ClassName = className;
+    }
+
+    public void AddComputer(Computer computer)
+    {
+        _computers.add(computer);
+    }
+
+    public void RemoveComputer(Computer computer)
+    {
+        _computers.remove(computer);
     }
 
     @Override
