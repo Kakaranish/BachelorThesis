@@ -2,8 +2,8 @@ package Healthcheck.LogsManagement;
 
 import Healthcheck.*;
 import Healthcheck.DatabaseManagement.DatabaseManager;
-import Healthcheck.Encryption.Encrypter;
 import Healthcheck.Encryption.EncrypterException;
+import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.Logs.BaseEntity;
 import Healthcheck.Models.Info.IInfo;
 import Healthcheck.Preferences.IPreference;
@@ -18,6 +18,8 @@ public class ComputerLogger extends Thread
 {
     private Computer _computer;
     private String _host;
+    private List<IPreference> _iPreferences;
+
     private LogsGatherer _logsGatherer;
     private SSHConnection _sshConnection;
     private boolean _isGathering = false;
@@ -26,7 +28,8 @@ public class ComputerLogger extends Thread
     {
         _logsGatherer = logsGatherer;
         _computer = computer;
-        _host = _computer.ComputerEntity.Host;
+        _host = _computer.Host;
+        _iPreferences = _computer.GetIPreferences();
     }
 
     public boolean StartGatheringLogs()
@@ -65,7 +68,7 @@ public class ComputerLogger extends Thread
         {
             Timestamp timestamp = new Timestamp (System.currentTimeMillis());
 
-            for (IPreference computerPreference : _computer.Preferences)
+            for (IPreference computerPreference : _iPreferences)
             {
                 List<BaseEntity> logsToSave =
                         GetLogsForGivenPreferenceTypeWithRetryPolicy(computerPreference, timestamp);
@@ -96,7 +99,7 @@ public class ComputerLogger extends Thread
 
             try
             {
-                Thread.sleep(_computer.ComputerEntity.RequestInterval.toMillis());
+                Thread.sleep(_computer.RequestInterval.toMillis());
             }
             catch (InterruptedException e)
             {
@@ -124,7 +127,7 @@ public class ComputerLogger extends Thread
             // First attempt
             String sshResultNotProcessed = _sshConnection.ExecuteCommand(computerIPreference.GetCommandToExecute());
             IInfo model = computerIPreference.GetInformationModel(sshResultNotProcessed);
-            List<BaseEntity> logs = model.ToLogList(_computer.ComputerEntity, timestamp);
+            List<BaseEntity> logs = model.ToLogList(_computer, timestamp);
 
             return logs;
         }
@@ -142,7 +145,7 @@ public class ComputerLogger extends Thread
 
                     String sshResultNotProcessed = _sshConnection.ExecuteCommand(computerIPreference.GetCommandToExecute());
                     IInfo model = computerIPreference.GetInformationModel(sshResultNotProcessed);
-                    List<BaseEntity> logs = model.ToLogList(_computer.ComputerEntity, timestamp);
+                    List<BaseEntity> logs = model.ToLogList(_computer, timestamp);
 
                     return logs;
                 }
@@ -246,7 +249,7 @@ public class ComputerLogger extends Thread
 
     public void ConnectWithComputerThroughSSH()
     {
-        if(_computer.Preferences.isEmpty())
+        if(_iPreferences.isEmpty())
         {
             _logsGatherer.Callback_InfoMessage(
                     "'" + _host + "' has no preferences. No need to establish SSH connection with computer.");
@@ -254,46 +257,31 @@ public class ComputerLogger extends Thread
         }
 
         new Thread(() -> {
-            _sshConnection = GetSSHConnectionWithComputer(_computer);
+            _sshConnection = GetSSHConnectionWithComputer();
         }).start();
     }
 
-    private SSHConnection GetSSHConnectionWithComputer(Computer computer)
+    private SSHConnection GetSSHConnectionWithComputer()
     {
-        String decryptedPassword;
         try
         {
-            decryptedPassword = Encrypter.GetInstance().Decrypt(computer.ComputerEntity.GetEncryptedPassword());
+            SSHConnection sshConnection = new SSHConnection();
+            sshConnection.OpenConnection(_host, _computer.SSHConfiguration);
+
+            _logsGatherer.Callback_InfoMessage("SSH connection with '" + _host + "' established.");
+            return sshConnection;
         }
         catch (EncrypterException e)
         {
             _logsGatherer.Callback_FatalErrorWithoutAction(
                     "SSH connection with '" + _host + "' failed. Unable to decrypt password.");
-
-            return null;
-        }
-
-        try
-        {
-            SSHConnection sshConnection = new SSHConnection();
-            sshConnection.OpenConnection(
-                    computer.ComputerEntity.Host,
-                    computer.ComputerEntity.GetUsername(),
-                    decryptedPassword,
-                    computer.ComputerEntity.Port,
-                    Utilities.SSHTimeout
-            );
-
-            _logsGatherer.Callback_InfoMessage("SSH connection with '" + _host + "' established.");
-            return sshConnection;
         }
         catch (SSHConnectionException e)
         {
             _logsGatherer.Callback_FatalErrorWithoutAction(
                     "SSH connection with '" + _host + "' failed because of timeout.");
-
-            return null;
         }
+        return null;
     }
 
     public void CloseSSHConnection()
