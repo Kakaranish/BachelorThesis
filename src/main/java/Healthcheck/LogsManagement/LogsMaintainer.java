@@ -1,22 +1,22 @@
 package Healthcheck.LogsManagement;
 
-import Healthcheck.*;
 import Healthcheck.DatabaseManagement.DatabaseException;
 import Healthcheck.DatabaseManagement.DatabaseManager;
+import Healthcheck.Entities.Computer;
 import Healthcheck.Preferences.IPreference;
 import Healthcheck.Preferences.Preferences;
 import org.hibernate.Session;
 import javax.persistence.Query;
-import javax.security.auth.callback.Callback;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.ArrayDeque;
+import java.util.List;
 
 public class LogsMaintainer
 {
     private class ComputerAndTimeToMaintainPair
     {
-        public Healthcheck.Computer Computer;
+        public Computer Computer;
         public long TimeToMaintain;
 
         public ComputerAndTimeToMaintainPair(Computer computer, long timeToMaintain)
@@ -38,7 +38,6 @@ public class LogsMaintainer
 
         return maintainingThread;
     }
-
 
     public LogsMaintainer(LogsManager logsManager)
     {
@@ -124,7 +123,7 @@ public class LogsMaintainer
 
                     MaintainComputer(computerToMaintain);
 
-                    String host = computerToMaintain.ComputerEntity.Host;
+                    String host = computerToMaintain.Host;
                     Callback_InfoMessage("'" + host + "' was maintained.");
                 }
             }
@@ -162,7 +161,7 @@ public class LogsMaintainer
 
                 MaintainComputer(computerWithLowestTimeToMaintain.Computer);
 
-                String host = computerWithLowestTimeToMaintain.Computer.ComputerEntity.Host;
+                String host = computerWithLowestTimeToMaintain.Computer.Host;
                 Callback_InfoMessage("'" + host + "' was maintained.");
             }
         }
@@ -170,23 +169,24 @@ public class LogsMaintainer
 
     public boolean MaintainComputer(Computer computer)
     {
-        String host = computer.ComputerEntity.Host;
-        long logExpiration = computer.ComputerEntity.LogExpiration.toMillis();
+        String host = computer.Host;
+        long logExpiration = computer.LogExpiration.toMillis();
 
         String attemptErrorMessage =
                 "[ERROR] LogsMaintainer: Attempt of deleting logs for '" + host+ "' failed.";
 
-        for (IPreference computerPreference : computer.Preferences)
+        List<IPreference> iPreferences = computer.GetIPreferences();
+        for (IPreference computerPreference : iPreferences)
         {
             Long now = System.currentTimeMillis();
 
             String hql = "delete from " + computerPreference.GetClassName() + " t "+
-                    "where t.ComputerEntity = :computerEntity " +
+                    "where t.Computer = :computer " +
                     "and (" + now  + " - t.Timestamp) > " + logExpiration;
 
             Session session = DatabaseManager.GetInstance().GetSession();
             Query query = session.createQuery(hql);
-            query.setParameter("computerEntity", computer.ComputerEntity);
+            query.setParameter("computer", computer);
 
             boolean removingLogsSucceed =
                     DatabaseManager.ExecuteDeleteQueryWithRetryPolicy(session, query, attemptErrorMessage);
@@ -224,10 +224,10 @@ public class LogsMaintainer
         {
             String hql = "delete from " +
                     computerPreference.GetClassName() +
-                    " t where t.ComputerEntity = :computerEntity";
+                    " t where t.Computer = :computer";
 
             Query query = session.createQuery(hql);
-            query.setParameter("computerEntity", computer.ComputerEntity);
+            query.setParameter("computer", computer);
 
             query.executeUpdate();
         }
@@ -236,8 +236,8 @@ public class LogsMaintainer
     private long GetComputerTimeToMaintenance(Computer computer)
     {
         long currentTime = System.currentTimeMillis();
-        long lastMaintenanceTime = computer.ComputerEntity.LastMaintenance.getTime();
-        long maintenancePeriod = computer.ComputerEntity.MaintainPeriod.toMillis();
+        long lastMaintenanceTime = computer.LastMaintenance.getTime();
+        long maintenancePeriod = computer.MaintainPeriod.toMillis();
 
         return lastMaintenanceTime + maintenancePeriod - currentTime;
     }

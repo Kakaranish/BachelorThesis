@@ -1,9 +1,8 @@
 package Healthcheck.LogsManagement;
 
-import Healthcheck.Computer;
 import Healthcheck.ComputerManager;
 import Healthcheck.DatabaseManagement.DatabaseException;
-import Healthcheck.Entities.ComputerEntity;
+import Healthcheck.Entities.Computer;
 import Healthcheck.Utilities;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -87,10 +86,10 @@ public class LogsManager
     }
 
     private List<ComputerLogger> GetComputerLoggersToBeStopped(
-            List<Computer> currentlyGatheredComputers, List<Computer> newSelectedComputers)
+            List<Computer> currentlyGatheredComputerEntities, List<Computer> newSelectedComputerEntities)
     {
-        List<Computer> computersToBeStopped = new ArrayList<>(currentlyGatheredComputers);
-        computersToBeStopped.removeAll(newSelectedComputers);
+        List<Computer> computersToBeStopped = new ArrayList<>(currentlyGatheredComputerEntities);
+        computersToBeStopped.removeAll(newSelectedComputerEntities);
         List<ComputerLogger> computerLoggersToBeStopped = computersToBeStopped
                 .stream().map(c -> GetComputerLoggerForComputer(c)).collect(Collectors.toList());
 
@@ -114,23 +113,23 @@ public class LogsManager
     }
 
     private List<Computer> GetComputersToBeStarted(
-            List<Computer> currentlyGatheredComputers, List<Computer> newSelectedComputers)
+            List<Computer> currentlyGatheredComputerEntities, List<Computer> newSelectedComputerEntities)
     {
-        List<Computer> computersToBeStarted = new ArrayList<>(newSelectedComputers);
-        computersToBeStarted.removeAll(currentlyGatheredComputers);
+        List<Computer> computerEntitiesToBeStarted = new ArrayList<>(newSelectedComputerEntities);
+        computerEntitiesToBeStarted.removeAll(currentlyGatheredComputerEntities);
 
-        return computersToBeStarted;
+        return computerEntitiesToBeStarted;
     }
 
     // TODO: To check if correct logic
     public void SetComputerLastMaintenance(Computer computerToUpdate, Timestamp lastMaintenance)
     {
-        ComputerEntity newComputerEntity = new ComputerEntity(computerToUpdate.ComputerEntity);
-        newComputerEntity.LastMaintenance = lastMaintenance;
+        Computer newComputer = new Computer(computerToUpdate);
+        newComputer.LastMaintenance = lastMaintenance;
 
         try
         {
-            _computerManager.UpdateComputerInDb(computerToUpdate, newComputerEntity);
+            _computerManager.UpdateComputerInDb(computerToUpdate, newComputer);
         }
         catch (DatabaseException e)
         {
@@ -164,7 +163,7 @@ public class LogsManager
 
     public void Callback_Gatherer_FatalError_StopWorkForComputerLogger(ComputerLogger computerLogger)
     {
-        String host = computerLogger.GetComputer().ComputerEntity.Host;
+        String host = computerLogger.GetComputer().Host;
         if(_connectedComputerLoggers.contains(computerLogger))
         {
             _connectedComputerLoggers.remove(computerLogger);
@@ -183,7 +182,7 @@ public class LogsManager
 
     public void Callback_Gatherer_StopWorkForComputerLogger(ComputerLogger computerLogger) throws LogsException
     {
-        String host = computerLogger.GetComputer().ComputerEntity.Host;
+        String host = computerLogger.GetComputer().Host;
         if(_connectedComputerLoggers.contains(computerLogger))
         {
             _connectedComputerLoggers.remove(computerLogger);
@@ -225,7 +224,7 @@ public class LogsManager
 
     public void Callback_Maintainer_StopWorkForComputerLogger(ComputerLogger computerLogger) throws LogsException
     {
-        String host = computerLogger.GetComputer().ComputerEntity.Host;
+        String host = computerLogger.GetComputer().Host;
 
         _logsGatherer.StopGatheringLogs();
 
@@ -253,15 +252,15 @@ public class LogsManager
     // -----------------------------------------------------------------------------------------------------------------
     // -----------------------------------------------------------------------------------------------------------------
 
-    private List<ComputerLogger> GetReachableComputerLoggers(List<Computer> selectedComputers) throws LogsException
+    private List<ComputerLogger> GetReachableComputerLoggers(List<Computer> selectedComputerEntities) throws LogsException
     {
-        List<ComputerLogger> connectedComputerLoggers = new ArrayList<>();
-        for (Computer selectedComputer : selectedComputers)
+        List<ComputerLogger> reachableComputerLoggers = new ArrayList<>();
+        for (Computer selectedComputer : selectedComputerEntities)
         {
             ComputerLogger computerLogger = new ComputerLogger(_logsGatherer, selectedComputer);
             computerLogger.ConnectWithComputerThroughSSH();
 
-            connectedComputerLoggers.add(computerLogger);
+            reachableComputerLoggers.add(computerLogger);
         }
 
         try
@@ -275,12 +274,12 @@ public class LogsManager
             throw new LogsException("[FATAL ERROR] Thread sleep was interrupted in LogsManager.");
         }
 
-        connectedComputerLoggers = connectedComputerLoggers.stream()
+        reachableComputerLoggers = reachableComputerLoggers.stream()
                 .filter(c -> c.IsConnectedUsingSSH() == true &&
-                        c.GetComputer().ComputerEntity.Preferences.isEmpty() == false)
+                        c.GetComputer().Preferences.isEmpty() == false)
                 .collect(Collectors.toList());
 
-        return  connectedComputerLoggers;
+        return reachableComputerLoggers;
     }
 
     public List<ComputerLogger> GetConnectedComputerLoggers()
