@@ -1,7 +1,9 @@
 package Healthcheck.Preferences;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Preferences
 {
@@ -24,5 +26,14 @@ public class Preferences
         add(RamInfoPreference);
         add(SwapInfoPreference);
         add(UsersInfoPreference);
+    }};
+
+    public static final Map<String, IPreference> PreferenceClassNameMap = new HashMap<String, IPreference>(){{
+        put("Healthcheck.Preferences.CpuInfoPreference", CpuInfoPreference);
+        put("Healthcheck.Preferences.DisksInfoPreference", DisksInfoPreference);
+        put("Healthcheck.Preferences.ProcessesInfoPreference", ProcessesInfoPreference);
+        put("Healthcheck.Preferences.RamInfoPreference", RamInfoPreference);
+        put("Healthcheck.Preferences.SwapInfoPreference", SwapInfoPreference);
+        put("Healthcheck.Preferences.UsersInfoPreference", UsersInfoPreference);
     }};
 }
