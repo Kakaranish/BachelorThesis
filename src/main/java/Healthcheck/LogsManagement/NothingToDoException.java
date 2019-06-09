@@ -1,6 +1,6 @@
 package Healthcheck.LogsManagement;
 
-public class NothingToDoException extends Exception
+public class NothingToDoException extends RuntimeException
 {
     public NothingToDoException(String s)
     {

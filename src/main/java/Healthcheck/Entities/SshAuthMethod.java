@@ -1,6 +1,6 @@
 package Healthcheck.Entities;
 
-public enum SSHAuthMethod
+public enum SshAuthMethod
 {
     PASSWORD,
 
