@@ -102,7 +102,7 @@ public class SshConfig
         SetPreviousState(this);
 
         _existsInDb = false;
-    }
+}
 
     // Copy Constructor
     public SshConfig(SshConfig otherSSHConfiguration)
@@ -122,6 +122,10 @@ public class SshConfig
         {
             _prevState = new SshConfig(otherSSHConfiguration._prevState);
         }
+        _existsInDb = otherSSHConfiguration._existsInDb;
+
+        // TODO: Check
+//        _prevState
     }
 
     public void CopyFrom(SshConfig otherSSHConfiguration)
@@ -141,6 +145,7 @@ public class SshConfig
         {
             _prevState = new SshConfig(otherSSHConfiguration._prevState);
         }
+        _existsInDb = otherSSHConfiguration._existsInDb;
     }
 
     // ---  ACTIONS RELATED TO DATABASE   ------------------------------------------------------------------------------
@@ -196,7 +201,7 @@ public class SshConfig
 
         if(_existsInDb == false)
         {
-            throw new SshConfigException("Config does not exist in db.");
+            throw new SshConfigException("Ssh config does not exist in db.");
         }
 
         if(ScopeChanged())
@@ -213,7 +218,7 @@ public class SshConfig
         boolean updateSucceed = DatabaseManager.UpdateWithRetryPolicy(session, this, attemptErrorMessage);
         if(updateSucceed == false)
         {
-            throw new DatabaseException("Unable to update config in db.");
+            throw new DatabaseException("Unable to update ssh config in db.");
         }
     }
 
@@ -226,9 +231,9 @@ public class SshConfig
 
     public void RemoveFromDb(Session session) throws SshConfigException, DatabaseException
     {
-        if(IsInDb(session) == false)
+        if(_existsInDb == false)
         {
-            throw new SshConfigException("Config does not exist in db.");
+            throw new SshConfigException("Ssh config does not exist in db.");
         }
 
         if(HasGlobalScope())
@@ -253,13 +258,22 @@ public class SshConfig
                         computerToRestore.SshConfig = this;
                     }
 
-                    throw new DatabaseException("Unable to save new local config(s) in db.");
+                    throw new DatabaseException("Unable to save new local ssh config(s) in db.");
                 }
             }
         }
 
         String attemptErrorMessage = "[ERROR] SshConfig: Attempt of removing global ssh config from db failed.";
-        boolean removeSucceed = DatabaseManager.RemoveWithRetryPolicy(session, this, attemptErrorMessage);
+        boolean removeSucceed;
+        if(_prevState != null)
+        {
+            removeSucceed = DatabaseManager.RemoveWithRetryPolicy(session, _prevState, attemptErrorMessage);
+        }
+        else
+        {
+            removeSucceed = DatabaseManager.RemoveWithRetryPolicy(session, this, attemptErrorMessage);
+        }
+
         if(removeSucceed == false)
         {
             for (Computer computerToRestore : _computers)
@@ -346,6 +360,7 @@ public class SshConfig
         }
 
         TryToSetPrevStateIfNotExisting();
+        SshConfigChanged();
 
         Username = username;
     }
@@ -358,6 +373,7 @@ public class SshConfig
         }
 
         TryToSetPrevStateIfNotExisting();
+        SshConfigChanged();
 
         Port = port;
     }
@@ -370,6 +386,7 @@ public class SshConfig
         }
 
         TryToSetPrevStateIfNotExisting();
+        SshConfigChanged();
 
         AuthMethod = SshAuthMethod.PASSWORD;
         EncryptedPassword = encryptedPassword;
@@ -384,6 +401,7 @@ public class SshConfig
         }
 
         TryToSetPrevStateIfNotExisting();
+        SshConfigChanged();
 
         AuthMethod = SshAuthMethod.KEY;
         PrivateKeyPath = privateKeyPath;
@@ -393,6 +411,7 @@ public class SshConfig
     private void SetLocalScope()
     {
         TryToSetPrevStateIfNotExisting();
+        SshConfigChanged();
 
         Scope = SshConfigScope.LOCAL;
         Name = null;
@@ -445,6 +464,11 @@ public class SshConfig
         return _prevState;
     }
 
+    public boolean ExistsInDb()
+    {
+        return _existsInDb;
+    }
+
     // ---  MISC  ------------------------------------------------------------------------------------------------------
 
     private boolean GlobalSshConfigWithNameExists(Session session, String name)
@@ -454,20 +478,7 @@ public class SshConfig
         return (((org.hibernate.query.Query) query).uniqueResult() != null);
     }
 
-    public boolean IsInDb()
-    {
-        Session session = DatabaseManager.GetInstance().GetSession();
-        boolean isInDb = IsInDb(session);
-        session.close();
 
-        return isInDb;
-    }
-
-    public boolean IsInDb(Session session)
-    {
-        SshConfig sshConfigFromDb = session.get(this.getClass(), Id);
-        return this.equals(sshConfigFromDb);
-    }
 
     private boolean ScopeChanged()
     {
@@ -513,6 +524,14 @@ public class SshConfig
     public boolean HasGlobalScope()
     {
         return Scope == SshConfigScope.GLOBAL;
+    }
+
+    public void SshConfigChanged()
+    {
+        for (Computer computer : _computers)
+        {
+            computer.SshConfigChanged();
+        }
     }
 
     @Override

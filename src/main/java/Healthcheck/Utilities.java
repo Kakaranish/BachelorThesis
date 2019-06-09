@@ -230,4 +230,9 @@ public class Utilities
         Optional<ButtonType> result = alert.showAndWait();
         return result.get() == okButton ? true : false;
     }
+
+    public static boolean EmptyOrNull(String str)
+    {
+        return str == null || str.trim().equals("");
+    }
 }
