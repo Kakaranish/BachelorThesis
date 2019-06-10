@@ -1,11 +1,11 @@
 package Healthcheck.Entities;
 
+import Healthcheck.ComputersAndSshConfigsManager;
 import Healthcheck.DatabaseManagement.DatabaseException;
 import Healthcheck.DatabaseManagement.DatabaseManager;
 import Healthcheck.LogsManagement.NothingToDoException;
 import Healthcheck.Preferences.IPreference;
 import Healthcheck.Utilities;
-import jdk.jshell.execution.Util;
 import org.hibernate.Session;
 
 import javax.persistence.*;
@@ -60,6 +60,20 @@ public class Computer
 
     @Transient
     private boolean _sshConfigChanged = false;
+
+    @Transient
+    private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
+
+    @Transient
+    private Computer _prevState;
+
+    @Transient
+    private boolean _existsInDb = true;
+
+    public void SetComputersAndSshConfigsManager(ComputersAndSshConfigsManager computersAndSshConfigsManager)
+    {
+        _computersAndSshConfigsManager = computersAndSshConfigsManager;
+    }
 
     private Computer()
     {
@@ -134,6 +148,249 @@ public class Computer
         Preferences = new ArrayList<>(computer.Preferences);
     }
 
+    // ---  ADD TO DB  -------------------------------------------------------------------------------------------------
+
+    public void AddToDb() throws ComputerException, SshConfigException, DatabaseException
+    {
+        Session session = DatabaseManager.GetInstance().GetSession();
+        AddToDb(session);
+        session.close();
+    }
+
+    public void AddToDb(Session session) throws ComputerException, SshConfigException, DatabaseException
+    {
+        Validate_AddToDb(session);
+
+        if (SshConfig.HasLocalScope())
+        {
+            SshConfig.AddToDb();
+        }
+
+        String attemptErrorMessage = "[ERROR] Computer: Attempt of adding computer to db failed.";
+        boolean addSucceed = DatabaseManager.PersistWithRetryPolicy(session, this, attemptErrorMessage);
+        if(addSucceed == false)
+        {
+            throw new DatabaseException("Unable to save computer in db.");
+        }
+
+        _prevState = new Computer(this);
+        _existsInDb = true;
+        SshConfig.AddComputer(this);
+
+        if(_computersAndSshConfigsManager != null)
+        {
+            _computersAndSshConfigsManager.AddedComputer(this);
+        }
+    }
+
+    private void Validate_AddToDb(Session session) throws ComputerException, SshConfigException, DatabaseException
+    {
+        if(_existsInDb)
+        {
+            throw new ComputerException("Computer exists in db.");
+        }
+
+        if(SshConfig == null)
+        {
+            throw new ComputerException("Ssh config cannot be null. Computer has to have ssh config.");
+        }
+
+        if(_computersAndSshConfigsManager == null)
+        {
+            if(ComputerWithSameDisplayedNameExistsInDb(session, DisplayedName))
+            {
+                throw new ComputerException("Computer with same displayed name exists in db.");
+            }
+
+            if(ComputerWithSameHostExistsInDb(session, Host))
+            {
+                throw new ComputerException("Computer with same host exists in db.");
+            }
+        }
+        else
+        {
+            if(_computersAndSshConfigsManager.ComputerWithDisplayedNameExists(DisplayedName))
+            {
+                throw new ComputerException("Computer with same displayed name exists in db.");
+            }
+
+            if(_computersAndSshConfigsManager.ComputerWithHostExists(Host))
+            {
+                throw new ComputerException("Computer with same host exists in db.");
+            }
+        }
+
+        if(SshConfig.HasGlobalScope() && SshConfig.ExistsInDb() == false)
+        {
+            throw new ComputerException("Provided global ssh config does not exist in db.");
+        }
+
+        if(SshConfig.HasLocalScope() && _existsInDb)
+        {
+            throw new ComputerException("Provided local ssh config exists in db.");
+        }
+    }
+
+    // ---  UPDATE IN DB  ----------------------------------------------------------------------------------------------
+
+    public void UpdateInDb() throws NothingToDoException, ComputerException, SshConfigException
+    {
+        Session session = DatabaseManager.GetInstance().GetSession();
+        UpdateInDb(session);
+        session.close();
+    }
+
+    public void UpdateInDb(Session session) throws NothingToDoException, ComputerException, SshConfigException
+    {
+        Validate_UpdateInDb(session);
+
+        if(_sshConfigChanged == true)
+        {
+            if(_prevState.SshConfig.HasLocalScope() && SshConfig.HasLocalScope())
+            {
+                if(SshConfig.ExistsInDb() == false)
+                {
+                    SshConfig.CopyIdFrom(_prevState.SshConfig);
+                    SshConfig.UpdateInDb();
+                }
+                else
+                {
+                    throw new SshConfigException("Unable to replace existing local ssh config with other one.");
+                }
+            }
+            else if(_prevState.SshConfig.HasLocalScope() && SshConfig.HasGlobalScope())
+            {
+                _prevState.SshConfig.RemoveFromDb(session);
+            }
+            else if(_prevState.SshConfig.HasGlobalScope() && SshConfig.HasLocalScope())
+            {
+                if(SshConfig.GetId() == null)
+                {
+                    SshConfig.AddToDb();
+                }
+                else
+                {
+                    throw new ComputerException("Local ssh config is already assigned to other computer.");
+                }
+            }
+            else if(_prevState.SshConfig.HasGlobalScope() && SshConfig.HasGlobalScope())
+            {
+                if(SshConfig.ExistsInDb() == false)
+                {
+                    throw new SshConfigException("New global ssh config does not exist in db.");
+                }
+            }
+        }
+
+        String attemptErrorMessage = "[ERROR] Computer: Attempt of update computer in db failed.";
+        boolean updateSucceed = DatabaseManager.UpdateWithRetryPolicy(session, this, attemptErrorMessage);
+        if(updateSucceed == false)
+        {
+            throw new DatabaseException("Unable to update computer in db.");
+        }
+        _sshConfigChanged = false;
+    }
+
+    private void Validate_UpdateInDb(Session session) throws NothingToDoException, ComputerException, SshConfigException
+    {
+        if(_prevState == null)
+        {
+            throw new NothingToDoException("Previous state is null and ssh config has not changed.");
+        }
+
+        if(_existsInDb == false)
+        {
+            throw new ComputerException("Computer does not exist in db.");
+        }
+
+        if(SshConfig.HasGlobalScope() && SshConfig.ExistsInDb() == false)
+        {
+            throw new SshConfigException("Provided global config does not exist in db.");
+        }
+
+        if(_computersAndSshConfigsManager == null)
+        {
+            if(Utilities.AreEqual(_prevState.DisplayedName, this.DisplayedName) == false
+                    && ComputerWithSameDisplayedNameExistsInDb(session, this.DisplayedName))
+            {
+                throw new ComputerException("Computer with same displayed name exists in db.");
+            }
+
+            if(Utilities.AreEqual(_prevState.Host, this.Host) == false
+                    && ComputerWithSameHostExistsInDb(session, this.Host))
+            {
+                throw new ComputerException("Computer with same host exists in db.");
+            }
+        }
+        else
+        {
+            if(Utilities.AreEqual(_prevState.DisplayedName, this.DisplayedName) == false
+                    && _computersAndSshConfigsManager.ComputerWithDisplayedNameExists(this.DisplayedName))
+            {
+                throw new ComputerException("Computer with same displayed name exists in db.");
+            }
+
+            if(Utilities.AreEqual(_prevState.Host, this.Host) == false
+                    && _computersAndSshConfigsManager.ComputerWithHostExists(this.Host))
+            {
+                throw new ComputerException("Computer with same host exists in db.");
+            }
+        }
+    }
+
+    // ---  REMOVE FROM DB  --------------------------------------------------------------------------------------------
+
+    public void RemoveFromDb() throws NothingToDoException, ComputerException, SshConfigException
+    {
+        Session session = DatabaseManager.GetInstance().GetSession();
+        RemoveFromDb(session);
+        session.close();
+    }
+
+    public void RemoveFromDb(Session session) throws NothingToDoException, ComputerException, SshConfigException
+    {
+        Validate_RemoveFromDb();
+
+        SshConfig.RemoveComputer(this);
+        if(SshConfig.HasLocalScope())
+        {
+            SshConfig.RemoveFromDb(session);
+        }
+
+        String attemptErrorMessage = "[ERROR] Computer: Attempt of removing computer from db failed.";
+        boolean removeSucceed;
+        if(_prevState != null)
+        {
+            removeSucceed = DatabaseManager.RemoveWithRetryPolicy(session, _prevState, attemptErrorMessage);
+        }
+        else
+        {
+            removeSucceed = DatabaseManager.RemoveWithRetryPolicy(session, this, attemptErrorMessage);
+        }
+
+        if(removeSucceed == false)
+        {
+            SshConfig.AddComputer(this);
+            throw new DatabaseException("Unable to remove global ssh config in db.");
+        }
+
+        // TODO: Clear?
+        if(_computersAndSshConfigsManager != null)
+        {
+            _computersAndSshConfigsManager.RemovedComputer(this);
+        }
+    }
+
+    private void Validate_RemoveFromDb()
+    {
+        if(_existsInDb == false)
+        {
+            throw new ComputerException("Computer does not exist in db.");
+        }
+    }
+
+    // ---  MISC  ------------------------------------------------------------------------------------------------------
+
     public boolean HasSetRequiredFields()
     {
         return  DisplayedName != null &&
@@ -189,55 +446,7 @@ public class Computer
         return iPreferences;
     }
 
-    public void AddToDb() throws ComputerException, SshConfigException, DatabaseException
-    {
-        Session session = DatabaseManager.GetInstance().GetSession();
-        AddToDb(session);
-        session.close();
-    }
 
-    public void AddToDb(Session session) throws ComputerException, SshConfigException, DatabaseException
-    {
-        if(ComputerWithSameDisplayedNameExistsInDb(session, DisplayedName))
-        {
-            throw new ComputerException("Computer with same displayed name exists in db.");
-        }
-
-        if(ComputerWithSameHostExistsInDb(session, Host))
-        {
-            throw new ComputerException("Computer with same host exists in db.");
-        }
-
-        if(_existsInDb)
-        {
-            throw new ComputerException("Computer exists in db.");
-        }
-
-        if(Id != null)
-        {
-            throw new ComputerException("Id is not null.");
-        }
-
-        if (SshConfig.HasLocalScope() && SshConfig.ExistsInDb() == false)
-        {
-            SshConfig.AddToDb();
-        }
-
-        if(SshConfig.HasGlobalScope() && SshConfig.ExistsInDb() == false)
-        {
-            throw new ComputerException("Provided global config does not exist in db.");
-        }
-
-        String attemptErrorMessage = "[ERROR] Computer: Attempt of adding computer to db failed.";
-        boolean addSucceed = DatabaseManager.PersistWithRetryPolicy(session, this, attemptErrorMessage);
-        if(addSucceed == false)
-        {
-            throw new DatabaseException("Unable to save computer in db.");
-        }
-
-        _prevState = new Computer(this);
-        _existsInDb = true;
-    }
 
     private boolean ComputerWithSameDisplayedNameExistsInDb(Session session, String displayedName)
     {
@@ -253,135 +462,7 @@ public class Computer
         return (((org.hibernate.query.Query) query).uniqueResult() != null);
     }
 
-    private void ValidateChanges(Session session) throws NothingToDoException, ComputerException, SshConfigException
-    {
-        if(_prevState == null)
-        {
-            throw new NothingToDoException("Previous state is null and ssh config has not changed.");
-        }
 
-        if(_existsInDb == false)
-        {
-            throw new ComputerException("Computer does not exist in db.");
-        }
-
-        if(SshConfig.HasGlobalScope() && SshConfig.ExistsInDb() == false)
-        {
-            throw new SshConfigException("Provided global config does not exist in db.");
-        }
-
-        if(Utilities.AreEqual(_prevState.DisplayedName, this.DisplayedName) == false
-                && ComputerWithSameDisplayedNameExistsInDb(session, this.DisplayedName))
-        {
-            throw new ComputerException("Computer with same displayed name exists in db.");
-        }
-
-        if(Utilities.AreEqual(_prevState.Host, this.Host) == false
-                && ComputerWithSameHostExistsInDb(session, this.Host))
-        {
-            throw new ComputerException("Computer with same host exists in db.");
-        }
-    }
-
-    public void UpdateInDb() throws NothingToDoException, ComputerException, SshConfigException
-    {
-        Session session = DatabaseManager.GetInstance().GetSession();
-        UpdateInDb(session);
-        session.close();
-    }
-
-    public void UpdateInDb(Session session) throws NothingToDoException, ComputerException, SshConfigException
-    {
-        ValidateChanges(session);
-
-        if(SshConfig.equals(_prevState.SshConfig) == false)
-        {
-            if(_prevState.SshConfig.HasLocalScope() && SshConfig.HasLocalScope())
-            {
-                if(_prevState.SshConfig.GetId() != SshConfig.GetId())
-                {
-                    throw new SshConfigException("Local ssh configs have different id's.");
-                }
-                SshConfig.UpdateInDb();
-            }
-            else if(_prevState.SshConfig.HasLocalScope() && SshConfig.HasGlobalScope())
-            {
-                _prevState.SshConfig.RemoveFromDb(session);
-            }
-            else if(_prevState.SshConfig.HasGlobalScope() && SshConfig.HasLocalScope())
-            {
-                if(SshConfig.GetId() == null)
-                {
-                    SshConfig.AddToDb();
-                }
-                else
-                {
-                    throw new ComputerException("Local ssh config is already assigned to other computer.");
-                }
-            }
-            else if(_prevState.SshConfig.HasGlobalScope() && SshConfig.HasGlobalScope())
-            {
-                if(SshConfig.ExistsInDb() == false)
-                {
-                    throw new SshConfigException("New global ssh config does not exist in db.");
-                }
-            }
-        }
-
-        String attemptErrorMessage = "[ERROR] Computer: Attempt of update computer in db failed.";
-        boolean updateSucceed = DatabaseManager.UpdateWithRetryPolicy(session, this, attemptErrorMessage);
-        if(updateSucceed == false)
-        {
-            throw new DatabaseException("Unable to update computer in db.");
-        }
-        _sshConfigChanged = false;
-    }
-
-    public void RemoveInDb() throws NothingToDoException, ComputerException, SshConfigException
-    {
-        Session session = DatabaseManager.GetInstance().GetSession();
-        RemoveInDb(session);
-        session.close();
-    }
-
-    public void RemoveInDb(Session session) throws NothingToDoException, ComputerException, SshConfigException
-    {
-        if(_existsInDb == false)
-        {
-            throw new ComputerException("Computer does not exist in db.");
-        }
-
-        SshConfig.RemoveComputer(this);
-        if(SshConfig.HasLocalScope())
-        {
-            SshConfig.RemoveFromDb(session);
-        }
-
-        String attemptErrorMessage = "[ERROR] Computer: Attempt of removing computer from db failed.";
-        boolean removeSucceed;
-        if(_prevState != null)
-        {
-            removeSucceed = DatabaseManager.RemoveWithRetryPolicy(session, _prevState, attemptErrorMessage);
-        }
-        else
-        {
-            removeSucceed = DatabaseManager.RemoveWithRetryPolicy(session, this, attemptErrorMessage);
-        }
-
-        if(removeSucceed == false)
-        {
-            SshConfig.AddComputer(this);
-            throw new DatabaseException("Unable to remove global ssh config in db.");
-        }
-
-        // TODO: Clear?
-    }
-
-    @Transient
-    private Computer _prevState;
-
-    @Transient
-    private boolean _existsInDb = true;
 
 
     // ---  GETTERS  ---------------------------------------------------------------------------------------------------
@@ -404,6 +485,11 @@ public class Computer
     public String GetClassroom()
     {
         return Classroom;
+    }
+
+    public SshConfig GetSshConfig()
+    {
+        return SshConfig;
     }
 
     public Duration GetMaintainPeriod()
@@ -482,6 +568,7 @@ public class Computer
     public void SetSshConfig(SshConfig sshConfig)
     {
         TryToSetPrevStateIfNotExisting();
+        _sshConfigChanged = true;
 
         if(sshConfig == null)
         {

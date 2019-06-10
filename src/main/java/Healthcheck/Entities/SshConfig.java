@@ -1,5 +1,6 @@
 package Healthcheck.Entities;
 
+import Healthcheck.ComputersAndSshConfigsManager;
 import Healthcheck.DatabaseManagement.DatabaseException;
 import Healthcheck.DatabaseManagement.DatabaseManager;
 import Healthcheck.LogsManagement.NothingToDoException;
@@ -10,6 +11,7 @@ import org.hibernate.annotations.FetchMode;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "SSH_Configurations", uniqueConstraints = {@UniqueConstraint(columnNames = {"Name"})})
@@ -50,6 +52,14 @@ public class SshConfig
 
     @Transient
     private boolean _existsInDb = true;
+
+    @Transient
+    private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
+
+    public void SetComputersAndSshConfigsManager(ComputersAndSshConfigsManager computersAndSshConfigsManager)
+    {
+        _computersAndSshConfigsManager = computersAndSshConfigsManager;
+    }
 
     private SshConfig()
     {
@@ -148,7 +158,12 @@ public class SshConfig
         _existsInDb = otherSSHConfiguration._existsInDb;
     }
 
-    // ---  ACTIONS RELATED TO DATABASE   ------------------------------------------------------------------------------
+    public void CopyIdFrom(SshConfig otherSshConfig)
+    {
+        Id = otherSshConfig.Id;
+    }
+
+    // ---  ADD TO DB  -------------------------------------------------------------------------------------------------
 
     public void AddToDb() throws SshConfigException, DatabaseException
     {
@@ -159,20 +174,7 @@ public class SshConfig
 
     public void AddToDb(Session session) throws SshConfigException, DatabaseException
     {
-        if(_existsInDb)
-        {
-            throw new SshConfigException("Ssh configuration exists in db.");
-        }
-
-        if(Id != null)
-        {
-            throw new SshConfigException("Id is not null.");
-        }
-
-        if(HasGlobalScope() && GlobalSshConfigWithNameExists(session, Name))
-        {
-            throw new SshConfigException("Ssh config with '" + Name + "' name already exists in db.");
-        }
+        Validate_AddToDb(session);
 
         String attemptErrorMessage = "[ERROR] SshConfig: Attempt of adding ssh config to db failed.";
         boolean addSucceed = DatabaseManager.PersistWithRetryPolicy(session, this, attemptErrorMessage);
@@ -183,7 +185,42 @@ public class SshConfig
 
         _prevState = new SshConfig(this);
         _existsInDb = true;
+
+        if(_computersAndSshConfigsManager != null)
+        {
+            _computersAndSshConfigsManager.AddedSshConfig(this);
+        }
     }
+
+    private void Validate_AddToDb(Session session)
+    {
+        if(_existsInDb)
+        {
+            throw new SshConfigException("Ssh configuration exists in db.");
+        }
+
+        if(HasLocalScope() && _computers.isEmpty())
+        {
+            throw new SshConfigException("Local ssh config must be associated with computer.");
+        }
+
+        if(_computersAndSshConfigsManager == null)
+        {
+            if(HasGlobalScope() && GlobalSshConfigWithNameExists(session, Name))
+            {
+                throw new SshConfigException("Ssh config with '" + Name + "' name already exists in db.");
+            }
+        }
+        else
+        {
+            if(HasGlobalScope() && _computersAndSshConfigsManager.SshConfigWithNameExists(Name))
+            {
+                throw new SshConfigException("Ssh config with '" + Name + "' name already exists in db.");
+            }
+        }
+    }
+
+    // ---  UPDATE IN DB  ----------------------------------------------------------------------------------------------
 
     public void UpdateInDb() throws NothingToDoException, SshConfigException
     {
@@ -193,6 +230,18 @@ public class SshConfig
     }
 
     public void UpdateInDb(Session session) throws NothingToDoException, SshConfigException
+    {
+        Validate_UpdateInDb();
+
+        String attemptErrorMessage = "[ERROR] SshConfig: Attempt of update ssh config in db failed.";
+        boolean updateSucceed = DatabaseManager.UpdateWithRetryPolicy(session, this, attemptErrorMessage);
+        if(updateSucceed == false)
+        {
+            throw new DatabaseException("Unable to update ssh config in db.");
+        }
+    }
+
+    public void Validate_UpdateInDb()
     {
         if(_prevState == null)
         {
@@ -213,14 +262,9 @@ public class SshConfig
         {
             throw new NothingToDoException("Previous state is equal to current state.");
         }
-
-        String attemptErrorMessage = "[ERROR] SshConfig: Attempt of update ssh config in db failed.";
-        boolean updateSucceed = DatabaseManager.UpdateWithRetryPolicy(session, this, attemptErrorMessage);
-        if(updateSucceed == false)
-        {
-            throw new DatabaseException("Unable to update ssh config in db.");
-        }
     }
+
+    // ---  REMOVE FROM DB  --------------------------------------------------------------------------------------------
 
     public void RemoveFromDb() throws SshConfigException, DatabaseException
     {
@@ -231,10 +275,7 @@ public class SshConfig
 
     public void RemoveFromDb(Session session) throws SshConfigException, DatabaseException
     {
-        if(_existsInDb == false)
-        {
-            throw new SshConfigException("Ssh config does not exist in db.");
-        }
+        Validate_RemoveFromDb();
 
         if(HasGlobalScope())
         {
@@ -245,7 +286,10 @@ public class SshConfig
                 newLocalSshConfig.SetLocalScope();
                 newLocalSshConfig.ResetComputers();
                 newLocalSshConfig.AddComputer(computer);
-                computer.SshConfig = newLocalSshConfig;
+
+                // TODO
+//                computer.SshConfig = newLocalSshConfig;
+                computer.SetSshConfig(newLocalSshConfig);
 
                 String attemptErrorMessage = "[ERROR] SshConfig: Attempt of adding new local ssh config in db failed.";
                 boolean saveSucceed =
@@ -284,7 +328,20 @@ public class SshConfig
             throw new DatabaseException("Unable to remove global ssh config in db.");
         }
 
+        if(_computersAndSshConfigsManager != null)
+        {
+            _computersAndSshConfigsManager.RemovedSshConfig(this);
+        }
+
         Clear();
+    }
+
+    private void Validate_RemoveFromDb()
+    {
+        if(_existsInDb == false)
+        {
+            throw new SshConfigException("Ssh config does not exist in db.");
+        }
     }
 
     // ---  ONE TO MANY - COMPUTERS  -----------------------------------------------------------------------------------
@@ -478,8 +535,6 @@ public class SshConfig
         return (((org.hibernate.query.Query) query).uniqueResult() != null);
     }
 
-
-
     private boolean ScopeChanged()
     {
         return (HasGlobalScope() && _prevState.HasLocalScope()) || (HasLocalScope() && _prevState.HasGlobalScope());
@@ -543,6 +598,10 @@ public class SshConfig
         }
 
         SshConfig other = (SshConfig) obj;
+        List<Integer> thisIds = _computers.stream().map(c -> c.Id).collect(Collectors.toList());
+        List<Integer> otherIds = other._computers.stream().map(c -> c.Id).collect(Collectors.toList());
+
+
         return  this.Id == other.Id &&
                 Utilities.AreEqual(this.Name, other.Name) &&
                 Utilities.AreEqual(this.Scope, other.Scope) &&
@@ -551,8 +610,6 @@ public class SshConfig
                 Utilities.AreEqual(this.Username, other.Username) &&
                 Utilities.AreEqual(this.PrivateKeyPath, other.PrivateKeyPath) &&
                 Utilities.AreEqual(this.EncryptedPassword, other.EncryptedPassword) &&
-                (this._computers == other._computers ||
-                        (this._computers.containsAll(other._computers) &&
-                                other._computers.containsAll(this._computers)));
+                (this._computers == other._computers || (thisIds.containsAll(otherIds) && otherIds.containsAll(thisIds)));
     }
 }
