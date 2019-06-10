@@ -59,9 +59,6 @@ public class Computer
     public List<Preference> Preferences = new ArrayList<>();
 
     @Transient
-    private boolean _sshConfigChanged = false;
-
-    @Transient
     private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
 
     @Transient
@@ -121,8 +118,7 @@ public class Computer
         DisplayedName = computer.DisplayedName;
         Host = computer.Host;
         Classroom = computer.Classroom;
-//        SshConfig = computer.SshConfig; // TODO: Check
-        SshConfig = new SshConfig(computer.SshConfig);
+        SshConfig = computer.SshConfig;
         MaintainPeriod = computer.MaintainPeriod;
         RequestInterval = computer.RequestInterval;
         LogExpiration = computer.LogExpiration;
@@ -130,6 +126,8 @@ public class Computer
         IsSelected = computer.IsSelected;
 
         Preferences = new ArrayList<>(computer.Preferences);
+        _prevState = computer._prevState;
+        _computersAndSshConfigsManager = computer._computersAndSshConfigsManager;
     }
 
     public void CopyFrom(Computer computer)
@@ -161,21 +159,33 @@ public class Computer
     {
         Validate_AddToDb(session);
 
+        SshConfig.AddComputer(this);
+
         if (SshConfig.HasLocalScope())
         {
-            SshConfig.AddToDb();
+            SshConfig.AddToDb(session);
+            _computersAndSshConfigsManager.AddedSshConfig(SshConfig);
         }
 
         String attemptErrorMessage = "[ERROR] Computer: Attempt of adding computer to db failed.";
         boolean addSucceed = DatabaseManager.PersistWithRetryPolicy(session, this, attemptErrorMessage);
         if(addSucceed == false)
         {
+            if(SshConfig.HasLocalScope())
+            {
+                String attemptErrorMessage2 = "[ERROR] Computer: Attempt of removing local ssh config to db failed.";
+                boolean removeSucceed = DatabaseManager.PersistWithRetryPolicy(session, SshConfig, attemptErrorMessage);
+                if(removeSucceed == false)
+                {
+                    throw new FatalErrorException("Removing local ssh config after computer adding failed!");
+                }
+            }
+
             throw new DatabaseException("Unable to save computer in db.");
         }
 
         _prevState = new Computer(this);
         _existsInDb = true;
-        SshConfig.AddComputer(this);
 
         if(_computersAndSshConfigsManager != null)
         {
@@ -240,23 +250,21 @@ public class Computer
         session.close();
     }
 
-    public void UpdateInDb(Session session) throws NothingToDoException, ComputerException, SshConfigException
+    public void UpdateInDb(Session session) throws NothingToDoException, ComputerException, SshConfigException, DatabaseException
     {
         Validate_UpdateInDb(session);
 
-        if(_sshConfigChanged == true)
+        SshConfig sshConfigBackup = null;
+        if(SshConfigChanged() == true)
         {
+            sshConfigBackup = new SshConfig(_prevState.SshConfig);
+
             if(_prevState.SshConfig.HasLocalScope() && SshConfig.HasLocalScope())
             {
-                if(SshConfig.ExistsInDb() == false)
-                {
-                    SshConfig.CopyIdFrom(_prevState.SshConfig);
-                    SshConfig.UpdateInDb();
-                }
-                else
-                {
-                    throw new SshConfigException("Unable to replace existing local ssh config with other one.");
-                }
+                _prevState.SshConfig.CopyAdjustableFieldsFrom(SshConfig);
+                _prevState.SshConfig.UpdateInDb(session);
+
+                SshConfig = _prevState.SshConfig;
             }
             else if(_prevState.SshConfig.HasLocalScope() && SshConfig.HasGlobalScope())
             {
@@ -286,9 +294,33 @@ public class Computer
         boolean updateSucceed = DatabaseManager.UpdateWithRetryPolicy(session, this, attemptErrorMessage);
         if(updateSucceed == false)
         {
+            if(sshConfigBackup != null) // SshConfig changed
+            {
+                SshConfig.CopyAdjustableFieldsFrom(sshConfigBackup);
+            }
+            //TODO: Restore here
             throw new DatabaseException("Unable to update computer in db.");
         }
-        _sshConfigChanged = false;
+
+
+        if(SshConfigChanged()) // TODO: ???
+        {
+            _prevState.SshConfig.RemoveComputer(this);
+            SshConfig.AddComputer(this);
+        }
+        _prevState = new Computer(this);
+
+        if(_computersAndSshConfigsManager != null)
+        {
+            if(SshConfigChangedFromLocalToGlobal())
+            {
+                _computersAndSshConfigsManager.SshConfigInComputerChangedFromLocalToGlobal(_prevState.SshConfig);
+            }
+            else if(SshConfigChangedFromGlobalToLocal())
+            {
+                _computersAndSshConfigsManager.SshConfigInComputerChangedFromGlobalToLocal(SshConfig);
+            }
+        }
     }
 
     private void Validate_UpdateInDb(Session session) throws NothingToDoException, ComputerException, SshConfigException
@@ -306,6 +338,11 @@ public class Computer
         if(SshConfig.HasGlobalScope() && SshConfig.ExistsInDb() == false)
         {
             throw new SshConfigException("Provided global config does not exist in db.");
+        }
+
+        if(SshConfig.HasLocalScope() && SshConfig.ExistsInDb())
+        {
+            throw new SshConfigException("Unable to replace existing local ssh config with other.");
         }
 
         if(_computersAndSshConfigsManager == null)
@@ -354,7 +391,7 @@ public class Computer
         SshConfig.RemoveComputer(this);
         if(SshConfig.HasLocalScope())
         {
-            SshConfig.RemoveFromDb(session);
+            SshConfig.RemoveFromDb(session); //TODO: Remove computer?
         }
 
         String attemptErrorMessage = "[ERROR] Computer: Attempt of removing computer from db failed.";
@@ -374,7 +411,6 @@ public class Computer
             throw new DatabaseException("Unable to remove global ssh config in db.");
         }
 
-        // TODO: Clear?
         if(_computersAndSshConfigsManager != null)
         {
             _computersAndSshConfigsManager.RemovedComputer(this);
@@ -461,9 +497,6 @@ public class Computer
         query.setParameter("host", Host);
         return (((org.hibernate.query.Query) query).uniqueResult() != null);
     }
-
-
-
 
     // ---  GETTERS  ---------------------------------------------------------------------------------------------------
 
@@ -568,7 +601,6 @@ public class Computer
     public void SetSshConfig(SshConfig sshConfig)
     {
         TryToSetPrevStateIfNotExisting();
-        _sshConfigChanged = true;
 
         if(sshConfig == null)
         {
@@ -640,7 +672,6 @@ public class Computer
         }
     }
 
-
     // TODO: To remove
     public void CopyFromWithoutSshConfig(Computer computer)
     {
@@ -658,12 +689,30 @@ public class Computer
         Preferences = computer.Preferences;
     }
 
-    public void SshConfigChanged()
+    private boolean SshConfigChanged()
     {
-        if(_sshConfigChanged == false)
+        if(_prevState == null)
         {
-            _sshConfigChanged = true;
-            TryToSetPrevStateIfNotExisting();
+            return false;
         }
+
+        if(SshConfig.equals(_prevState.SshConfig) == false)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    private boolean SshConfigChangedFromLocalToGlobal()
+    {
+        return _prevState.SshConfig.HasLocalScope() && SshConfig.HasGlobalScope();
+    }
+
+    private boolean SshConfigChangedFromGlobalToLocal()
+    {
+        return _prevState.SshConfig.HasGlobalScope() && SshConfig.HasLocalScope();
     }
 }

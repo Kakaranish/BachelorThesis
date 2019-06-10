@@ -54,6 +54,9 @@ public class SshConfig
     private boolean _existsInDb = true;
 
     @Transient
+    private boolean _isChanged = false;
+
+    @Transient
     private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
 
     public void SetComputersAndSshConfigsManager(ComputersAndSshConfigsManager computersAndSshConfigsManager)
@@ -126,21 +129,33 @@ public class SshConfig
         PrivateKeyPath = otherSSHConfiguration.PrivateKeyPath;
         EncryptedPassword = otherSSHConfiguration.EncryptedPassword;
 
-        _computers = new ArrayList<>(otherSSHConfiguration._computers);
+        _computers = otherSSHConfiguration._computers;
 
         if(otherSSHConfiguration._prevState != null)
         {
             _prevState = new SshConfig(otherSSHConfiguration._prevState);
         }
         _existsInDb = otherSSHConfiguration._existsInDb;
+        _computersAndSshConfigsManager = otherSSHConfiguration._computersAndSshConfigsManager;
+    }
 
-        // TODO: Check
-//        _prevState
+    public void CopyAdjustableFieldsFrom(SshConfig otherSSHConfiguration)
+    {
+        TryToSetPrevStateIfNotExisting();
+
+        Name = otherSSHConfiguration.Name;
+        Scope = otherSSHConfiguration.Scope;
+        Port = otherSSHConfiguration.Port;
+        AuthMethod = otherSSHConfiguration.AuthMethod;
+        Username = otherSSHConfiguration.Username;
+        PrivateKeyPath = otherSSHConfiguration.PrivateKeyPath;
+        EncryptedPassword = otherSSHConfiguration.EncryptedPassword;
+
+        _isChanged = true;
     }
 
     public void CopyFrom(SshConfig otherSSHConfiguration)
     {
-        Id = otherSSHConfiguration.Id;
         Name = otherSSHConfiguration.Name;
         Scope = otherSSHConfiguration.Scope;
         Port = otherSSHConfiguration.Port;
@@ -190,6 +205,8 @@ public class SshConfig
         {
             _computersAndSshConfigsManager.AddedSshConfig(this);
         }
+
+        _isChanged = false;
     }
 
     private void Validate_AddToDb(Session session)
@@ -239,6 +256,7 @@ public class SshConfig
         {
             throw new DatabaseException("Unable to update ssh config in db.");
         }
+        _isChanged = false;
     }
 
     public void Validate_UpdateInDb()
@@ -287,8 +305,6 @@ public class SshConfig
                 newLocalSshConfig.ResetComputers();
                 newLocalSshConfig.AddComputer(computer);
 
-                // TODO
-//                computer.SshConfig = newLocalSshConfig;
                 computer.SetSshConfig(newLocalSshConfig);
 
                 String attemptErrorMessage = "[ERROR] SshConfig: Attempt of adding new local ssh config in db failed.";
@@ -332,8 +348,6 @@ public class SshConfig
         {
             _computersAndSshConfigsManager.RemovedSshConfig(this);
         }
-
-        Clear();
     }
 
     private void Validate_RemoveFromDb()
@@ -375,6 +389,7 @@ public class SshConfig
         if(_prevState == null)
         {
             SetPreviousState(this);
+            _isChanged = true;
         }
     }
 
@@ -387,21 +402,6 @@ public class SshConfig
     public void RestorePreviousState()
     {
         this.CopyFrom(_prevState);
-    }
-
-    private void Clear()
-    {
-        Id = null;
-        Name = null;
-        Scope = null;
-        Port = null;
-        AuthMethod = null;
-        Username = null;
-        PrivateKeyPath = null;
-        EncryptedPassword = null;
-
-        _computers = null;
-        _prevState = null;
     }
 
     private void ResetId()
@@ -417,7 +417,6 @@ public class SshConfig
         }
 
         TryToSetPrevStateIfNotExisting();
-        SshConfigChanged();
 
         Username = username;
     }
@@ -430,7 +429,6 @@ public class SshConfig
         }
 
         TryToSetPrevStateIfNotExisting();
-        SshConfigChanged();
 
         Port = port;
     }
@@ -443,7 +441,6 @@ public class SshConfig
         }
 
         TryToSetPrevStateIfNotExisting();
-        SshConfigChanged();
 
         AuthMethod = SshAuthMethod.PASSWORD;
         EncryptedPassword = encryptedPassword;
@@ -458,7 +455,6 @@ public class SshConfig
         }
 
         TryToSetPrevStateIfNotExisting();
-        SshConfigChanged();
 
         AuthMethod = SshAuthMethod.KEY;
         PrivateKeyPath = privateKeyPath;
@@ -468,7 +464,6 @@ public class SshConfig
     private void SetLocalScope()
     {
         TryToSetPrevStateIfNotExisting();
-        SshConfigChanged();
 
         Scope = SshConfigScope.LOCAL;
         Name = null;
@@ -540,37 +535,6 @@ public class SshConfig
         return (HasGlobalScope() && _prevState.HasLocalScope()) || (HasLocalScope() && _prevState.HasGlobalScope());
     }
 
-    // TODO: To remove
-    public boolean HasSetRequiredFields()
-    {
-        if(AuthMethod == null)
-        {
-            return false;
-        }
-
-        boolean authFieldSet;
-        if(AuthMethod == SshAuthMethod.PASSWORD)
-        {
-            authFieldSet = EncryptedPassword != null;
-        }
-        else
-        {
-            authFieldSet = PrivateKeyPath != null;
-        }
-
-        if(Scope == null)
-        {
-            return false;
-        }
-        boolean nameIsRequired = Scope != SshConfigScope.LOCAL;
-
-        return  !(nameIsRequired && Name == null) &&
-                Scope != null &&
-                Port != null &&
-                Username != null &&
-                authFieldSet;
-    }
-
     public boolean HasLocalScope()
     {
         return Scope == SshConfigScope.LOCAL;
@@ -579,14 +543,6 @@ public class SshConfig
     public boolean HasGlobalScope()
     {
         return Scope == SshConfigScope.GLOBAL;
-    }
-
-    public void SshConfigChanged()
-    {
-        for (Computer computer : _computers)
-        {
-            computer.SshConfigChanged();
-        }
     }
 
     @Override
