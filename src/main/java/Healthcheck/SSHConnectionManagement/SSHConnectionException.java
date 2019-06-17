@@ -1,6 +1,6 @@
 package Healthcheck.SSHConnectionManagement;
 
-public class SSHConnectionException extends Exception
+public class SSHConnectionException extends RuntimeException
 {
     public SSHConnectionException(String s)
     {

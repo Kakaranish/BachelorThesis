@@ -1,5 +1,9 @@
 package Healthcheck.SSHConnectionManagement;
 
+import Healthcheck.Encryption.Encrypter;
+import Healthcheck.Encryption.EncrypterException;
+import Healthcheck.Entities.SshAuthMethod;
+import Healthcheck.Entities.SshConfig;
 import Healthcheck.Utilities;
 import com.jcraft.jsch.*;
 import java.io.*;
@@ -14,17 +18,58 @@ public class SSHConnection
         _jsch = new JSch();
     }
 
-    // TODO: Open connection when SSH_Key is provided
-    public void OpenConnection(String host, String username, String password, int port, int timeout)
-            throws SSHConnectionException
+    public void OpenConnection(String host, SshConfig sshConfiguration) throws EncrypterException, SSHConnectionException
+    {
+        if(sshConfiguration.GetAuthMethod() == SshAuthMethod.PASSWORD)
+        {
+            _session = GetSessionUsingPasswordAuth(host, sshConfiguration);
+        }
+        else if(sshConfiguration.GetAuthMethod() == SshAuthMethod.KEY)
+        {
+            _session = GetSessionUsingKeyAuth(host, sshConfiguration);
+        }
+    }
+
+    private Session GetSessionUsingPasswordAuth(String host, SshConfig sshConfig)
+            throws EncrypterException, SSHConnectionException
+    {
+        String decryptedPassword = Encrypter.GetInstance().Decrypt(sshConfig.GetEncryptedPassword());
+
+        try
+        {
+            Session session = _jsch.getSession(sshConfig.GetUsername(), host, sshConfig.GetPort());
+            session.setPassword(decryptedPassword);
+
+            Properties config = new Properties();
+            config.put("StrictHostKeyChecking", "no");
+            session.setConfig(config);
+
+            session.connect(Utilities.SSHTimeout);
+            return session;
+        }
+        catch (Exception ex)
+        {
+            throw new SSHConnectionException("Unable to get session.");
+        }
+    }
+
+    private Session GetSessionUsingKeyAuth(String host, SshConfig sshConfig) throws SSHConnectionException
     {
         try
         {
-            _session = GetSession(username, host, password, port, timeout);
+            _jsch.addIdentity(sshConfig.GetPrivateKeyPath());
+            Session session = _jsch.getSession(sshConfig.GetUsername(), host, sshConfig.GetPort());
+
+            Properties config = new Properties();
+            config.put("StrictHostKeyChecking", "no");
+            session.setConfig(config);
+
+            session.connect(Utilities.SSHTimeout);
+            return session;
         }
-        catch(SSHConnectionException e)
+        catch (Exception e)
         {
-            throw e;
+            throw new SSHConnectionException("Unable to get session.");
         }
     }
 
@@ -102,33 +147,6 @@ public class SSHConnection
         return result;
     }
 
-    private boolean IsConnectionEstablished()
-    {
-        return _session.isConnected();
-    }
-
-    private Session GetSession(String username, String host, String password, int port, int timeout)
-            throws SSHConnectionException
-    {
-        Session session;
-        try
-        {
-            session = _jsch.getSession(username, host, port);
-            session.setPassword(password);
-
-            Properties config = new Properties();
-            config.put("StrictHostKeyChecking", "no");
-            session.setConfig(config);
-
-            session.connect(timeout);
-            return session;
-        }
-        catch (Exception ex)
-        {
-            throw new SSHConnectionException("[FATAL ERROR] SSHConnection: Unable to get session.");
-        }
-    }
-
     private Channel GetChannel(int timeout, String type) throws SSHConnectionException
     {
         Channel channel;
@@ -142,5 +160,9 @@ public class SSHConnection
         }
 
         return channel;
+    }
+    private boolean IsConnectionEstablished()
+    {
+        return _session.isConnected();
     }
 }

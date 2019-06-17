@@ -1,39 +1,40 @@
 package GUI.Controllers;
 
-import Healthcheck.Computer;
-import Healthcheck.ComputerManager;
+import Healthcheck.ComputersAndSshConfigsManager;
 import Healthcheck.DatabaseManagement.DatabaseException;
 import Healthcheck.Encryption.Encrypter;
 import Healthcheck.Encryption.EncrypterException;
-import Healthcheck.Entities.ComputerEntity;
-import Healthcheck.Entities.Preference;
-import Healthcheck.Entities.User;
+import Healthcheck.Entities.*;
 import Healthcheck.LogsManagement.NothingToDoException;
 import Healthcheck.SSHConnectionManagement.SSHConnection;
 import Healthcheck.SSHConnectionManagement.SSHConnectionException;
-import Healthcheck.UsersManager;
 import Healthcheck.Utilities;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import javafx.util.StringConverter;
+import java.io.File;
 import java.net.URL;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ResourceBundle;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ComputerInfoController implements Initializable
 {
+    @FXML
+    private CheckBox isSelectedCheckBox;
+
     @FXML
     private TextField displayedNameTextField;
 
@@ -44,7 +45,13 @@ public class ComputerInfoController implements Initializable
     private TextField classroomTextField;
 
     @FXML
-    private ChoiceBox<User> assignedUserChoiceBox;
+    private RadioButton passwordAuthMethodRadioButton;
+
+    @FXML
+    private RadioButton privateKeyAuthMethodRadioButton;
+
+    @FXML
+    private ChoiceBox<SshConfig> sshConfigChoiceBox;
 
     @FXML
     private TextField sshUsernameTextField;
@@ -53,10 +60,16 @@ public class ComputerInfoController implements Initializable
     private PasswordField sshPasswordPasswordField;
 
     @FXML
-    private TextField sshKeyTextField;
+    private GridPane sshKeyGridPane;
 
     @FXML
-    private TextField portTextField;
+    private TextField sshKeyPathTextField;
+
+    @FXML
+    private Button chooseSshKeyButton;
+
+    @FXML
+    private TextField sshPortTextField;
 
     @FXML
     private TextField requestIntervalTextField;
@@ -70,374 +83,363 @@ public class ComputerInfoController implements Initializable
     @FXML
     private GridPane preferencesGridPane;
 
-    @FXML
-    private CheckBox isSelectedCheckBox;
-
-    private ObservableList assignedUserObservableList = FXCollections.observableArrayList();
+    private ObservableList sshConfigObservableList = FXCollections.observableArrayList();
 
     // -----------------------------------------------------------------------------------------------------------------
 
     private final static int preferencesGridColsNum = 2;
 
-    private UsersManager _usersManager;
-    private ComputerManager _computerManager;
-    private ComputerEntity _computerEntity;
+    private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
     private Computer _computer;
 
-    private int indexOfSelectedUserBeforeChanges;
     private List<CheckBox> preferenceCheckboxes = new ArrayList<>();
     private List<CheckBox> selectedCheckboxesBeforeChanges = new ArrayList<>();
 
     // Flags
-    private AtomicBoolean portIsIncorrect = new AtomicBoolean(false);
-    private AtomicBoolean requestIntervalIsIncorrect = new AtomicBoolean(false);
-    private AtomicBoolean maintainPeriodIsIncorrect = new AtomicBoolean(false);
-    private AtomicBoolean logExpirationIsIncorrect = new AtomicBoolean(false);
     private boolean displayedNameIsIncorrect;
     private boolean hostIsIncorrect;
+    private boolean localSshConfigPasswordDecryptionFailed;
 
-    private User emptyUser = new User(null, null, null, null);
-    private boolean userFieldsDisabled;
+    private SshConfig _localConfig;
+    private SshFieldsState _prevLocalSshConfigFieldsFulfillment = new SshFieldsState();
+    private ComputerInfoController _computerInfoController = this;
+    private String decryptedPassword;
 
-    public ComputerInfoController(Computer computer, ComputerManager computerManager, UsersManager usersManager)
+    private class SshConfigConverter extends StringConverter<SshConfig>
     {
-        _computerManager = computerManager;
-        _usersManager = usersManager;
-        _computer = computer;
-        _computerEntity = _computer.ComputerEntity;
-    }
-
-    // -----------------------------------------------------------------------------------------------------------------
-    // ---  ACTIONS ASSOCIATED WITH BUTTONS  ---------------------------------------------------------------------------
-
-    @FXML
-    void SaveChanges(ActionEvent event)
-    {
-        String newDisplayedName = displayedNameTextField.getText();
-        String newHost = hostTextField.getText();
-
-        List<String> errors = ValidateBeforeSave(newDisplayedName, newHost);
-
-        if(errors.size() > 0)
+        @Override
+        public String toString(SshConfig sshConfig)
         {
-            Utilities.ShowSaveErrorDialog(errors);
-        }
-        else
-        {
-            ComputerEntity computerEntityAfterChanges = GetChangedComputerEntity();
-            try
+            if(sshConfig.HasLocalScope())
             {
-                _computerManager.UpdateComputer(_computer, computerEntityAfterChanges);
-            }
-            catch(NothingToDoException e)
-            {
-                Utilities.ShowInfoDialog("Nothing has changed.");
-                return;
-            }
-            catch(DatabaseException e)
-            {
-                Utilities.ShowErrorDialog("Saving computer has failed because of database connection");
-            }
-
-            Utilities.ShowInfoDialog("Saving computer has succeed.");
-
-            indexOfSelectedUserBeforeChanges = assignedUserChoiceBox.getSelectionModel().getSelectedIndex();
-            selectedCheckboxesBeforeChanges.clear();
-            selectedCheckboxesBeforeChanges = GetListOfSelectedPreferenceCheckboxes();
-        }
-    }
-
-    @FXML
-    void DiscardChanges(ActionEvent event)
-    {
-        boolean response = Utilities.ShowYesNoDialog("Discard changes?", "Do you want to discard changes?");
-        if(response == true)
-        {
-            isSelectedCheckBox.setSelected(_computerEntity.IsSelected);
-            displayedNameTextField.setText(_computerEntity.DisplayedName);
-            hostTextField.setText(_computerEntity.Host);
-            classroomTextField.setText(_computerEntity.Classroom);
-
-            SetAssignedUser(indexOfSelectedUserBeforeChanges);
-
-            if(_computerEntity.HasSetUser() == false)
-            {
-                String decryptedPassword = null;
-                try
-                {
-                    decryptedPassword = Encrypter.GetInstance().Decrypt(_computerEntity.GetEncryptedPassword());
-                }
-                catch (EncrypterException e)
-                {
-                    // This exception will be never caught
-                }
-
-                sshUsernameTextField.setText(_computerEntity.GetUsername());
-                sshPasswordPasswordField.setText(decryptedPassword);
-                sshKeyTextField.setText(_computerEntity.GetSSHKey());
+                return "LOCAL CONFIG";
             }
             else
             {
-                sshUsernameTextField.setDisable(true);
-                sshPasswordPasswordField.setDisable(true);
-                sshKeyTextField.setDisable(true);
+                return sshConfig.GetName() + " (" + sshConfig.GetUsername() + ")";
             }
+        }
 
-            logExpirationTextField.setText(String.valueOf(_computerEntity.LogExpiration.toSeconds()));
-            maintainPeriodTextField.setText(String.valueOf(_computerEntity.MaintainPeriod.toSeconds()));
-            portTextField.setText(String.valueOf(_computerEntity.Port));
-            requestIntervalTextField.setText(String.valueOf(_computerEntity.RequestInterval.toSeconds()));
+        @Override
+        public SshConfig fromString(String string)
+        {
+            if(string.equals("LOCAL"))
+            {
+                return _localConfig;
+            }
+            else
+            {
+                String[] splitSshConfigString = string.split(" \\(");
+                SshConfig sshConfig = _computersAndSshConfigsManager.GetGlobalSshConfigByName(splitSshConfigString[0]);
 
-            SetPreferencesCheckBoxesAsBeforeChanges();
-
-            ResetFlags();
+                return sshConfig;
+            }
         }
     }
 
-    @FXML
-    void TestConnection(ActionEvent event)
+    private class SshFieldsState
     {
-        if(portIsIncorrect.get())
+        public String Username;
+        public Integer Port;
+        public SshAuthMethod AuthMethod;
+        public String Password;
+        public String PrivateKeyPath;
+
+        public SshFieldsState(){}
+
+        private void Clear()
         {
-            Utilities.ShowErrorDialog("Connection with computer cannot be established.\nPort must be integer.");
-            return;
+            Username = null;
+            Port = null;
+            AuthMethod = null;
+            Password = null;
+            PrivateKeyPath = null;
         }
 
-        int newPort = Integer.parseInt(portTextField.getText());
-        String newHost = hostTextField.getText();
-        String newSSHUsername;
-        String decryptedNewSSHPassowrd = null;
+        public void FillWithCurrentSshTextFieldsValues()
+        {
+            Clear();
 
-        if(assignedUserChoiceBox.getSelectionModel().getSelectedIndex() == 0)
-        {
-            newSSHUsername = sshUsernameTextField.getText();
-            decryptedNewSSHPassowrd = sshPasswordPasswordField.getText();
-        }
-        else
-        {
-            User newAssignedUser = assignedUserChoiceBox.getSelectionModel().getSelectedItem();
-            newSSHUsername = newAssignedUser.SSH_Username;
-            try
+            Port = IsEmptyOrNull(sshPortTextField.getText())? null : Integer.parseInt(sshPortTextField.getText());
+            Username = IsEmptyOrNull(sshUsernameTextField.getText())? null : sshUsernameTextField.getText();
+            if(passwordAuthMethodRadioButton.isSelected())
             {
-                decryptedNewSSHPassowrd = Encrypter.GetInstance().Decrypt(newAssignedUser.SSH_EncryptedPassword);
+                AuthMethod = SshAuthMethod.PASSWORD;
+                Password = IsEmptyOrNull(sshPasswordPasswordField.getText())? null : sshPasswordPasswordField.getText();
             }
-            catch (EncrypterException e)
+            else if(privateKeyAuthMethodRadioButton.isSelected())
             {
-                // TODO: Solve this situation
+                AuthMethod = SshAuthMethod.KEY;
+                PrivateKeyPath = IsEmptyOrNull(sshKeyPathTextField.getText())? null : sshKeyPathTextField.getText();
             }
         }
-        SSHConnection sshConnection = new SSHConnection();
-        try
-        {
-            sshConnection.OpenConnection(
-                    newHost,
-                    newSSHUsername,
-                    decryptedNewSSHPassowrd,
-                    newPort,
-                    Utilities.SSHTimeout
-            );
 
-            Utilities.ShowInfoDialog("Connection with computer can be established.");
-        }
-        catch (SSHConnectionException e)
+        public void SetStateUsingSshConfig(SshConfig sshConfig) throws EncrypterException
         {
-            Utilities.ShowErrorDialog("Connection with computer cannot be established.");
+            Username = sshConfig.GetUsername();
+            Port = sshConfig.GetPort();
+            AuthMethod = sshConfig.GetAuthMethod();
+            Password = sshConfig.GetEncryptedPassword() == null ?
+                    null : Encrypter.GetInstance().Decrypt(sshConfig.GetEncryptedPassword());
+            PrivateKeyPath = sshConfig.GetPrivateKeyPath();
+        }
+
+        public SshConfig ToSshConfig()
+        {
+            SshConfig sshConfig = new SshConfig(null, SshConfigScope.LOCAL, Port, AuthMethod, Username,
+                    AuthMethod == SshAuthMethod.PASSWORD ? Password : PrivateKeyPath);
+
+            return sshConfig;
         }
     }
+
+    public ComputerInfoController(Computer computer, ComputersAndSshConfigsManager computersAndSshConfigsManager)
+    {
+        _computersAndSshConfigsManager = computersAndSshConfigsManager;
+        _computer = computer;
+    }
+
+    // ---  INITIALIZATION & SETUP  ------------------------------------------------------------------------------------
 
     @Override
     public void initialize(URL location, ResourceBundle resources)
     {
-        InitGUIComponentsFromComputerEntityContent();
+        InitializeChooseFileButton();
+        InitializeAuthMethodRadioButtons();
+
+        if(_computer.GetSshConfig().HasLocalScope())
+        {
+            _localConfig = _computer.GetSshConfig();
+        }
+        else
+        {
+            _localConfig = SshConfig.CreateEmpty();
+        }
+
+        InitializeGuiComponentsFromComputerContent();
+
         SetUpIntegerValidators();
         SetUpEmptinessValidators();
     }
 
-    private void InitGUIComponentsFromComputerEntityContent()
+    private void InitializeChooseFileButton()
     {
-        isSelectedCheckBox.setSelected(_computerEntity.IsSelected);
-        displayedNameTextField.setText(_computerEntity.DisplayedName);
-        hostTextField.setText(_computerEntity.Host);
-        classroomTextField.setText(_computerEntity.Classroom);
-
-        PopulateAssignedUserChoiceBox();
-        SetAssignedUser(indexOfSelectedUserBeforeChanges);
-
-        if(_computerEntity.HasSetUser() == false)
-        {
-            String decryptedPassword = null;
-            try
-            {
-                decryptedPassword = Encrypter.GetInstance().Decrypt(_computerEntity.GetEncryptedPassword());
-            }
-            catch (EncrypterException e)
-            {
-                // This situation will never happen because
-                // it's checked before running computer settings window if password can be decrypted
-            }
-
-            sshUsernameTextField.setText(_computerEntity.GetUsername());
-            sshPasswordPasswordField.setText(decryptedPassword);
-            sshKeyTextField.setText(_computerEntity.GetSSHKey());
-        }
-        else
-        {
-            sshUsernameTextField.setDisable(true);
-            sshPasswordPasswordField.setDisable(true);
-            sshKeyTextField.setDisable(true);
-        }
-
-        logExpirationTextField.setText(String.valueOf(_computerEntity.LogExpiration.toSeconds()));
-        maintainPeriodTextField.setText(String.valueOf(_computerEntity.MaintainPeriod.toSeconds()));
-        portTextField.setText(String.valueOf(_computerEntity.Port));
-        requestIntervalTextField.setText(String.valueOf(_computerEntity.RequestInterval.toSeconds()));
-
-        PopulatePreferencesCheckboxes();
-        SetPreferencesCheckBoxesAsBeforeChanges();
-    }
-
-    private ComputerEntity GetChangedComputerEntity()
-    {
-        Duration maintenancePeriodDuration = Utilities.ConvertSecondsToDurationInNanos(Long.parseLong(maintainPeriodTextField.getText()));
-        Duration requestIntervalDuration = Utilities.ConvertSecondsToDurationInNanos(Long.parseLong(requestIntervalTextField.getText()));
-        Duration logExpirationDuration = Utilities.ConvertSecondsToDurationInNanos(Long.parseLong(logExpirationTextField.getText()));
-
-        String encryptedPassword = null;
-        try
-        {
-            encryptedPassword = Encrypter.GetInstance().Encrypt(sshPasswordPasswordField.getText());
-        }
-        catch (EncrypterException e)
-        {
-            // TODO: Handle case when encryption fails
-            e.printStackTrace();
-        }
-
-        ComputerEntity changedComputerEntity;
-        if(assignedUserChoiceBox.getSelectionModel().getSelectedIndex() == 0)
-        {
-            changedComputerEntity = new ComputerEntity(
-                    hostTextField.getText(),
-                    displayedNameTextField.getText(),
-                    sshUsernameTextField.getText(),
-                    encryptedPassword,
-                    sshKeyTextField.getText(),
-                    Integer.parseInt(portTextField.getText()),
-                    maintenancePeriodDuration,
-                    requestIntervalDuration,
-                    logExpirationDuration,
-                    classroomTextField.getText(),
-                    isSelectedCheckBox.isSelected()
-            );
-        }
-        else
-        {
-            User user = assignedUserChoiceBox.getSelectionModel().getSelectedItem();
-            changedComputerEntity = new ComputerEntity(
-                    hostTextField.getText(),
-                    displayedNameTextField.getText(),
-                    user,
-                    Integer.parseInt(portTextField.getText()),
-                    maintenancePeriodDuration,
-                    requestIntervalDuration,
-                    logExpirationDuration,
-                    classroomTextField.getText(),
-                    isSelectedCheckBox.isSelected()
-            );
-        }
-
-        changedComputerEntity.CopyId(_computerEntity);
-        changedComputerEntity.CopyLastMaintenance(_computerEntity);
-        changedComputerEntity.Preferences = GetListOfSelectedPreferences();
-
-        return changedComputerEntity;
-    }
-
-    // -----------------------------------------------------------------------------------------------------------------
-    // ---  ASSIGNED USER CHOICEBOX  -----------------------------------------------------------------------------------
-
-    class UserConverter extends StringConverter<User>
-    {
-        @Override
-        public String toString(User user)
-        {
-            if(user.equals(emptyUser))
-            {
-                return "";
-            }
-            else
-            {
-                return user.DisplayedUsername + " - " + user.SSH_Username;
-            }
-        }
-
-        @Override
-        public User fromString(String string)
-        {
-            if(string.equals(""))
-            {
-                return emptyUser;
-            }
-
-            String[] splitUserString = string.split(" - ");
-            User user = _usersManager.GetUserByDisplayedUsernameAndSSHUsername(
-                    splitUserString[0],
-                    splitUserString[1]
-            );
-
-            return user;
-        }
-    }
-
-    private void PopulateAssignedUserChoiceBox()
-    {
-        User currAssignedUser = _computerEntity.User;
-        assignedUserObservableList.add(emptyUser);
-        int selectedUserIndex = 0;
-
-        int i=1;
-        for (User user : _usersManager.GetUsers())
-        {
-            assignedUserObservableList.add(user);
-            if(Utilities.AreEqual(currAssignedUser, user))
-            {
-                selectedUserIndex = i;
-            }
-
-            ++i;
-        }
-
-        indexOfSelectedUserBeforeChanges = selectedUserIndex;
-
-        assignedUserChoiceBox.setItems(assignedUserObservableList);
-        assignedUserChoiceBox.setConverter(new UserConverter());
-        assignedUserChoiceBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>()
+        chooseSshKeyButton.setOnAction(new EventHandler<ActionEvent>()
         {
             @Override
-            public void changed(ObservableValue<? extends Number> observableValue, Number oldValue, Number newValue)
+            public void handle(ActionEvent event)
             {
-                if(newValue.intValue() != 0 && userFieldsDisabled == false)
+                Stage stage = (Stage) sshUsernameTextField.getScene().getWindow();
+
+                FileChooser fileChooser = new FileChooser();
+                File file = fileChooser.showOpenDialog(stage);
+                sshKeyPathTextField.setText(file.getAbsolutePath());
+            }
+        });
+    }
+
+    private void InitializeAuthMethodRadioButtons()
+    {
+        passwordAuthMethodRadioButton.selectedProperty().addListener(new ChangeListener<Boolean>()
+        {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue)
+            {
+                if(newValue == true)
                 {
-                    DisableSSHFields();
+                    PrepareSshTextFieldsForPasswordAuthMethod();
                 }
-                else if(newValue.intValue() == 0 && userFieldsDisabled == true)
+            }
+        });
+
+        privateKeyAuthMethodRadioButton.selectedProperty().addListener(new ChangeListener<Boolean>()
+        {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue)
+            {
+                if(newValue == true)
                 {
-                    EnableSSHFields();
+                    PrepareSshTextFieldsForPrivateKeyAuthMethod();
                 }
             }
         });
     }
 
-    private void SetAssignedUser(int selectedUserIndex)
+    private void InitializeGuiComponentsFromComputerContent()
     {
-        userFieldsDisabled = selectedUserIndex == 0 ? false : true;
-        assignedUserChoiceBox.getSelectionModel().select(selectedUserIndex);
+        isSelectedCheckBox.setSelected(_computer.IsSelected());
+        displayedNameTextField.setText(_computer.GetDisplayedName());
+        hostTextField.setText(_computer.GetHost());
+        classroomTextField.setText(_computer.GetClassroom());
+
+        InitSshConfigChoiceBox();
+
+        sshPortTextField.setText(String.valueOf(_computer.GetSshConfig().GetPort()));
+        sshUsernameTextField.setText(_computer.GetSshConfig().GetUsername());
+
+        if(_computer.GetSshConfig().HasGlobalScope())
+        {
+            SetGlobalConfigInChoiceBox(_computer.GetSshConfig());
+        }
+        else
+        {
+            if(_computer.GetSshConfig().HasPasswordAuth())
+            {
+                PrepareSshTextFieldsForPasswordAuthMethod();
+
+                try
+                {
+                    decryptedPassword = Encrypter.GetInstance().Decrypt(_computer.GetSshConfig().GetEncryptedPassword());
+                }
+                catch (EncrypterException e)
+                {
+                    Utilities.ShowErrorDialog("Ssh password from local config could not be decrypted." +
+                            "\nProvide new password.");
+                    decryptedPassword = null;
+                }
+
+                sshPasswordPasswordField.setText(decryptedPassword);
+                passwordAuthMethodRadioButton.setSelected(true);
+            }
+            else
+            {
+                PrepareSshTextFieldsForPrivateKeyAuthMethod();
+                sshKeyPathTextField.setText(_computer.GetSshConfig().GetPrivateKeyPath());
+                privateKeyAuthMethodRadioButton.setSelected(true);
+            }
+        }
+
+        logExpirationTextField.setText(String.valueOf(_computer.GetLogExpiration().toSeconds()));
+        maintainPeriodTextField.setText(String.valueOf(_computer.GetMaintainPeriod().toSeconds()));
+        requestIntervalTextField.setText(String.valueOf(_computer.GetRequestInterval().toSeconds()));
+
+        InitializeAndPopulatePreferencesCheckboxes();
+        SetPreferencesCheckBoxesAsBeforeChanges();
     }
 
-    // -----------------------------------------------------------------------------------------------------------------
-    // ---  PREFERENCES CHECKBOXES  ------------------------------------------------------------------------------------
+    private void SetUpIntegerValidators()
+    {
+        SetUpIntegerValidator(sshPortTextField);
+        SetUpIntegerValidator(requestIntervalTextField);
+        SetUpIntegerValidator(maintainPeriodTextField);
+        SetUpIntegerValidator(logExpirationTextField);
+    }
 
-    private void PopulatePreferencesCheckboxes()
+    private void SetUpIntegerValidator(TextField textField)
+    {
+        textField.textProperty().addListener((observable, oldValue, newValue) ->
+                ValidateIfInteger(textField)
+        );
+    }
+
+    private void ValidateIfInteger(TextField textField)
+    {
+        try
+        {
+            Integer.parseInt(textField.getText());
+            textField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
+        }
+        catch (NumberFormatException e)
+        {
+            textField.getStyleClass().add("validation-error");
+        }
+    }
+
+    private void SetUpEmptinessValidators()
+    {
+        SetUpEmptinessRuntimeValidator(displayedNameTextField);
+        SetUpEmptinessRuntimeValidator(hostTextField);
+        SetUpEmptinessRuntimeValidator(classroomTextField);
+        SetUpEmptinessRuntimeValidator(sshUsernameTextField);
+        SetUpEmptinessRuntimeValidator(sshPasswordPasswordField);
+        SetUpEmptinessRuntimeValidator(sshKeyPathTextField);
+    }
+
+    private void SetUpEmptinessRuntimeValidator(TextField textField)
+    {
+        textField.textProperty().addListener((observable, oldValue, newValue) ->
+                ValidateIfEmpty(textField, oldValue, newValue));
+    }
+
+    private boolean IsEmptyOrNull(String str)
+    {
+        return str == null || str.trim().equals("");
+    }
+
+    private void ValidateIfEmpty(TextField textField, String oldValue, String newValue)
+    {
+        if(!IsEmptyOrNull(oldValue) && IsEmptyOrNull(newValue))
+        {
+            textField.getStyleClass().add("validation-error");
+        }
+        else if(IsEmptyOrNull(oldValue) && !IsEmptyOrNull(newValue))
+        {
+            textField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
+        }
+    }
+
+    private void ValidateIfEmpty(TextField textField)
+    {
+        textField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
+        if(IsEmptyOrNull(textField.getText()))
+        {
+            textField.getStyleClass().add("validation-error");
+        }
+    }
+
+    // ---  GUI INITIALIZATION  ----------------------------------------------------------------------------------------
+
+    private void InitSshConfigChoiceBox()
+    {
+        SshConfig assignedSshConfig = _computer.GetSshConfig();
+        int selectedSshConfigIndex = 0;
+
+        if(assignedSshConfig.HasLocalScope())
+        {
+            sshConfigObservableList.add(assignedSshConfig);
+        }
+        else
+        {
+            sshConfigObservableList.add(_localConfig);
+        }
+
+        int i=1;
+        for (SshConfig sshConfig : _computersAndSshConfigsManager.GetGlobalSshConfigs())
+        {
+            sshConfigObservableList.add(sshConfig);
+            if(Utilities.AreEqual(sshConfig, _computer.GetSshConfig()))
+            {
+                selectedSshConfigIndex = i;
+            }
+
+            ++i;
+        }
+        sshConfigChoiceBox.setItems(sshConfigObservableList);
+        sshConfigChoiceBox.setConverter(new SshConfigConverter());
+        sshConfigChoiceBox.getSelectionModel().select(selectedSshConfigIndex);
+        sshConfigChoiceBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>()
+        {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue)
+            {
+                if(newValue.intValue() != 0)
+                {
+                    if(oldValue.intValue() == 0)
+                    {
+                        _prevLocalSshConfigFieldsFulfillment.FillWithCurrentSshTextFieldsValues();
+                    }
+
+                    SetGlobalConfigInChoiceBox(sshConfigChoiceBox.getItems().get(newValue.intValue()));
+                }
+                else if(newValue.intValue() == 0 && oldValue.intValue() != 0)
+                {
+                    SetLocalConfigInChoiceBox();
+                }
+            }
+        });
+    }
+
+    private void InitializeAndPopulatePreferencesCheckboxes()
     {
         int gridRowsNum = (int) Math.ceil((double) Utilities.AvailablePreferences.size() / preferencesGridColsNum);
 
@@ -446,7 +448,7 @@ public class ComputerInfoController implements Initializable
             CheckBox checkBox = new CheckBox();
             checkBox.setText(Utilities.ExtractPreferenceName(Utilities.AvailablePreferences.get(i).ClassName));
 
-            if(_computerEntity.HasPreferenceWithGivenClassName(Utilities.AvailablePreferences.get(i).ClassName))
+            if(_computer.HasPreferenceWithGivenClassName(Utilities.AvailablePreferences.get(i).ClassName))
             {
                 selectedCheckboxesBeforeChanges.add(checkBox);
             }
@@ -469,113 +471,228 @@ public class ComputerInfoController implements Initializable
         }
     }
 
-    // -----------------------------------------------------------------------------------------------------------------
-    // ---  VALIDATION IF VALUE OF TEXTFIELDS IS INTEGER  --------------------------------------------------------------
 
-    private void SetUpIntegerValidators()
+    private void SetLocalConfigInChoiceBox()
     {
-        SetUpIntegerValidator(portTextField, portIsIncorrect);
-        SetUpIntegerValidator(requestIntervalTextField, requestIntervalIsIncorrect);
-        SetUpIntegerValidator(maintainPeriodTextField, maintainPeriodIsIncorrect);
-        SetUpIntegerValidator(logExpirationTextField, logExpirationIsIncorrect);
+        sshConfigChoiceBox.getSelectionModel().select(_localConfig);
+
+        sshPortTextField.setText(_prevLocalSshConfigFieldsFulfillment.Port == null ?
+                "" : String.valueOf(_prevLocalSshConfigFieldsFulfillment.Port));
+        sshUsernameTextField.setText(_prevLocalSshConfigFieldsFulfillment.Username == null ?
+                "" : _prevLocalSshConfigFieldsFulfillment.Username);
+
+        if(_prevLocalSshConfigFieldsFulfillment.AuthMethod == SshAuthMethod.PASSWORD)
+        {
+            passwordAuthMethodRadioButton.setSelected(true);
+            sshPasswordPasswordField.setText(_prevLocalSshConfigFieldsFulfillment.Password == null ?
+                    "" : _prevLocalSshConfigFieldsFulfillment.Password);
+            sshKeyPathTextField.setText("");
+
+            PrepareSshTextFieldsForPasswordAuthMethod();
+        }
+        else
+        {
+            privateKeyAuthMethodRadioButton.setSelected(true);
+            sshKeyPathTextField.setText(_prevLocalSshConfigFieldsFulfillment.PrivateKeyPath == null ?
+                    "" : _prevLocalSshConfigFieldsFulfillment.PrivateKeyPath);
+            sshPasswordPasswordField.setText("");
+            PrepareSshTextFieldsForPrivateKeyAuthMethod();
+        }
     }
 
-    private void SetUpIntegerValidator(TextField textField, AtomicBoolean flag)
+    private void SetGlobalConfigInChoiceBox(SshConfig sshConfig)
     {
-        textField.textProperty().addListener((observable, oldValue, newValue) ->
-                ValidateIfInteger(textField, flag)
-        );
+        sshConfigChoiceBox.getSelectionModel().select(sshConfig);
+
+        sshPortTextField.setText(String.valueOf(sshConfig.GetPort()));
+        sshUsernameTextField.setText(sshConfig.GetUsername());
+        if(sshConfig.HasPasswordAuth())
+        {
+            passwordAuthMethodRadioButton.setSelected(true);
+            sshPasswordPasswordField.setText(sshConfig.GetEncryptedPassword());
+        }
+        else
+        {
+            privateKeyAuthMethodRadioButton.setSelected(true);
+            sshKeyPathTextField.setText(sshConfig.GetPrivateKeyPath());
+        }
+
+        DisableAllSshFields();
     }
 
-    private void ValidateIfInteger(TextField textField, AtomicBoolean flag)
+    private void DisableAllSshFields()
     {
+        SetDisabledAuthMethodRadioButtons(true);
+
+        sshUsernameTextField.setDisable(true);
+        sshPortTextField.setDisable(true);
+        sshPasswordPasswordField.setDisable(true);
+        sshKeyGridPane.setDisable(true);
+
+        sshUsernameTextField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
+        sshPortTextField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
+        sshPasswordPasswordField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
+        sshKeyPathTextField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
+    }
+
+    private void PrepareSshTextFieldsForPasswordAuthMethod()
+    {
+        SetDisabledAuthMethodRadioButtons(false);
+
+        sshPasswordPasswordField.setDisable(false);
+        sshUsernameTextField.setDisable(false);
+        sshPortTextField.setDisable(false);
+
+        sshKeyGridPane.setDisable(true);
+        sshKeyPathTextField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
+
+        ValidateRequiredFieldsIfEmpty(SshAuthMethod.PASSWORD);
+    }
+
+    private void PrepareSshTextFieldsForPrivateKeyAuthMethod()
+    {
+        SetDisabledAuthMethodRadioButtons(false);
+
+        sshKeyGridPane.setDisable(false);
+        sshUsernameTextField.setDisable(false);
+        sshPortTextField.setDisable(false);
+
+        sshPasswordPasswordField.setDisable(true);
+        sshPasswordPasswordField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
+
+        ValidateRequiredFieldsIfEmpty(SshAuthMethod.KEY);
+    }
+
+    private void ValidateRequiredFieldsIfEmpty(SshAuthMethod sshAuthMethod)
+    {
+        if(sshAuthMethod == SshAuthMethod.PASSWORD)
+        {
+            ValidateIfEmpty(sshUsernameTextField);
+            ValidateIfEmpty(sshPortTextField);
+            ValidateIfEmpty(sshPasswordPasswordField);
+        }
+        else
+        {
+            ValidateIfEmpty(sshUsernameTextField);
+            ValidateIfEmpty(sshPortTextField);
+            ValidateIfEmpty(sshKeyPathTextField);
+        }
+    }
+
+
+
+    @FXML
+    void SaveChanges(ActionEvent event)
+    {
+        List<String> errors = ValidateBeforeSave();
+
+        if(errors.size() > 0)
+        {
+            Utilities.ShowSaveErrorDialog(errors);
+            return;
+        }
+
         try
         {
-            Integer.parseInt(textField.getText());
+            boolean hadGlobalConfig = _computer.GetSshConfig().HasGlobalScope();
+            CopyChangesToComputer();
+            _computer.UpdateInDb();
 
-            if(flag.get() == true)
+            Utilities.ShowInfoDialog("Computer update has succeed.");
+
+            if(_computer.GetSshConfig().HasLocalScope())
             {
-                textField.getStyleClass().removeAll("validation-error");
-                flag.set(false);
+                if(hadGlobalConfig)
+                {
+                    _localConfig = new SshConfig(_computer.GetSshConfig());
+                    _localConfig.ConvertToNonExistingInDb();
+                }
             }
-        }
-        catch (NumberFormatException e)
-        {
-            if(flag.get() == false)
+            else if(_computer.GetSshConfig().HasGlobalScope() && hadGlobalConfig == false)
             {
-                textField.getStyleClass().add("validation-error");
-                flag.set(true);
+                _localConfig = SshConfig.CreateEmpty();
             }
+
+            _prevLocalSshConfigFieldsFulfillment = new SshFieldsState();
+            selectedCheckboxesBeforeChanges.clear();
+            selectedCheckboxesBeforeChanges = GetListOfSelectedPreferenceCheckboxes();
+
+            /*
+            TODO 1: Set decrypted password variable
+             */
+//            decryptedPassword = null; // TODO
         }
-    }
-
-    // -----------------------------------------------------------------------------------------------------------------
-    // ---  VALIDATION IF VALUE OF TEXTFIELDS IS NOT EMPTY  ------------------------------------------------------------
-
-    private void SetUpEmptinessValidators()
-    {
-        SetUpEmptinessRuntimeValidator(displayedNameTextField);
-        SetUpEmptinessRuntimeValidator(hostTextField);
-        SetUpEmptinessRuntimeValidator(classroomTextField);
-        SetUpEmptinessRuntimeValidator(sshUsernameTextField);
-        SetUpEmptinessRuntimeValidator(sshPasswordPasswordField);
-        SetUpEmptinessRuntimeValidator(sshKeyTextField);
-    }
-
-    private void SetUpEmptinessRuntimeValidator(TextField textField)
-    {
-        textField.textProperty().addListener((observable, oldValue, newValue) ->
-                ValidateIfIsEmpty(textField, oldValue, newValue));
-    }
-
-    private void ValidateIfIsEmpty(TextField textField, String oldValue, String newValue)
-    {
-        if(!oldValue.trim().equals("") && newValue.trim().equals(""))
+        catch (NothingToDoException e)
         {
-            textField.getStyleClass().add("validation-error");
+            Utilities.ShowInfoDialog("No changes to save.");
         }
-        else if(oldValue.trim().equals("") && !newValue.trim().equals(""))
+        catch(DatabaseException e)
         {
-            textField.getStyleClass().remove("validation-error");
+            RestoreComputerChanges();
+            Utilities.ShowErrorDialog("Computer update in db has failed.");
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+            RestoreComputerChanges();
+            Utilities.ShowErrorDialog("Unknown error has occurred while saving.");
         }
     }
 
-
-    // -----------------------------------------------------------------------------------------------------------------
-    // ---  VALIDATION WHEN SAVE BUTTON IS CLICKED  --------------------------------------------------------------------
-
-    private List<String> ValidateBeforeSave(String newDisplayedName, String newHost)
+    private List<String> ValidateBeforeSave()
     {
         List<String> errors = new ArrayList<>();
 
-        String displayedNameError = ValidateDisplayedName(newDisplayedName);
+        String displayedNameError = ValidateDisplayedName(displayedNameTextField.getText());
         if(displayedNameError != null)
         {
             errors.add(displayedNameError);
         }
 
-        String hostError = ValidateHost(newHost);
+        String hostError = ValidateHost(hostTextField.getText());
         if(hostError != null)
         {
             errors.add(hostError);
         }
 
-        if(portIsIncorrect.get())
+        if(IsEmptyOrNull(classroomTextField.getText()))
         {
-            errors.add("Port must be integer.");
+            errors.add("Classroom cannot be empty.");
         }
 
-        if(requestIntervalIsIncorrect.get())
+        if(IsSelectedLocalConfig())
+        {
+            if(IsEmptyOrNull(sshUsernameTextField.getText()))
+            {
+                errors.add("Ssh username cannot be empty.");
+            }
+
+            if(IsParsableToInteger(sshPortTextField.getText()) == false)
+            {
+                errors.add("Ssh port must be integer.");
+            }
+
+            if(IsSelectedPasswordAuthRadioButton() && IsEmptyOrNull(sshPasswordPasswordField.getText()))
+            {
+                errors.add("Ssh password cannot be empty.");
+            }
+            else if(IsSelectedPrivateKeyAuthRadioButton() && IsEmptyOrNull(sshKeyPathTextField.getText()))
+            {
+                errors.add("Ssh private key path cannot be empty.");
+            }
+        }
+
+        if(IsParsableToInteger(requestIntervalTextField.getText()) == false)
         {
             errors.add("Request interval must be integer.");
         }
 
-        if(maintainPeriodIsIncorrect.get())
+        if(IsParsableToInteger(maintainPeriodTextField.getText()) == false)
         {
             errors.add("Maintenance period must be integer.");
         }
 
-        if(logExpirationIsIncorrect.get())
+        if(IsParsableToInteger(logExpirationTextField.getText()) == false)
         {
             errors.add("Log expiration value must be integer.");
         }
@@ -585,7 +702,7 @@ public class ComputerInfoController implements Initializable
 
     private String ValidateDisplayedName(String newDisplayedName)
     {
-        if(newDisplayedName.trim().equals(""))
+        if(IsEmptyOrNull(newDisplayedName))
         {
             if(displayedNameIsIncorrect == false)
             {
@@ -596,36 +713,21 @@ public class ComputerInfoController implements Initializable
             return "Displayed name cannot be empty.";
         }
 
-        boolean otherComputerHasSameDisplayedName =
-                _computerManager.ComputerWithGivenDisplayedNameExists(newDisplayedName);
-
-        if(otherComputerHasSameDisplayedName)
+        if(_computer.GetDisplayedName().equals(newDisplayedName) == false
+                && _computersAndSshConfigsManager.ComputerWithDisplayedNameExists(newDisplayedName))
         {
-            if(_computerEntity.DisplayedName.equals(newDisplayedName))
+            if(displayedNameIsIncorrect == false)
             {
-                if(displayedNameIsIncorrect)
-                {
-                    displayedNameTextField.getStyleClass().remove("validation-error");
-                    displayedNameIsIncorrect = false;
-                }
+                displayedNameTextField.getStyleClass().add("validation-error");
+                displayedNameIsIncorrect = true;
             }
-            else
-            {
-                if(displayedNameIsIncorrect == false)
-                {
-                    displayedNameTextField.getStyleClass().add("validation-error");
-                    displayedNameIsIncorrect = true;
 
-                    return "Other computer has same displayed name.";
-                }
-            }
+            return "Other computer has same displayed name.";
         }
-        else
+
+        if(displayedNameIsIncorrect)
         {
-            if(displayedNameIsIncorrect)
-            {
-                displayedNameTextField.getStyleClass().remove("validation-error");
-            }
+            displayedNameTextField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
         }
 
         return null;
@@ -633,7 +735,7 @@ public class ComputerInfoController implements Initializable
 
     private String ValidateHost(String newHost)
     {
-        if(newHost.trim().equals(""))
+        if(IsEmptyOrNull(newHost))
         {
             if(hostIsIncorrect == false)
             {
@@ -644,87 +746,284 @@ public class ComputerInfoController implements Initializable
             return "Host cannot be empty.";
         }
 
-        boolean otherComputerHasSameHost = _computerManager.ComputerWithGivenHostExists(newHost);
-
-        if(otherComputerHasSameHost)
+        if(_computer.GetHost().equals(newHost) == false
+                && _computersAndSshConfigsManager.ComputerWithHostExists(newHost))
         {
-            if(_computerEntity.Host.equals(newHost))
+            if(hostIsIncorrect == false)
             {
-                if(hostIsIncorrect)
-                {
-                    hostTextField.getStyleClass().remove("validation-error");
-                    hostIsIncorrect = false;
-                }
+                hostTextField.getStyleClass().add("validation-error");
+                hostIsIncorrect= true;
             }
-            else
-            {
-                if(hostIsIncorrect == false)
-                {
-                    hostTextField.getStyleClass().add("validation-error");
-                    hostIsIncorrect= true;
 
-                    return "Other computer has same hostTextField.";
-                }
-            }
+            return "Other computer has same hostTextField.";
         }
-        else
+
+        if(hostIsIncorrect)
         {
-            if(hostIsIncorrect)
-            {
-                hostTextField.getStyleClass().remove("validation-error");
-            }
+            hostTextField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
         }
 
         return null;
     }
 
-    // -----------------------------------------------------------------------------------------------------------------
-    // ---  MISC  -----------------------------------------------------------------------------------------------------
 
-    private void ResetFlags()
+    private void CopyChangesToComputer()
     {
-        portIsIncorrect = new AtomicBoolean(false);
-        requestIntervalIsIncorrect = new AtomicBoolean(false);
-        maintainPeriodIsIncorrect = new AtomicBoolean(false);
-        logExpirationIsIncorrect = new AtomicBoolean(false);
-        displayedNameIsIncorrect = false;
-        hostIsIncorrect = false;
-    }
-
-    private void EnableSSHFields()
-    {
-        userFieldsDisabled = false;
-        sshUsernameTextField.setDisable(false);
-        sshPasswordPasswordField.setDisable(false);
-        sshKeyTextField.setDisable(false);
-
-        if(sshUsernameTextField.getText().trim().equals(""))
+        if(IsSelectedGlobalConfig())
         {
-            sshUsernameTextField.getStyleClass().add("validation-error");
+            if(_computer.GetSshConfig().HasLocalScope()) // LOCAL -> GLOBAL
+            {
+                _computer.SetSshConfig(sshConfigChoiceBox.getSelectionModel().getSelectedItem());
+            }
+            else // GLOBAL -> GLOBAL
+            {
+                _computer.SetSshConfig(sshConfigChoiceBox.getSelectionModel().getSelectedItem());
+            }
+        }
+        else
+        {
+            if((_computer.GetSshConfig().HasLocalScope() && LocalSshConfigChanged())) // LOCAL -> LOCAL
+            {
+                SshFieldsState currentSshFieldsState = new SshFieldsState();
+                currentSshFieldsState.FillWithCurrentSshTextFieldsValues();
+
+                _computer.SetSshConfig(currentSshFieldsState.ToSshConfig());
+            }
+            else if(_computer.GetSshConfig().HasGlobalScope()) // GLOBAL -> LOCAL
+            {
+                SshFieldsState currentSshFieldsState = new SshFieldsState();
+                currentSshFieldsState.FillWithCurrentSshTextFieldsValues();
+                _computer.SetSshConfig(currentSshFieldsState.ToSshConfig());
+            }
         }
 
-        if(sshPasswordPasswordField.getText().trim().equals(""))
-        {
-            sshPasswordPasswordField.getStyleClass().add("validation-error");
-        }
+        _computer.SetDisplayedName(displayedNameTextField.getText());
+        _computer.SetHost(hostTextField.getText());
+        _computer.SetClassroom(classroomTextField.getText());
 
-        if(sshKeyTextField.getText().trim().equals(""))
-        {
-            sshKeyTextField.getStyleClass().add("validation-error");
-        }
+        Duration requestIntervalDuration =
+                Utilities.ConvertSecondsToDurationInNanos(Long.parseLong(requestIntervalTextField.getText()));
+        _computer.SetRequestInterval(requestIntervalDuration);
+
+        Duration maintainPeriodDuration =
+                Utilities.ConvertSecondsToDurationInNanos(Long.parseLong(maintainPeriodTextField.getText()));
+        _computer.SetMaintainPeriod(maintainPeriodDuration);
+
+        Duration logExpirationDuration =
+                Utilities.ConvertSecondsToDurationInNanos(Long.parseLong(logExpirationTextField.getText()));
+        _computer.SetLogExpiration(logExpirationDuration);
+
+        _computer.SetPreferences(GetListOfSelectedPreferences());
     }
 
-    private void DisableSSHFields()
+
+    @FXML
+    void DiscardChanges(ActionEvent event) throws EncrypterException
     {
-        userFieldsDisabled = true;
-        sshUsernameTextField.setDisable(true);
-        sshPasswordPasswordField.setDisable(true);
-        sshKeyTextField.setDisable(true);
+        boolean response = Utilities.ShowYesNoDialog("Discard changes?", "Do you want to discard changes?");
+        if(response == false)
+        {
+            return;
+        }
 
-        sshUsernameTextField.getStyleClass().removeAll("validation-error");
-        sshPasswordPasswordField.getStyleClass().removeAll("validation-error");
-        sshKeyTextField.getStyleClass().removeAll("validation-error");
+        isSelectedCheckBox.setSelected(_computer.IsSelected());
+        displayedNameTextField.setText(_computer.GetDisplayedName());
+        hostTextField.setText(_computer.GetHost());
+        classroomTextField.setText(_computer.GetClassroom());
+
+        sshConfigChoiceBox.getSelectionModel().select(_computer.GetSshConfig());
+        sshUsernameTextField.setText(_computer.GetSshConfig().GetUsername());
+        sshPortTextField.setText(String.valueOf(_computer.GetSshConfig().GetPort()));
+        if(_computer.GetSshConfig().HasLocalScope())
+        {
+            sshPasswordPasswordField.setText(decryptedPassword);
+            if(_computer.GetSshConfig().HasPasswordAuth() && decryptedPassword == null)
+            {
+                Utilities.ShowErrorDialog("Ssh password from local config could not be decrypted." +
+                        "\nProvide new password.");
+            }
+        }
+        else
+        {
+            _prevLocalSshConfigFieldsFulfillment = new SshFieldsState();
+            sshPasswordPasswordField.setText(_computer.GetSshConfig().GetEncryptedPassword());
+        }
+        sshKeyPathTextField.setText(_computer.GetSshConfig().GetPrivateKeyPath());
+
+        if(_computer.GetSshConfig().HasPasswordAuth()) // Also performs validation
+        {
+            passwordAuthMethodRadioButton.setSelected(true);
+        }
+        else
+        {
+            privateKeyAuthMethodRadioButton.setSelected(true);
+        }
+
+        requestIntervalTextField.setText(String.valueOf(_computer.GetRequestInterval().toSeconds()));
+        maintainPeriodTextField.setText(String.valueOf(_computer.GetMaintainPeriod().toSeconds()));
+        logExpirationTextField.setText(String.valueOf(_computer.GetLogExpiration().toSeconds()));
+
+        SetPreferencesCheckBoxesAsBeforeChanges();
     }
+
+
+
+    @FXML
+    void TestConnection(ActionEvent event)
+    {
+        try
+        {
+            Validate_TestConnection();
+        }
+        catch(SSHConnectionException e)
+        {
+            return;
+        }
+
+        SshConfig sshConfigToTest;
+        if(IsSelectedGlobalConfig())
+        {
+            sshConfigToTest = sshConfigChoiceBox.getSelectionModel().getSelectedItem();
+        }
+        else
+        {
+            SshFieldsState currentSshFieldsState = new SshFieldsState();
+            currentSshFieldsState.FillWithCurrentSshTextFieldsValues();
+            sshConfigToTest = currentSshFieldsState.ToSshConfig();
+
+            if(IsSelectedPasswordAuthRadioButton())
+            {
+                try
+                {
+                    String encryptedPassword = Encrypter.GetInstance().Encrypt(currentSshFieldsState.Password);
+                    sshConfigToTest.SetPasswordAuthMethod(encryptedPassword);
+                }
+                catch (EncrypterException e)
+                {
+                    Utilities.ShowErrorDialog("Connection with computer cannot be established." +
+                            "\nPassword cannot be encrypted.");
+                    return;
+                }
+            }
+        }
+
+        String currentHost = hostTextField.getText();
+        SSHConnection sshConnection = new SSHConnection();
+        try
+        {
+            sshConnection.OpenConnection(
+                    currentHost,
+                    sshConfigToTest
+            );
+
+            Utilities.ShowInfoDialog("Connection with computer can be established.");
+        }
+        catch(EncrypterException e)
+        {
+            Utilities.ShowErrorDialog("Connection with computer cannot be established." +
+                    "\nUnable to decrypt ssh password.");
+        }
+        catch(Exception e)
+        {
+            Utilities.ShowErrorDialog("Connection with computer cannot be established.");
+        }
+    }
+
+    private void Validate_TestConnection() throws SSHConnectionException
+    {
+        if(IsEmptyOrNull(hostTextField.getText()))
+        {
+            Utilities.ShowErrorDialog("Connection with computer cannot be established.\nHost cannot be empty.");
+            throw new SSHConnectionException("Host cannot be empty");
+        }
+
+        if(IsSelectedGlobalConfig())
+        {
+            return; // No more validation needed
+        }
+
+        if(IsEmptyOrNull(sshUsernameTextField.getText()))
+        {
+            Utilities.ShowErrorDialog("Connection with computer cannot be established.\nUsername cannot be empty.");
+            throw new SSHConnectionException("Username cannot be empty");
+        }
+
+        if(IsParsableToInteger(sshPortTextField.getText()) == false)
+        {
+            Utilities.ShowErrorDialog("Connection with computer cannot be established.\nPort must be integer.");
+            throw new SSHConnectionException("Port must be integer.");
+        }
+
+        if(IsSelectedPasswordAuthRadioButton() && IsEmptyOrNull(sshPasswordPasswordField.getText()))
+        {
+            Utilities.ShowErrorDialog("Connection with computer cannot be established.\nPassword cannot be empty.");
+            throw new SSHConnectionException("Password cannot be empty.");
+        }
+
+        if(IsSelectedPrivateKeyAuthRadioButton() && IsEmptyOrNull(sshKeyPathTextField.getText()))
+        {
+            Utilities.ShowErrorDialog("Connection with computer cannot be established.\nKey path cannot be empty.");
+            throw new SSHConnectionException("Key path cannot be empty.");
+        }
+    }
+
+    private void SetDisabledAuthMethodRadioButtons(boolean value)
+    {
+        for (Toggle toggleButton : privateKeyAuthMethodRadioButton.getToggleGroup().getToggles())
+        {
+            Node node = (Node) toggleButton;
+            node.setDisable(value);
+        }
+    }
+
+    // ---  PREDICATES  ------------------------------------------------------------------------------------------------
+
+    private boolean IsSelectedLocalConfig()
+    {
+        return sshConfigChoiceBox.getSelectionModel().getSelectedItem().HasLocalScope();
+    }
+
+    private boolean IsSelectedGlobalConfig()
+    {
+        return sshConfigChoiceBox.getSelectionModel().getSelectedItem().HasGlobalScope();
+    }
+
+    private boolean IsSelectedPasswordAuthRadioButton()
+    {
+        return passwordAuthMethodRadioButton.isSelected();
+    }
+
+    private boolean IsSelectedPrivateKeyAuthRadioButton()
+    {
+        return privateKeyAuthMethodRadioButton.isSelected();
+    }
+
+    private boolean IsParsableToInteger(String str)
+    {
+        try
+        {
+            Integer.parseInt(str);
+            return true;
+        }
+        catch(NumberFormatException e)
+        {
+            return false;
+        }
+    }
+
+    private boolean LocalSshConfigChanged()
+    {
+        SshFieldsState currentSshFieldsState = new SshFieldsState();
+        currentSshFieldsState.FillWithCurrentSshTextFieldsValues();
+
+        return  !Utilities.AreEqual(_computer.GetSshConfig().GetUsername(), currentSshFieldsState.Username) ||
+                !Utilities.AreEqual(_computer.GetSshConfig().GetPort(), currentSshFieldsState.Port) ||
+                !Utilities.AreEqual(_computer.GetSshConfig().GetAuthMethod(), currentSshFieldsState.AuthMethod) ||
+                !Utilities.AreEqual(decryptedPassword, currentSshFieldsState.Password) ||
+                !Utilities.AreEqual(_computer.GetSshConfig().GetPrivateKeyPath(), currentSshFieldsState.PrivateKeyPath);
+    }
+
+    // ---  GETTERS  ---------------------------------------------------------------------------------------------------
 
     private List<Preference> GetListOfSelectedPreferences()
     {
@@ -747,5 +1046,12 @@ public class ComputerInfoController implements Initializable
                 .filter(cb -> cb.isSelected() == true).collect(Collectors.toList());
 
         return selectedCheckBoxes;
+    }
+
+    // ---  MISC  ------------------------------------------------------------------------------------------------------
+
+    private void RestoreComputerChanges()
+    {
+        _computer.Restore();
     }
 }

@@ -37,7 +37,7 @@ public class Utilities
     public static Map<String, List<Computer>> GetComputersGroupedByClassroom(List<Computer> computers)
     {
         Map<String, List<Computer>> groupedComputers =
-                computers.stream().collect(Collectors.groupingBy(c -> c.Classroom));
+                computers.stream().collect(Collectors.groupingBy(c -> c.GetClassroom()));
 
         return groupedComputers;
     }

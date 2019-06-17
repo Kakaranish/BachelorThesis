@@ -1,6 +1,6 @@
 package Healthcheck.LogsManagement;
 
-import Healthcheck.ComputerManager;
+import Healthcheck.ComputersAndSshConfigsManager;
 import Healthcheck.DatabaseManagement.DatabaseException;
 import Healthcheck.DatabaseManagement.DatabaseManager;
 import Healthcheck.Entities.Computer;
@@ -103,7 +103,8 @@ public class LogsGetter
     }
 
     public static List<BaseEntity> GetCertainTypeLogsForSelectedComputers(
-            IPreference preference, Timestamp fromDate, Timestamp toDate, ComputerManager computerManager)
+            IPreference preference, Timestamp fromDate, Timestamp toDate,
+            ComputersAndSshConfigsManager computersAndSshConfigsManager)
     {
         Session session = DatabaseManager.GetInstance().GetSession();
 
@@ -111,7 +112,7 @@ public class LogsGetter
         {
             List<BaseEntity> logsList = new ArrayList<>();
 
-            List<Computer> selectedComputers = computerManager.GetSelectedComputers();
+            List<Computer> selectedComputers = computersAndSshConfigsManager.GetSelectedComputers();
             for (Computer selectedComputer : selectedComputers)
             {
                 String hql = "from " + preference.GetClassName() +" t" +

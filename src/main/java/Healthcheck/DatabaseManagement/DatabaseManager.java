@@ -83,6 +83,57 @@ public class DatabaseManager
         }
     }
 
+    public static boolean MergeWithRetryPolicy(
+            Session session,
+            Object objectToMerge,
+            String attemptErrorMessage)
+    {
+        try
+        {
+            // First attempt
+            session.beginTransaction();
+            session.merge(objectToMerge);
+            session.getTransaction().commit();
+
+            return true;
+        }
+        catch (Exception e)
+        {
+            session.getTransaction().rollback();
+
+            System.out.println(attemptErrorMessage);
+
+            // Retries
+            int retryNum = 1;
+            while (retryNum <= Utilities.PersistNumOfRetries)
+            {
+                int randomFactor = new Random().ints(0,100).findFirst().getAsInt();
+                try
+                {
+                    Thread.sleep(Utilities.PersistCooldown + randomFactor);
+
+                    session.beginTransaction();
+                    session.merge(objectToMerge);
+                    session.getTransaction().commit();
+
+                    return true;
+                }
+                catch (InterruptedException ex)
+                {
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    session.getTransaction().rollback();
+                    ++retryNum;
+                    System.out.println(attemptErrorMessage);
+                }
+            }
+
+            return false;
+        }
+    }
+
     public static boolean UpdateWithRetryPolicy(
             Session session,
             Object objectToUpdate,

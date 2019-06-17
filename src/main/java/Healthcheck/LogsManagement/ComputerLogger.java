@@ -28,7 +28,7 @@ public class ComputerLogger extends Thread
     {
         _logsGatherer = logsGatherer;
         _computer = computer;
-        _host = _computer.Host;
+        _host = _computer.GetHost();
         _iPreferences = _computer.GetIPreferences();
     }
 
@@ -99,7 +99,7 @@ public class ComputerLogger extends Thread
 
             try
             {
-                Thread.sleep(_computer.RequestInterval.toMillis());
+                Thread.sleep(_computer.GetRequestInterval().toMillis());
             }
             catch (InterruptedException e)
             {
@@ -266,7 +266,7 @@ public class ComputerLogger extends Thread
         try
         {
             SSHConnection sshConnection = new SSHConnection();
-            sshConnection.OpenConnection(_host, _computer.SSHConfiguration);
+            sshConnection.OpenConnection(_host, _computer.GetSshConfig());
 
             _logsGatherer.Callback_InfoMessage("SSH connection with '" + _host + "' established.");
             return sshConnection;

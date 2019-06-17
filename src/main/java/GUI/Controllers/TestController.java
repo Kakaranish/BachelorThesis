@@ -1,10 +1,9 @@
 package GUI.Controllers;
 
-import Healthcheck.Computer;
-import Healthcheck.ComputerManager;
+import Healthcheck.ComputersAndSshConfigsManager;
 import Healthcheck.Encryption.Encrypter;
 import Healthcheck.Encryption.EncrypterException;
-import Healthcheck.UsersManager;
+import Healthcheck.Entities.Computer;
 import Healthcheck.Utilities;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -22,7 +21,6 @@ import javafx.scene.control.ListView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -112,59 +110,55 @@ public class TestController implements Initializable
 
     @FXML
     void editComputer(ActionEvent event) {
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/ComputerInfo.fxml"));
-        Computer computer = computerManager.GetComputerById(6);
+        FXMLLoader fxmlLoader = null;
         try
         {
-
-            Encrypter.GetInstance().Decrypt(computer.ComputerEntity.GetEncryptedPassword());
-            ComputerInfoController computerInfoController = new ComputerInfoController(computer, computerManager, usersManager);
-
-            fxmlLoader.setController(computerInfoController);
-
-
-            try
-            {
-                final Parent root = fxmlLoader.load();
-                final Scene scene = new Scene(root);
-
-                Stage stage = new Stage();
-                stage.initModality(Modality.APPLICATION_MODAL);
-                stage.initStyle(StageStyle.DECORATED);
-                stage.setResizable(false);
-
-                scene.getStylesheets().add(getClass().getResource("/css/computer-info.css").toExternalForm());
-
-                stage.setScene(scene);
-                stage.show();
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
+            fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/ComputerInfo.fxml"));
         }
-        catch (EncrypterException e)
+        catch (Exception e)
         {
-            Utilities.ShowFatalErrorDialog("Loading computer failed.\nSSH Password cannot be decrypted.");
+            e.printStackTrace();
         }
+        Computer computer = _computersAndSshConfigsManager.GetComputerByDisplayedName("OVH-1");
 
+//          Encrypter.GetInstance().Decrypt(computer.GetSshConfig().GetEncryptedPassword());
+
+        ComputerInfoController computerInfoController = new ComputerInfoController(computer, _computersAndSshConfigsManager);
+        fxmlLoader.setController(computerInfoController);
+
+        // Password decryption here
+        try
+        {
+            final Parent root = fxmlLoader.load();
+            final Scene scene = new Scene(root);
+
+            Stage stage = new Stage();
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.initStyle(StageStyle.DECORATED);
+            stage.setResizable(false);
+
+            scene.getStylesheets().add(getClass().getResource("/css/computer-info.css").toExternalForm());
+
+            stage.setScene(scene);
+            stage.show();
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
-    private UsersManager usersManager;
-    private ComputerManager computerManager;
+    private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
 
     private void LoadData()
     {
+        _computersAndSshConfigsManager = new ComputersAndSshConfigsManager();
 
-        computerManager = new ComputerManager();
-        usersManager = new UsersManager();
-
-        for (Computer computer : computerManager.GetComputers())
+        for (Computer computer : _computersAndSshConfigsManager.GetComputers())
         {
-            data.add(new CustomThing(computer.ComputerEntity.DisplayedName, computer.ComputerEntity.Host));
+            data.add(new CustomThing(computer.GetDisplayedName(), computer.GetHost()));
         }
 
-//        final ListView<CustomThing> listView2 = new ListView<CustomThing>(data);
         listView.setItems(data);
         listView.setCellFactory(new Callback<ListView<CustomThing>, ListCell<CustomThing>>() {
             @Override

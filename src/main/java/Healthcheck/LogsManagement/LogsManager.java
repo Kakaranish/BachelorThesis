@@ -1,6 +1,6 @@
 package Healthcheck.LogsManagement;
 
-import Healthcheck.ComputerManager;
+import Healthcheck.ComputersAndSshConfigsManager;
 import Healthcheck.DatabaseManagement.DatabaseException;
 import Healthcheck.Entities.Computer;
 import Healthcheck.Utilities;
@@ -13,13 +13,13 @@ public class LogsManager
 {
     private LogsGatherer _logsGatherer;
     private LogsMaintainer _logsMaintainer;
-    private ComputerManager _computerManager;
+    private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
     private List<ComputerLogger> _connectedComputerLoggers;
     private  boolean _isWorking = false;
 
-    public LogsManager(ComputerManager computerManager)
+    public LogsManager(ComputersAndSshConfigsManager computersAndSshConfigsManager)
     {
-        _computerManager = computerManager;
+        _computersAndSshConfigsManager = computersAndSshConfigsManager;
     }
 
     public void StartWork() throws LogsException, NothingToDoException
@@ -34,7 +34,7 @@ public class LogsManager
             _logsMaintainer = new LogsMaintainer(this);
         }
 
-        _connectedComputerLoggers = GetReachableComputerLoggers(_computerManager.GetSelectedComputers());
+        _connectedComputerLoggers = GetReachableComputerLoggers(_computersAndSshConfigsManager.GetSelectedComputers());
         if(_connectedComputerLoggers.isEmpty())
         {
             throw new NothingToDoException("[INFO] LogsManager: No computers to maintenance & logs gathering.");
@@ -123,18 +123,10 @@ public class LogsManager
 
     // TODO: To check if correct logic
     public void SetComputerLastMaintenance(Computer computerToUpdate, Timestamp lastMaintenance)
+            throws DatabaseException
     {
-        Computer newComputer = new Computer(computerToUpdate);
-        newComputer.LastMaintenance = lastMaintenance;
-
-        try
-        {
-            _computerManager.UpdateComputerInDb(computerToUpdate, newComputer);
-        }
-        catch (DatabaseException e)
-        {
-            throw e;
-        }
+        computerToUpdate.SetLastMaintenance(lastMaintenance);
+        computerToUpdate.UpdateInDb();
     }
 
     // -----------------------------------------------------------------------------------------------------------------
@@ -163,7 +155,7 @@ public class LogsManager
 
     public void Callback_Gatherer_FatalError_StopWorkForComputerLogger(ComputerLogger computerLogger)
     {
-        String host = computerLogger.GetComputer().Host;
+        String host = computerLogger.GetComputer().GetHost();
         if(_connectedComputerLoggers.contains(computerLogger))
         {
             _connectedComputerLoggers.remove(computerLogger);
@@ -182,7 +174,7 @@ public class LogsManager
 
     public void Callback_Gatherer_StopWorkForComputerLogger(ComputerLogger computerLogger) throws LogsException
     {
-        String host = computerLogger.GetComputer().Host;
+        String host = computerLogger.GetComputer().GetHost();
         if(_connectedComputerLoggers.contains(computerLogger))
         {
             _connectedComputerLoggers.remove(computerLogger);
@@ -224,7 +216,7 @@ public class LogsManager
 
     public void Callback_Maintainer_StopWorkForComputerLogger(ComputerLogger computerLogger) throws LogsException
     {
-        String host = computerLogger.GetComputer().Host;
+        String host = computerLogger.GetComputer().GetHost();
 
         _logsGatherer.StopGatheringLogs();
 
@@ -276,7 +268,7 @@ public class LogsManager
 
         reachableComputerLoggers = reachableComputerLoggers.stream()
                 .filter(c -> c.IsConnectedUsingSSH() == true &&
-                        c.GetComputer().Preferences.isEmpty() == false)
+                        c.GetComputer().GetPreferences().isEmpty() == false)
                 .collect(Collectors.toList());
 
         return reachableComputerLoggers;

@@ -7,12 +7,12 @@ import Healthcheck.LogsManagement.NothingToDoException;
 import Healthcheck.Preferences.IPreference;
 import Healthcheck.Utilities;
 import org.hibernate.Session;
-
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Entity
@@ -21,34 +21,34 @@ public class Computer
 {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Integer Id;
+    private Integer Id;
 
     @Column(nullable = false, unique = true)
-    public String DisplayedName;
+    private String DisplayedName;
 
     @Column(nullable = false, unique = true)
-    public String Host;
+    private String Host;
 
     @Column(nullable = false)
-    public String Classroom;
+    private String Classroom;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "SSHConfiguration_Id", referencedColumnName = "Id", nullable = false)
-    public SshConfig SshConfig;
+    private SshConfig SshConfig;
 
     @Column(nullable = false)
-    public Duration MaintainPeriod;
+    private Duration MaintainPeriod;
 
     @Column(nullable = false)
-    public Duration RequestInterval;
+    private Duration RequestInterval;
 
     @Column(nullable = false)
-    public Duration LogExpiration;
+    private Duration LogExpiration;
 
     @Column(nullable = false)
-    public Timestamp LastMaintenance;
+    private Timestamp LastMaintenance;
 
-    public boolean IsSelected;
+    private boolean IsSelected;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -56,7 +56,7 @@ public class Computer
             inverseJoinColumns = { @JoinColumn(name = "Preference_Id", referencedColumnName = "Id") },
             joinColumns = { @JoinColumn(name = "Computer_Id", referencedColumnName = "Id") }
     )
-    public List<Preference> Preferences = new ArrayList<>();
+    private List<Preference> Preferences = new ArrayList<>();
 
     @Transient
     private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
@@ -67,10 +67,7 @@ public class Computer
     @Transient
     private boolean _existsInDb = true;
 
-    public void SetComputersAndSshConfigsManager(ComputersAndSshConfigsManager computersAndSshConfigsManager)
-    {
-        _computersAndSshConfigsManager = computersAndSshConfigsManager;
-    }
+    // ---  CONSTRUCTORS  ----------------------------------------------------------------------------------------------
 
     private Computer()
     {
@@ -101,17 +98,9 @@ public class Computer
         LastMaintenance = new Timestamp(System.currentTimeMillis());
         IsSelected = isSelected;
 
-        SetPreviousState(this);
         _existsInDb = false;
     }
 
-    private void SetPreviousState(Computer computer)
-    {
-        _prevState = new Computer(computer);
-        _prevState._prevState = null;
-    }
-
-    // Copy constructor
     public Computer(Computer computer)
     {
         Id = computer.Id;
@@ -124,26 +113,36 @@ public class Computer
         LogExpiration = computer.LogExpiration;
         LastMaintenance = computer.LastMaintenance;
         IsSelected = computer.IsSelected;
-
         Preferences = new ArrayList<>(computer.Preferences);
-        _prevState = computer._prevState;
+
         _computersAndSshConfigsManager = computer._computersAndSshConfigsManager;
+        _prevState = computer._prevState;
+        _existsInDb = computer._existsInDb;
     }
 
-    public void CopyFrom(Computer computer)
+    public void Restore() throws SshConfigException
     {
-        Id = computer.Id;
-        DisplayedName = computer.DisplayedName;
-        Host = computer.Host;
-        Classroom = computer.Classroom;
-//        SshConfig = computer.SshConfig; // TODO: Check
-        RequestInterval = computer.RequestInterval;
-        MaintainPeriod = computer.MaintainPeriod;
-        LogExpiration = computer.LogExpiration;
-        LastMaintenance = computer.LastMaintenance;
-        IsSelected = computer.IsSelected;
+        if(_prevState == null)
+        {
+            throw new SshConfigException("Nothing to restore.");
+        }
 
-        Preferences = new ArrayList<>(computer.Preferences);
+        Id = _prevState.Id;
+        DisplayedName = _prevState.DisplayedName;
+        Host = _prevState.Host;
+        Classroom = _prevState.Classroom;
+        SshConfig = _prevState.SshConfig;
+        MaintainPeriod = _prevState.MaintainPeriod;
+        RequestInterval = _prevState.RequestInterval;
+        LogExpiration = _prevState.LogExpiration;
+        LastMaintenance = _prevState.LastMaintenance;
+        IsSelected = _prevState.IsSelected;
+        Preferences = _prevState.Preferences;
+
+        _computersAndSshConfigsManager = _prevState._computersAndSshConfigsManager;
+        _existsInDb = _prevState._existsInDb;
+
+        _prevState = null;
     }
 
     // ---  ADD TO DB  -------------------------------------------------------------------------------------------------
@@ -164,7 +163,10 @@ public class Computer
         if (SshConfig.HasLocalScope())
         {
             SshConfig.AddToDb(session);
-            _computersAndSshConfigsManager.AddedSshConfig(SshConfig);
+            if(_computersAndSshConfigsManager != null)
+            {
+                _computersAndSshConfigsManager.AddedSshConfig(SshConfig);
+            }
         }
 
         String attemptErrorMessage = "[ERROR] Computer: Attempt of adding computer to db failed.";
@@ -184,7 +186,6 @@ public class Computer
             throw new DatabaseException("Unable to save computer in db.");
         }
 
-        _prevState = new Computer(this);
         _existsInDb = true;
 
         if(_computersAndSshConfigsManager != null)
@@ -219,12 +220,12 @@ public class Computer
         }
         else
         {
-            if(_computersAndSshConfigsManager.ComputerWithDisplayedNameExists(DisplayedName))
+            if(_computersAndSshConfigsManager.OtherComputerWithDisplayedNameExists(this, DisplayedName))
             {
                 throw new ComputerException("Computer with same displayed name exists in db.");
             }
 
-            if(_computersAndSshConfigsManager.ComputerWithHostExists(Host))
+            if(_computersAndSshConfigsManager.OtherComputerWithHostExists(this, Host))
             {
                 throw new ComputerException("Computer with same host exists in db.");
             }
@@ -243,7 +244,7 @@ public class Computer
 
     // ---  UPDATE IN DB  ----------------------------------------------------------------------------------------------
 
-    public void UpdateInDb() throws NothingToDoException, ComputerException, SshConfigException
+    public void UpdateInDb() throws NothingToDoException, ComputerException, SshConfigException, DatabaseException
     {
         Session session = DatabaseManager.GetInstance().GetSession();
         UpdateInDb(session);
@@ -254,32 +255,78 @@ public class Computer
     {
         Validate_UpdateInDb(session);
 
-        SshConfig sshConfigBackup = null;
         if(SshConfigChanged() == true)
         {
-            sshConfigBackup = new SshConfig(_prevState.SshConfig);
+            SshConfig sshConfigBackup;
 
             if(_prevState.SshConfig.HasLocalScope() && SshConfig.HasLocalScope())
             {
+                sshConfigBackup = new SshConfig(_prevState.SshConfig);
                 _prevState.SshConfig.CopyAdjustableFieldsFrom(SshConfig);
-                _prevState.SshConfig.UpdateInDb(session);
+
+                try
+                {
+                    _prevState.SshConfig.UpdateInDb(session);
+                }
+                catch (DatabaseException|SshConfigException e)
+                {
+                    _prevState.SshConfig.CopyAdjustableFieldsFrom(sshConfigBackup);
+                    _prevState.SshConfig.ResetPreviousState();
+
+                    throw e;
+                }
 
                 SshConfig = _prevState.SshConfig;
             }
             else if(_prevState.SshConfig.HasLocalScope() && SshConfig.HasGlobalScope())
             {
-                _prevState.SshConfig.RemoveFromDb(session);
+                sshConfigBackup = new SshConfig(_prevState.SshConfig);
+                _prevState.SshConfig.RemoveLocalFromDb(session);
+                _prevState.SshConfig.ResetComputers();
+
+                UpdateComputerWithRetryAndRestorePolicy(session, sshConfigBackup, sshConfigBackupParam ->
+                {
+                    String attemptErrorMessage = "[ERROR] Computer: Attempt of restore computer's ssh config in db failed.";
+                    boolean restoreSucceed
+                            = DatabaseManager.MergeWithRetryPolicy(session, sshConfigBackupParam, attemptErrorMessage);
+                    if(restoreSucceed == false)
+                    {
+                        throw new FatalErrorException("Restoring computer's ssh config after retries failed!");
+                    }
+
+                    _prevState.SshConfig = sshConfigBackup;
+                    _computersAndSshConfigsManager.AddedSshConfig(sshConfigBackup);
+                });
+
+                SshConfig.AddComputer(this);
             }
             else if(_prevState.SshConfig.HasGlobalScope() && SshConfig.HasLocalScope())
             {
-                if(SshConfig.GetId() == null)
-                {
-                    SshConfig.AddToDb();
-                }
-                else
+                if(SshConfig.ExistsInDb())
                 {
                     throw new ComputerException("Local ssh config is already assigned to other computer.");
                 }
+
+                SshConfig.SetComputersAndSshConfigsManager(_computersAndSshConfigsManager);
+                SshConfig.AddComputer(this);
+                SshConfig.AddToDb(session);
+                _prevState.SshConfig.RemoveComputer(this);
+
+                UpdateComputerWithRetryAndRestorePolicy(session, null, notUsedSshConfig ->
+                {
+                    try
+                    {
+                        SshConfig.RemoveLocalFromDb(session);
+                    }
+                    catch (DatabaseException e)
+                    {
+                        throw new FatalErrorException("Restoring computer's ssh config after retries failed!");
+                    }
+
+                    _prevState.SshConfig.AddComputer(this);
+                    SshConfig.RemoveComputer(this);
+                    _computersAndSshConfigsManager.RemovedSshConfig(SshConfig);
+                });
             }
             else if(_prevState.SshConfig.HasGlobalScope() && SshConfig.HasGlobalScope())
             {
@@ -287,47 +334,52 @@ public class Computer
                 {
                     throw new SshConfigException("New global ssh config does not exist in db.");
                 }
+
+                _prevState.SshConfig.RemoveComputer(this);
+                SshConfig.AddComputer(this);
+
+                UpdateComputerWithRetryAndRestorePolicy(session, null, sshConfig ->
+                {
+                    _prevState.SshConfig.AddComputer(this);
+                    SshConfig.RemoveComputer(this);
+                });
+            }
+        }
+        else
+        {
+            String attemptErrorMessage = "[ERROR] Computer: " +
+                    "Attempt of updating computer without ssh config changes in db failed.";
+            boolean updateSucceed = DatabaseManager.UpdateWithRetryPolicy(session, this, attemptErrorMessage);
+            if(updateSucceed == false)
+            {
+                throw new DatabaseException("Unable to update computer without ssh config changes in db.");
             }
         }
 
+        _prevState = null;
+    }
+
+    private void UpdateComputerWithRetryAndRestorePolicy(
+            Session session, SshConfig sshConfigBackup, Consumer<SshConfig> restoreCallback)
+            throws DatabaseException
+    {
         String attemptErrorMessage = "[ERROR] Computer: Attempt of update computer in db failed.";
         boolean updateSucceed = DatabaseManager.UpdateWithRetryPolicy(session, this, attemptErrorMessage);
         if(updateSucceed == false)
         {
-            if(sshConfigBackup != null) // SshConfig changed
-            {
-                SshConfig.CopyAdjustableFieldsFrom(sshConfigBackup);
-            }
-            //TODO: Restore here
+            restoreCallback.accept(sshConfigBackup);
+
             throw new DatabaseException("Unable to update computer in db.");
         }
 
-
-        if(SshConfigChanged()) // TODO: ???
-        {
-            _prevState.SshConfig.RemoveComputer(this);
-            SshConfig.AddComputer(this);
-        }
-        _prevState = new Computer(this);
-
-        if(_computersAndSshConfigsManager != null)
-        {
-            if(SshConfigChangedFromLocalToGlobal())
-            {
-                _computersAndSshConfigsManager.SshConfigInComputerChangedFromLocalToGlobal(_prevState.SshConfig);
-            }
-            else if(SshConfigChangedFromGlobalToLocal())
-            {
-                _computersAndSshConfigsManager.SshConfigInComputerChangedFromGlobalToLocal(SshConfig);
-            }
-        }
+        _prevState = null;
     }
 
     private void Validate_UpdateInDb(Session session) throws NothingToDoException, ComputerException, SshConfigException
     {
         if(_prevState == null)
         {
-            throw new NothingToDoException("Previous state is null and ssh config has not changed.");
+            throw new NothingToDoException("Previous state is null.");
         }
 
         if(_existsInDb == false)
@@ -340,7 +392,7 @@ public class Computer
             throw new SshConfigException("Provided global config does not exist in db.");
         }
 
-        if(SshConfig.HasLocalScope() && SshConfig.ExistsInDb())
+        if(SshConfig.HasLocalScope() && SshConfig.ExistsInDb() && SshConfig.equals(_prevState.SshConfig) == false)
         {
             throw new SshConfigException("Unable to replace existing local ssh config with other.");
         }
@@ -361,14 +413,15 @@ public class Computer
         }
         else
         {
+            // TODO: UNEXPECTED BEHAVIOR - USAGE OF CONNECTION WITH DB
             if(Utilities.AreEqual(_prevState.DisplayedName, this.DisplayedName) == false
-                    && _computersAndSshConfigsManager.ComputerWithDisplayedNameExists(this.DisplayedName))
+                    && _computersAndSshConfigsManager.OtherComputerWithDisplayedNameExists(this, DisplayedName))
             {
                 throw new ComputerException("Computer with same displayed name exists in db.");
             }
 
             if(Utilities.AreEqual(_prevState.Host, this.Host) == false
-                    && _computersAndSshConfigsManager.ComputerWithHostExists(this.Host))
+                    && _computersAndSshConfigsManager.OtherComputerWithHostExists(this, Host))
             {
                 throw new ComputerException("Computer with same host exists in db.");
             }
@@ -391,12 +444,12 @@ public class Computer
         SshConfig.RemoveComputer(this);
         if(SshConfig.HasLocalScope())
         {
-            SshConfig.RemoveFromDb(session); //TODO: Remove computer?
+            SshConfig.RemoveGlobalFromDb(session);
         }
 
         String attemptErrorMessage = "[ERROR] Computer: Attempt of removing computer from db failed.";
         boolean removeSucceed;
-        if(_prevState != null)
+        if(_prevState != null) // TODO: Validate
         {
             removeSucceed = DatabaseManager.RemoveWithRetryPolicy(session, _prevState, attemptErrorMessage);
         }
@@ -407,7 +460,14 @@ public class Computer
 
         if(removeSucceed == false)
         {
-            SshConfig.AddComputer(this);
+            try
+            {
+                SshConfig.AddComputer(this);
+            }
+            catch (DatabaseException|SshConfigException e)
+            {
+                throw new FatalErrorException("Restoring ssh configs after computer adding failed!");
+            }
             throw new DatabaseException("Unable to remove global ssh config in db.");
         }
 
@@ -423,79 +483,11 @@ public class Computer
         {
             throw new ComputerException("Computer does not exist in db.");
         }
-    }
 
-    // ---  MISC  ------------------------------------------------------------------------------------------------------
-
-    public boolean HasSetRequiredFields()
-    {
-        return  DisplayedName != null &&
-                Host != null &&
-                Classroom != null &&
-                SshConfig != null &&
-                RequestInterval != null &&
-                MaintainPeriod != null &&
-                LogExpiration != null &&
-                LastMaintenance != null;
-    }
-
-    @Override
-    public boolean equals(Object obj)
-    {
-        if(obj == null)
+        if(_prevState == null || this.equals(_prevState))
         {
-            return false;
+            throw new ComputerException("Computer was changed. Restore changes to ");
         }
-
-        Computer other = (Computer) obj;
-        return  this.Id == other.Id &&
-                Utilities.AreEqual(this.DisplayedName, other.DisplayedName) &&
-                Utilities.AreEqual(this.Host, other.Host) &&
-                Utilities.AreEqual(this.Classroom, other.Classroom) &&
-                Utilities.AreEqual(this.SshConfig, other.SshConfig) &&
-                this.IsSelected == other.IsSelected &&
-                Utilities.AreEqual(this.MaintainPeriod, other.MaintainPeriod) &&
-                Utilities.AreEqual(this.LogExpiration, other.LogExpiration) &&
-                Utilities.AreEqual(this.RequestInterval, other.RequestInterval) &&
-                Utilities.AreEqual(this.LastMaintenance, other.LastMaintenance) &&
-                (this.Preferences == other.Preferences ||
-                        (this.Preferences.containsAll(other.Preferences) &&
-                                other.Preferences.containsAll(this.Preferences)));
-    }
-
-    public boolean HasPreferenceWithGivenClassName(String preferenceClassName)
-    {
-        List<Preference> results = Preferences.stream()
-                .filter(p -> p.ClassName.equals(preferenceClassName)).collect(Collectors.toList());
-
-        return !results.isEmpty();
-    }
-
-    public List<IPreference> GetIPreferences()
-    {
-        List<IPreference> iPreferences = new ArrayList<>();
-        for (Preference preference : Preferences)
-        {
-            iPreferences.add(Healthcheck.Preferences.Preferences.PreferenceClassNameMap.get(preference.ClassName));
-        }
-
-        return iPreferences;
-    }
-
-
-
-    private boolean ComputerWithSameDisplayedNameExistsInDb(Session session, String displayedName)
-    {
-        Query query = session.createQuery("select 1 from Computer c where c.DisplayedName = :displayedName");
-        query.setParameter("displayedName", displayedName);
-        return (((org.hibernate.query.Query) query).uniqueResult() != null);
-    }
-
-    private boolean ComputerWithSameHostExistsInDb(Session session, String host)
-    {
-        Query query = session.createQuery("select 1 from Computer c where c.Host = :host");
-        query.setParameter("host", Host);
-        return (((org.hibernate.query.Query) query).uniqueResult() != null);
     }
 
     // ---  GETTERS  ---------------------------------------------------------------------------------------------------
@@ -555,114 +547,193 @@ public class Computer
         return Preferences;
     }
 
+    public List<IPreference> GetIPreferences()
+    {
+        List<IPreference> iPreferences = new ArrayList<>();
+        for (Preference preference : Preferences)
+        {
+            iPreferences.add(Healthcheck.Preferences.Preferences.PreferenceClassNameMap.get(preference.ClassName));
+        }
+
+        return iPreferences;
+    }
+
     // ---  SETTERS  ---------------------------------------------------------------------------------------------------
 
     private void TryToSetPrevStateIfNotExisting()
     {
-        if(_prevState == null)
+        if(_existsInDb &&_prevState == null)
         {
             SetPreviousState(this);
         }
     }
 
+    private void SetPreviousState(Computer computer)
+    {
+        _prevState = new Computer(computer);
+        _prevState._prevState = null;
+    }
+
+    public void SetComputersAndSshConfigsManager(ComputersAndSshConfigsManager computersAndSshConfigsManager)
+    {
+        _computersAndSshConfigsManager = computersAndSshConfigsManager;
+    }
+
     public void SetDisplayedName(String displayedName)
     {
-        TryToSetPrevStateIfNotExisting();
-
         if(displayedName == null || displayedName.trim().equals(""))
         {
             throw new IllegalArgumentException("Displayed name is null or empty.");
         }
+
+        if(Utilities.AreEqual(DisplayedName, displayedName))
+        {
+            return;
+        }
+
+        TryToSetPrevStateIfNotExisting();
+
         DisplayedName = displayedName;
     }
 
     public void SetHost(String host)
     {
-        TryToSetPrevStateIfNotExisting();
-
         if(host == null || host.trim().equals(""))
         {
             throw new IllegalArgumentException("Host is null or empty.");
         }
+
+        if(Utilities.AreEqual(Host, host))
+        {
+            return;
+        }
+
+        TryToSetPrevStateIfNotExisting();
+
         Host = host;
     }
 
     public void SetClassroom(String classroom)
     {
-        TryToSetPrevStateIfNotExisting();
-
         if(classroom == null || classroom.trim().equals(""))
         {
             throw new IllegalArgumentException("Classroom is null or empty.");
         }
+
+        if(Utilities.AreEqual(Classroom, classroom))
+        {
+            return;
+        }
+
+        TryToSetPrevStateIfNotExisting();
+
         Classroom = classroom;
     }
 
     public void SetSshConfig(SshConfig sshConfig)
     {
-        TryToSetPrevStateIfNotExisting();
-
         if(sshConfig == null)
         {
             throw new IllegalArgumentException("Ssh config is null.");
         }
+
+        if(Utilities.AreEqual(SshConfig, sshConfig))
+        {
+            return;
+        }
+
+        TryToSetPrevStateIfNotExisting();
+
         SshConfig = sshConfig;
     }
 
     public void SetMaintainPeriod(Duration maintainPeriod)
     {
-        TryToSetPrevStateIfNotExisting();
-
         if(maintainPeriod == null)
         {
             throw new IllegalArgumentException("Maintain period is null.");
         }
+
+        if(Utilities.AreEqual(MaintainPeriod, maintainPeriod))
+        {
+            return;
+        }
+
+        TryToSetPrevStateIfNotExisting();
+
         MaintainPeriod = maintainPeriod;
     }
 
     public void SetRequestInterval(Duration requestInterval)
     {
-        TryToSetPrevStateIfNotExisting();
-
         if(requestInterval == null)
         {
             throw new IllegalArgumentException("Request interval is null.");
         }
+
+        if(Utilities.AreEqual(RequestInterval, requestInterval))
+        {
+            return;
+        }
+
+        TryToSetPrevStateIfNotExisting();
+
         RequestInterval = requestInterval;
     }
 
     public void SetLogExpiration(Duration logExpiration)
     {
-        TryToSetPrevStateIfNotExisting();
-
         if(logExpiration == null)
         {
             throw new IllegalArgumentException("Log expiration is null.");
         }
+
+        if(Utilities.AreEqual(LogExpiration, logExpiration))
+        {
+            return;
+        }
+
+        TryToSetPrevStateIfNotExisting();
+
         LogExpiration = logExpiration;
     }
 
     public void SetLastMaintenance(Timestamp lastMaintenance)
     {
-        TryToSetPrevStateIfNotExisting();
-
         if(lastMaintenance == null)
         {
             throw new IllegalArgumentException("Last maintenance is null.");
         }
+
+        if(Utilities.AreEqual(LastMaintenance, lastMaintenance))
+        {
+            return;
+        }
+
+        TryToSetPrevStateIfNotExisting();
+
         LastMaintenance = lastMaintenance;
     }
 
-    public void SetSelected(boolean selected)
+    public void SetSelected(boolean isSelected)
     {
+        if(IsSelected == isSelected)
+        {
+            return;
+        }
+
         TryToSetPrevStateIfNotExisting();
 
-        IsSelected = selected;
+        IsSelected = isSelected;
     }
 
-    // TODO: Check if work
     public void SetPreferences(List<Preference> preferences)
     {
+        if(Preferences == preferences || Preferences.containsAll(preferences) && preferences.containsAll(Preferences))
+        {
+            return;
+        }
+
         TryToSetPrevStateIfNotExisting();
 
         Preferences = preferences;
@@ -672,21 +743,40 @@ public class Computer
         }
     }
 
-    // TODO: To remove
-    public void CopyFromWithoutSshConfig(Computer computer)
-    {
-        Id = computer.Id;
-        DisplayedName = computer.DisplayedName;
-        Host = computer.Host;
-        Classroom = computer.Classroom;
-        RequestInterval = computer.RequestInterval;
-        MaintainPeriod = computer.MaintainPeriod;
-        LogExpiration = computer.LogExpiration;
-        LastMaintenance = computer.LastMaintenance;
-        IsSelected = computer.IsSelected;
+    // ---  MISC  ------------------------------------------------------------------------------------------------------
 
-        // TODO: Check if it's enough
-        Preferences = computer.Preferences;
+    public boolean AreRequiredFieldsSet()
+    {
+        return  DisplayedName != null &&
+                Host != null &&
+                Classroom != null &&
+                SshConfig != null &&
+                RequestInterval != null &&
+                MaintainPeriod != null &&
+                LogExpiration != null &&
+                LastMaintenance != null;
+    }
+
+    public boolean HasPreferenceWithGivenClassName(String preferenceClassName)
+    {
+        List<Preference> results = Preferences.stream()
+                .filter(p -> p.ClassName.equals(preferenceClassName)).collect(Collectors.toList());
+
+        return !results.isEmpty();
+    }
+
+    private boolean ComputerWithSameDisplayedNameExistsInDb(Session session, String displayedName)
+    {
+        Query query = session.createQuery("select 1 from Computer c where c.DisplayedName = :displayedName");
+        query.setParameter("displayedName", displayedName);
+        return (((org.hibernate.query.Query) query).uniqueResult() != null);
+    }
+
+    private boolean ComputerWithSameHostExistsInDb(Session session, String host)
+    {
+        Query query = session.createQuery("select 1 from Computer c where c.Host = :host");
+        query.setParameter("host", Host);
+        return (((org.hibernate.query.Query) query).uniqueResult() != null);
     }
 
     private boolean SshConfigChanged()
@@ -696,7 +786,7 @@ public class Computer
             return false;
         }
 
-        if(SshConfig.equals(_prevState.SshConfig) == false)
+        if(SshConfig != _prevState.SshConfig || SshConfig.equals(_prevState.SshConfig) == false)
         {
             return true;
         }
@@ -714,5 +804,29 @@ public class Computer
     private boolean SshConfigChangedFromGlobalToLocal()
     {
         return _prevState.SshConfig.HasGlobalScope() && SshConfig.HasLocalScope();
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if(obj == null)
+        {
+            return false;
+        }
+
+        Computer other = (Computer) obj;
+        return  this.Id == other.Id &&
+                Utilities.AreEqual(this.DisplayedName, other.DisplayedName) &&
+                Utilities.AreEqual(this.Host, other.Host) &&
+                Utilities.AreEqual(this.Classroom, other.Classroom) &&
+                Utilities.AreEqual(this.SshConfig, other.SshConfig) &&
+                this.IsSelected == other.IsSelected &&
+                Utilities.AreEqual(this.MaintainPeriod, other.MaintainPeriod) &&
+                Utilities.AreEqual(this.LogExpiration, other.LogExpiration) &&
+                Utilities.AreEqual(this.RequestInterval, other.RequestInterval) &&
+                Utilities.AreEqual(this.LastMaintenance, other.LastMaintenance) &&
+                (this.Preferences == other.Preferences ||
+                        (this.Preferences.containsAll(other.Preferences) &&
+                                other.Preferences.containsAll(this.Preferences)));
     }
 }

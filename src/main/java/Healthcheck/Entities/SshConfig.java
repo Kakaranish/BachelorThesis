@@ -11,7 +11,6 @@ import org.hibernate.annotations.FetchMode;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "SSH_Configurations", uniqueConstraints = {@UniqueConstraint(columnNames = {"Name"})})
@@ -42,7 +41,6 @@ public class SshConfig
 
     private String EncryptedPassword;
 
-    //TODO: May be lazy?
     @Fetch(FetchMode.SUBSELECT)
     @OneToMany(mappedBy = "SshConfig", fetch = FetchType.EAGER)
     private List<Computer> _computers = new ArrayList<>();
@@ -54,9 +52,6 @@ public class SshConfig
     private boolean _existsInDb = true;
 
     @Transient
-    private boolean _isChanged = false;
-
-    @Transient
     private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
 
     public void SetComputersAndSshConfigsManager(ComputersAndSshConfigsManager computersAndSshConfigsManager)
@@ -66,6 +61,17 @@ public class SshConfig
 
     private SshConfig()
     {
+    }
+
+    public static SshConfig CreateEmpty()
+    {
+        return new SshConfig(
+                null,
+                SshConfigScope.LOCAL,
+                null,
+                SshAuthMethod.PASSWORD,
+                null,
+                null);
     }
 
     public SshConfig(
@@ -87,7 +93,7 @@ public class SshConfig
             throw new IllegalArgumentException("Authentication method is null.");
         }
 
-        if(scope == SshConfigScope.GLOBAL && (name == null || name.trim().equals("")))
+        if(HasGlobalScope() && (name == null || name.trim().equals("")))
         {
             throw new IllegalArgumentException("If scope is global, name cannot be empty or null.");
         }
@@ -98,21 +104,19 @@ public class SshConfig
         AuthMethod = authMethod;
         Username = username;
 
-        if(Scope == SshConfigScope.LOCAL)
+        if(HasLocalScope())
         {
             Name = null;
         }
 
-        if(AuthMethod == SshAuthMethod.PASSWORD)
+        if(HasPasswordAuth())
         {
             EncryptedPassword = keyPathOrEncryptedPassword;
         }
-        else if(AuthMethod == SshAuthMethod.KEY)
+        else
         {
             PrivateKeyPath = keyPathOrEncryptedPassword;
         }
-
-        SetPreviousState(this);
 
         _existsInDb = false;
 }
@@ -130,13 +134,27 @@ public class SshConfig
         EncryptedPassword = otherSSHConfiguration.EncryptedPassword;
 
         _computers = otherSSHConfiguration._computers;
-
-        if(otherSSHConfiguration._prevState != null)
-        {
-            _prevState = new SshConfig(otherSSHConfiguration._prevState);
-        }
+        _prevState = otherSSHConfiguration._prevState;
         _existsInDb = otherSSHConfiguration._existsInDb;
         _computersAndSshConfigsManager = otherSSHConfiguration._computersAndSshConfigsManager;
+    }
+
+    public void Restore()
+    {
+        Id = _prevState.Id;
+        Name = _prevState.Name;
+        Scope = _prevState.Scope;
+        Port = _prevState.Port;
+        AuthMethod = _prevState.AuthMethod;
+        Username = _prevState.Username;
+        PrivateKeyPath = _prevState.PrivateKeyPath;
+        EncryptedPassword = _prevState.EncryptedPassword;
+
+        _computers = _prevState._computers;
+        _existsInDb = _prevState._existsInDb;
+        _computersAndSshConfigsManager = _prevState._computersAndSshConfigsManager;
+
+        _prevState = null;
     }
 
     public void CopyAdjustableFieldsFrom(SshConfig otherSSHConfiguration)
@@ -150,8 +168,6 @@ public class SshConfig
         Username = otherSSHConfiguration.Username;
         PrivateKeyPath = otherSSHConfiguration.PrivateKeyPath;
         EncryptedPassword = otherSSHConfiguration.EncryptedPassword;
-
-        _isChanged = true;
     }
 
     public void CopyFrom(SshConfig otherSSHConfiguration)
@@ -198,15 +214,12 @@ public class SshConfig
             throw new DatabaseException("Unable to save ssh config in db.");
         }
 
-        _prevState = new SshConfig(this);
         _existsInDb = true;
 
         if(_computersAndSshConfigsManager != null)
         {
             _computersAndSshConfigsManager.AddedSshConfig(this);
         }
-
-        _isChanged = false;
     }
 
     private void Validate_AddToDb(Session session)
@@ -230,7 +243,7 @@ public class SshConfig
         }
         else
         {
-            if(HasGlobalScope() && _computersAndSshConfigsManager.SshConfigWithNameExists(Name))
+            if(HasGlobalScope() && _computersAndSshConfigsManager.OtherGlobalSshConfigWithNameExists(this, Name))
             {
                 throw new SshConfigException("Ssh config with '" + Name + "' name already exists in db.");
             }
@@ -246,7 +259,7 @@ public class SshConfig
         session.close();
     }
 
-    public void UpdateInDb(Session session) throws NothingToDoException, SshConfigException
+    public void UpdateInDb(Session session) throws NothingToDoException, SshConfigException, DatabaseException
     {
         Validate_UpdateInDb();
 
@@ -256,7 +269,8 @@ public class SshConfig
         {
             throw new DatabaseException("Unable to update ssh config in db.");
         }
-        _isChanged = false;
+
+        _prevState = null;
     }
 
     public void Validate_UpdateInDb()
@@ -284,63 +298,80 @@ public class SshConfig
 
     // ---  REMOVE FROM DB  --------------------------------------------------------------------------------------------
 
-    public void RemoveFromDb() throws SshConfigException, DatabaseException
-    {
-        Session session = DatabaseManager.GetInstance().GetSession();
-        RemoveFromDb(session);
-        session.close();
-    }
-
-    public void RemoveFromDb(Session session) throws SshConfigException, DatabaseException
+    public void RemoveLocalFromDb(Session session) throws SshConfigException, DatabaseException
     {
         Validate_RemoveFromDb();
 
-        if(HasGlobalScope())
+        SshConfig sshConfigBackup = new SshConfig(this);
+
+        String removeAttemptErrorMessage = "[ERROR] SshConfig: Attempt of removing local ssh config from db failed.";
+        boolean removeSucceed = false;
+        if(_prevState == null)
         {
-            for (Computer computer : _computers)
-            {
-                SshConfig newLocalSshConfig = new SshConfig(this);
-                newLocalSshConfig.ResetId();
-                newLocalSshConfig.SetLocalScope();
-                newLocalSshConfig.ResetComputers();
-                newLocalSshConfig.AddComputer(computer);
-
-                computer.SetSshConfig(newLocalSshConfig);
-
-                String attemptErrorMessage = "[ERROR] SshConfig: Attempt of adding new local ssh config in db failed.";
-                boolean saveSucceed =
-                        DatabaseManager.PersistWithRetryPolicy(session, newLocalSshConfig, attemptErrorMessage);
-
-                if(saveSucceed == false)
-                {
-                    for (Computer computerToRestore : _computers)
-                    {
-                        computerToRestore.SshConfig = this;
-                    }
-
-                    throw new DatabaseException("Unable to save new local ssh config(s) in db.");
-                }
-            }
+            removeSucceed = DatabaseManager.RemoveWithRetryPolicy(session, this, removeAttemptErrorMessage);
         }
-
-        String attemptErrorMessage = "[ERROR] SshConfig: Attempt of removing global ssh config from db failed.";
-        boolean removeSucceed;
-        if(_prevState != null)
+        else if(_prevState != null && this.equals(_prevState) == false)
         {
-            removeSucceed = DatabaseManager.RemoveWithRetryPolicy(session, _prevState, attemptErrorMessage);
-        }
-        else
-        {
-            removeSucceed = DatabaseManager.RemoveWithRetryPolicy(session, this, attemptErrorMessage);
+            removeSucceed = DatabaseManager.RemoveWithRetryPolicy(session, _prevState, removeAttemptErrorMessage);
         }
 
         if(removeSucceed == false)
         {
-            for (Computer computerToRestore : _computers)
-            {
-                computerToRestore.SshConfig = this;
-            }
+            throw new DatabaseException("Unable to remove local ssh config in db.");
+        }
 
+        if(_computersAndSshConfigsManager != null)
+        {
+            _computersAndSshConfigsManager.RemovedSshConfig(this);
+        }
+
+        Id = null;
+        _existsInDb = false;
+        _prevState = null;
+    }
+
+    public void RemoveGlobalFromDb() throws SshConfigException, DatabaseException
+    {
+        Session session = DatabaseManager.GetInstance().GetSession();
+        RemoveGlobalFromDb(session);
+        session.close();
+    }
+
+    public void RemoveGlobalFromDb(Session session) throws SshConfigException, DatabaseException, FatalErrorException
+    {
+        Validate_RemoveFromDb();
+
+        List<Computer> computers = new ArrayList<>(_computers);
+        for (Computer computer : computers)
+        {
+            SshConfig newLocalSshConfig = new SshConfig();
+            newLocalSshConfig.AuthMethod = computer.GetSshConfig().AuthMethod;
+            newLocalSshConfig.Scope = SshConfigScope.LOCAL;
+            newLocalSshConfig.EncryptedPassword = computer.GetSshConfig().EncryptedPassword;
+            newLocalSshConfig.Name = null;
+            newLocalSshConfig.Port = computer.GetSshConfig().Port;
+            newLocalSshConfig.PrivateKeyPath = computer.GetSshConfig().PrivateKeyPath;
+            newLocalSshConfig.Username = computer.GetSshConfig().Username;
+            newLocalSshConfig._existsInDb = false;
+            newLocalSshConfig._computers = new ArrayList<>();
+            computer.SetSshConfig(newLocalSshConfig);
+
+            computer.UpdateInDb(session);
+        }
+
+        String removeAttemptErrorMessage = "[ERROR] SshConfig: Attempt of removing global ssh config from db failed.";
+        boolean removeSucceed = false;
+        if(_prevState == null)
+        {
+            removeSucceed = DatabaseManager.RemoveWithRetryPolicy(session, this, removeAttemptErrorMessage);
+        }
+        else if(_prevState != null && this.equals(_prevState) == false)
+        {
+            removeSucceed = DatabaseManager.RemoveWithRetryPolicy(session, _prevState, removeAttemptErrorMessage);
+        }
+
+        if(removeSucceed == false)
+        {
             throw new DatabaseException("Unable to remove global ssh config in db.");
         }
 
@@ -348,13 +379,36 @@ public class SshConfig
         {
             _computersAndSshConfigsManager.RemovedSshConfig(this);
         }
+
+        Id = null;
+        _existsInDb = false;
+        _prevState = null;
     }
 
-    private void Validate_RemoveFromDb()
+    private void Validate_RemoveFromDb() throws SshConfigException
     {
         if(_existsInDb == false)
         {
             throw new SshConfigException("Ssh config does not exist in db.");
+        }
+    }
+
+    private void RestorePersistedSshConfigs(Session session, List<SshConfig> persistedConfigs)
+            throws FatalErrorException
+    {
+        for (SshConfig persistedSshConfig : persistedConfigs)
+        {
+            persistedSshConfig._computers.get(0).SetSshConfig(this);
+            _computersAndSshConfigsManager.RemovedSshConfig(persistedSshConfig);
+
+            String restoreAttemptErrorMessage =
+                    "[ERROR] SshConfig: Attempt of removing new local ssh config in db failed.";
+            boolean restoreSucceed = DatabaseManager
+                    .RemoveWithRetryPolicy(session, persistedSshConfig, restoreAttemptErrorMessage);
+            if(restoreSucceed == false)
+            {
+                throw new FatalErrorException("Restoring ssh configs after computer adding failed!");
+            }
         }
     }
 
@@ -363,7 +417,6 @@ public class SshConfig
     public void AddComputer(Computer computer)
     {
         _computers.add(computer);
-        computer.SshConfig = this;
     }
 
     public void RemoveComputer(Computer computer)
@@ -379,94 +432,6 @@ public class SshConfig
     public void ResetComputers()
     {
         _computers = new ArrayList<>();
-    }
-
-
-    // ---  SETTERS  ---------------------------------------------------------------------------------------------------
-
-    private void TryToSetPrevStateIfNotExisting()
-    {
-        if(_prevState == null)
-        {
-            SetPreviousState(this);
-            _isChanged = true;
-        }
-    }
-
-    private void SetPreviousState(SshConfig sshConfig)
-    {
-        _prevState = new SshConfig(sshConfig);
-        _prevState._prevState = null;
-    }
-
-    public void RestorePreviousState()
-    {
-        this.CopyFrom(_prevState);
-    }
-
-    private void ResetId()
-    {
-        Id = null;
-    }
-
-    public void SetUsername(String username)
-    {
-        if(username == null || username.trim().equals(""))
-        {
-            throw new IllegalArgumentException("Username cannot be null or empty.");
-        }
-
-        TryToSetPrevStateIfNotExisting();
-
-        Username = username;
-    }
-
-    public void SetPort(int port)
-    {
-        if(port < 0)
-        {
-            throw new IllegalArgumentException("Port cannot be negative.");
-        }
-
-        TryToSetPrevStateIfNotExisting();
-
-        Port = port;
-    }
-
-    public void SetPasswordAuthMethod(String encryptedPassword)
-    {
-        if(encryptedPassword == null || encryptedPassword.trim().equals(""))
-        {
-            throw new IllegalArgumentException("Encrypted password cannot be null or empty.");
-        }
-
-        TryToSetPrevStateIfNotExisting();
-
-        AuthMethod = SshAuthMethod.PASSWORD;
-        EncryptedPassword = encryptedPassword;
-        PrivateKeyPath = null;
-    }
-
-    public void SetSshKeyAuthMethod(String privateKeyPath)
-    {
-        if(privateKeyPath == null || privateKeyPath.trim().equals(""))
-        {
-            throw new IllegalArgumentException("Private key path cannot be null or empty.");
-        }
-
-        TryToSetPrevStateIfNotExisting();
-
-        AuthMethod = SshAuthMethod.KEY;
-        PrivateKeyPath = privateKeyPath;
-        EncryptedPassword = null;
-    }
-
-    private void SetLocalScope()
-    {
-        TryToSetPrevStateIfNotExisting();
-
-        Scope = SshConfigScope.LOCAL;
-        Name = null;
     }
 
     // ---  GETTERS  ---------------------------------------------------------------------------------------------------
@@ -521,7 +486,140 @@ public class SshConfig
         return _existsInDb;
     }
 
+    // ---  SETTERS  ---------------------------------------------------------------------------------------------------
+
+    public void ResetPreviousState()
+    {
+        _prevState = null;
+    }
+
+    private void TryToSetPrevStateIfNotExisting()
+    {
+        if(_existsInDb &&_prevState == null)
+        {
+            SetPreviousState(this);
+        }
+    }
+
+    private void SetPreviousState(SshConfig sshConfig)
+    {
+        _prevState = new SshConfig(sshConfig);
+        _prevState._prevState = null;
+        _prevState._computers = null;
+    }
+
+    private void ResetId()
+    {
+        Id = null;
+    }
+
+    public void SetUsername(String username)
+    {
+        if(username == null || username.trim().equals(""))
+        {
+            throw new IllegalArgumentException("Username cannot be null or empty.");
+        }
+
+        if(Utilities.AreEqual(Username, username))
+        {
+            return;
+        }
+
+        TryToSetPrevStateIfNotExisting();
+
+        Username = username;
+    }
+
+    public void SetPort(Integer port)
+    {
+        if(port < 0)
+        {
+            throw new IllegalArgumentException("Port cannot be negative.");
+        }
+
+        if(Port.intValue() == port)
+        {
+            return;
+        }
+
+        TryToSetPrevStateIfNotExisting();
+
+        Port = port;
+    }
+
+    public void SetPasswordAuthMethod(String encryptedPassword)
+    {
+        if(encryptedPassword == null || encryptedPassword.trim().equals(""))
+        {
+            throw new IllegalArgumentException("Encrypted password cannot be null or empty.");
+        }
+
+        if(HasPasswordAuth() && Utilities.AreEqual(EncryptedPassword, encryptedPassword))
+        {
+            return;
+        }
+
+        TryToSetPrevStateIfNotExisting();
+
+        AuthMethod = SshAuthMethod.PASSWORD;
+        EncryptedPassword = encryptedPassword;
+        PrivateKeyPath = null;
+    }
+
+    public void SetSshKeyAuthMethod(String privateKeyPath)
+    {
+        if(privateKeyPath == null || privateKeyPath.trim().equals(""))
+        {
+            throw new IllegalArgumentException("Private key path cannot be null or empty.");
+        }
+
+        if(HasPrivateKeyPath() && Utilities.AreEqual(PrivateKeyPath, privateKeyPath))
+        {
+            return;
+        }
+
+        TryToSetPrevStateIfNotExisting();
+
+        AuthMethod = SshAuthMethod.KEY;
+        PrivateKeyPath = privateKeyPath;
+        EncryptedPassword = null;
+    }
+
+    private void SetLocalScope()
+    {
+        if(HasLocalScope())
+        {
+            return;
+        }
+
+        TryToSetPrevStateIfNotExisting();
+
+        Scope = SshConfigScope.LOCAL;
+        Name = null;
+    }
+
+    private void SetGlobalScope(String name)
+    {
+        if(HasGlobalScope() && Utilities.AreEqual(Name, name))
+        {
+            return;
+        }
+
+        TryToSetPrevStateIfNotExisting();
+
+        Scope = SshConfigScope.LOCAL;
+        Name = null;
+    }
+
     // ---  MISC  ------------------------------------------------------------------------------------------------------
+
+    public void ConvertToNonExistingInDb()
+    {
+        Id = null;
+        _computers = null;
+        _existsInDb = false;
+        _computersAndSshConfigsManager = null;
+    }
 
     private boolean GlobalSshConfigWithNameExists(Session session, String name)
     {
@@ -533,6 +631,16 @@ public class SshConfig
     private boolean ScopeChanged()
     {
         return (HasGlobalScope() && _prevState.HasLocalScope()) || (HasLocalScope() && _prevState.HasGlobalScope());
+    }
+
+    public boolean HasPasswordAuth()
+    {
+        return AuthMethod == SshAuthMethod.PASSWORD;
+    }
+
+    public boolean HasPrivateKeyPath()
+    {
+        return AuthMethod == SshAuthMethod.KEY;
     }
 
     public boolean HasLocalScope()
@@ -553,10 +661,10 @@ public class SshConfig
             return false;
         }
 
-        SshConfig other = (SshConfig) obj;
-        List<Integer> thisIds = _computers.stream().map(c -> c.Id).collect(Collectors.toList());
-        List<Integer> otherIds = other._computers.stream().map(c -> c.Id).collect(Collectors.toList());
 
+        SshConfig other = (SshConfig) obj;
+        //        List<Integer> thisIds = _computers.stream().map(c -> c.Id).collect(Collectors.toList());
+        //        List<Integer> otherIds = other._computers.stream().map(c -> c.Id).collect(Collectors.toList());
 
         return  this.Id == other.Id &&
                 Utilities.AreEqual(this.Name, other.Name) &&
@@ -565,7 +673,7 @@ public class SshConfig
                 Utilities.AreEqual(this.AuthMethod, other.AuthMethod) &&
                 Utilities.AreEqual(this.Username, other.Username) &&
                 Utilities.AreEqual(this.PrivateKeyPath, other.PrivateKeyPath) &&
-                Utilities.AreEqual(this.EncryptedPassword, other.EncryptedPassword) &&
-                (this._computers == other._computers || (thisIds.containsAll(otherIds) && otherIds.containsAll(thisIds)));
+                Utilities.AreEqual(this.EncryptedPassword, other.EncryptedPassword);
+//                (this._computers == other._computers || (thisIds.containsAll(otherIds) && otherIds.containsAll(thisIds)));
     }
 }

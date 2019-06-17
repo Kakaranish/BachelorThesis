@@ -123,7 +123,7 @@ public class LogsMaintainer
 
                     MaintainComputer(computerToMaintain);
 
-                    String host = computerToMaintain.Host;
+                    String host = computerToMaintain.GetHost();
                     Callback_InfoMessage("'" + host + "' was maintained.");
                 }
             }
@@ -161,7 +161,7 @@ public class LogsMaintainer
 
                 MaintainComputer(computerWithLowestTimeToMaintain.Computer);
 
-                String host = computerWithLowestTimeToMaintain.Computer.Host;
+                String host = computerWithLowestTimeToMaintain.Computer.GetHost();
                 Callback_InfoMessage("'" + host + "' was maintained.");
             }
         }
@@ -169,8 +169,8 @@ public class LogsMaintainer
 
     public boolean MaintainComputer(Computer computer)
     {
-        String host = computer.Host;
-        long logExpiration = computer.LogExpiration.toMillis();
+        String host = computer.GetHost();
+        long logExpiration = computer.GetLogExpiration().toMillis();
 
         String attemptErrorMessage =
                 "[ERROR] LogsMaintainer: Attempt of deleting logs for '" + host+ "' failed.";
@@ -205,7 +205,8 @@ public class LogsMaintainer
         Timestamp nowTimestamp = new Timestamp(System.currentTimeMillis());
         try
         {
-            _logsManager.SetComputerLastMaintenance(computer, nowTimestamp);
+            computer.SetLastMaintenance(nowTimestamp);
+            computer.UpdateInDb();
         }
         catch (DatabaseException e)
         {
@@ -236,8 +237,8 @@ public class LogsMaintainer
     private long GetComputerTimeToMaintenance(Computer computer)
     {
         long currentTime = System.currentTimeMillis();
-        long lastMaintenanceTime = computer.LastMaintenance.getTime();
-        long maintenancePeriod = computer.MaintainPeriod.toMillis();
+        long lastMaintenanceTime = computer.GetLastMaintenance().getTime();
+        long maintenancePeriod = computer.GetMaintainPeriod().toMillis();
 
         return lastMaintenanceTime + maintenancePeriod - currentTime;
     }
