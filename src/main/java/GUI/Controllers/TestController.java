@@ -1,10 +1,7 @@
 package GUI.Controllers;
 
 import Healthcheck.ComputersAndSshConfigsManager;
-import Healthcheck.Encryption.Encrypter;
-import Healthcheck.Encryption.EncrypterException;
 import Healthcheck.Entities.Computer;
-import Healthcheck.Utilities;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -29,7 +26,6 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Callback;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -133,6 +129,7 @@ public class TestController implements Initializable
             final Scene scene = new Scene(root);
 
             Stage stage = new Stage();
+            stage.setOnCloseRequest(computerInfoController::OnCloseAction);
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.initStyle(StageStyle.DECORATED);
             stage.setResizable(false);

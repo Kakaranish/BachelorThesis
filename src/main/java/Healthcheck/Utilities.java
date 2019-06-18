@@ -125,7 +125,12 @@ public class Utilities
 
     public static boolean AreEqual(Object obj1, Object obj2)
     {
-        return (obj1 == null ? obj2 == null : obj1.equals(obj2));
+        return obj1 == obj2 || (obj1 == null ? obj2 == null : obj1.equals(obj2));
+    }
+
+    public static boolean ReferencesAreEqual(Object obj1, Object obj2)
+    {
+        return obj1 == obj2;
     }
 
     public static Duration ConvertSecondsToDurationInNanos(long seconds)

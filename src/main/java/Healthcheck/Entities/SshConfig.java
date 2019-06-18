@@ -661,10 +661,12 @@ public class SshConfig
             return false;
         }
 
+        if(this == obj)
+        {
+            return true;
+        }
 
         SshConfig other = (SshConfig) obj;
-        //        List<Integer> thisIds = _computers.stream().map(c -> c.Id).collect(Collectors.toList());
-        //        List<Integer> otherIds = other._computers.stream().map(c -> c.Id).collect(Collectors.toList());
 
         return  this.Id == other.Id &&
                 Utilities.AreEqual(this.Name, other.Name) &&
@@ -674,6 +676,16 @@ public class SshConfig
                 Utilities.AreEqual(this.Username, other.Username) &&
                 Utilities.AreEqual(this.PrivateKeyPath, other.PrivateKeyPath) &&
                 Utilities.AreEqual(this.EncryptedPassword, other.EncryptedPassword);
-//                (this._computers == other._computers || (thisIds.containsAll(otherIds) && otherIds.containsAll(thisIds)));
+    }
+
+    public boolean HasSameContentAs(SshConfig other)
+    {
+        return  Utilities.AreEqual(this.Name, other.Name) &&
+                Utilities.AreEqual(this.Scope, other.Scope) &&
+                Utilities.AreEqual(this.Port, other.Port) &&
+                Utilities.AreEqual(this.AuthMethod, other.AuthMethod) &&
+                Utilities.AreEqual(this.Username, other.Username) &&
+                Utilities.AreEqual(this.PrivateKeyPath, other.PrivateKeyPath) &&
+                Utilities.AreEqual(this.EncryptedPassword, other.EncryptedPassword);
     }
 }
