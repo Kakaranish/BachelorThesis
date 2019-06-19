@@ -637,7 +637,7 @@ public class Computer
             throw new IllegalArgumentException("Ssh config is null.");
         }
 
-        if(Utilities.ReferencesAreEqual(this, sshConfig))
+        if(Utilities.ReferencesAreEqual(this.SshConfig, sshConfig))
         {
             return;
         }

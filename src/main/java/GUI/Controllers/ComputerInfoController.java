@@ -23,6 +23,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import javafx.util.StringConverter;
 import java.io.File;
 import java.net.URL;
@@ -96,19 +97,13 @@ public class ComputerInfoController implements Initializable
     private List<CheckBox> selectedCheckboxesBeforeChanges = new ArrayList<>();
 
     // Flags
-    private boolean displayedNameIsIncorrect;
-    private boolean hostIsIncorrect;
+    private boolean _displayedNameIsIncorrect = false;
+    private boolean _hostIsIncorrect = false;
+    private boolean _isDiscardingChanges = false;
 
-    private SshConfig _localConfig;
-    private SshFieldsState _prevLocalSshConfigFieldsFulfillment = new SshFieldsState();
+    private SshConfig _localLocalConfig;
+    private SshFieldsState _prevLocalSshFieldsState = new SshFieldsState();
     private ComputerInfoController _computerInfoController = this;
-
-    // TODO: Change description or even remove it
-    /*
-        _decryptedPassword is helper variable. If it's not null that means that decryptio
-    */
-    private boolean _decryptionFailed = false;
-    private String _decryptedPassword = null;
 
     private class SshConfigConverter extends StringConverter<SshConfig>
     {
@@ -130,7 +125,7 @@ public class ComputerInfoController implements Initializable
         {
             if(string.equals("LOCAL"))
             {
-                return _localConfig;
+                return _localLocalConfig;
             }
             else
             {
@@ -150,7 +145,10 @@ public class ComputerInfoController implements Initializable
         public String Password;
         public String PrivateKeyPath;
 
-        public SshFieldsState(){}
+        public SshFieldsState()
+        {
+            AuthMethod = SshAuthMethod.PASSWORD;
+        }
 
         private void Clear()
         {
@@ -161,35 +159,49 @@ public class ComputerInfoController implements Initializable
             PrivateKeyPath = null;
         }
 
-        public void FillSshTextFieldsUsingThisState()
+        public void FillSshTextFields()
         {
-            sshPortTextField.setText(Port == null ? "" : String.valueOf(Port));
-            sshUsernameTextField.setText(Username == null ? "" : Username);
+            sshPortTextField.setText(Port == null ? null : String.valueOf(Port));
+            sshUsernameTextField.setText(Username == null ? null : Username);
 
             if(AuthMethod == SshAuthMethod.PASSWORD)
             {
-                sshPasswordPasswordField.setText(Password == null ? "" : Password);
-                sshKeyPathTextField.setText("");
+                sshPasswordPasswordField.setText(Password == null ? null: Password);
+                sshKeyPathTextField.setText(null);
             }
             else
             {
-                sshKeyPathTextField.setText(PrivateKeyPath == null ? "" : PrivateKeyPath);
-                sshPasswordPasswordField.setText("");
+                sshKeyPathTextField.setText(PrivateKeyPath == null ? null : PrivateKeyPath);
+                sshPasswordPasswordField.setText(null);
             }
         }
 
-        public void FillWithCurrentSshTextFieldsValues()
+        public void FetchFromSshTextFields()
         {
             Clear();
 
-            Port = Utilities.EmptyOrNull(sshPortTextField.getText())? null : Integer.parseInt(sshPortTextField.getText());
+            if(Utilities.EmptyOrNull(sshPortTextField.getText()))
+            {
+                Port = null;
+            }
+            else
+            {
+                try
+                {
+                    Port = Integer.parseInt(sshPortTextField.getText());
+                }
+                catch (NumberFormatException e)
+                {
+                    Port = null;
+                }
+            }
             Username = Utilities.EmptyOrNull(sshUsernameTextField.getText())? null : sshUsernameTextField.getText();
             AuthMethod = passwordAuthMethodRadioButton.isSelected() ? SshAuthMethod.PASSWORD : SshAuthMethod.KEY;
             Password = Utilities.EmptyOrNull(sshPasswordPasswordField.getText())? null : sshPasswordPasswordField.getText();
             PrivateKeyPath = Utilities.EmptyOrNull(sshKeyPathTextField.getText())? null : sshKeyPathTextField.getText();
         }
 
-        public void SetStateUsingSshConfig(SshConfig sshConfig)
+        public void FetchFromSshConfig(SshConfig sshConfig)
         {
             Username = sshConfig.GetUsername();
             Port = sshConfig.GetPort();
@@ -228,11 +240,11 @@ public class ComputerInfoController implements Initializable
     {
         if(_computer.GetSshConfig().HasLocalScope())
         {
-            _localConfig = _computer.GetSshConfig();
+            _localLocalConfig = _computer.GetSshConfig();
         }
         else
         {
-            _localConfig = SshConfig.CreateEmpty();
+            _localLocalConfig = SshConfig.CreateEmpty();
         }
 
         InitializeAndFillGuiComponents();
@@ -252,43 +264,6 @@ public class ComputerInfoController implements Initializable
         classroomTextField.setText(_computer.GetClassroom());
 
         InitializeSshConfigChoiceBox();
-
-        sshPortTextField.setText(String.valueOf(_computer.GetSshConfig().GetPort()));
-        sshUsernameTextField.setText(_computer.GetSshConfig().GetUsername());
-
-        if(_computer.GetSshConfig().HasGlobalScope())
-        {
-            ChooseGlobalConfigInChoiceBox(_computer.GetSshConfig());
-        }
-        else
-        {
-            if(_computer.GetSshConfig().HasPasswordAuth())
-            {
-                ChoosePasswordAuthMethod();
-
-                String decryptedPassword = null;
-                try
-                {
-                    decryptedPassword = Encrypter.GetInstance().Decrypt(_computer.GetSshConfig().GetEncryptedPassword());
-                }
-                catch (EncrypterException e)
-                {
-                    _decryptionFailed = true;
-                    Utilities.ShowErrorDialog("Ssh password from local config could not be decrypted." +
-                            "\nProvide new password.");
-                }
-                _decryptedPassword = decryptedPassword;
-
-                sshPasswordPasswordField.setText(decryptedPassword);
-                passwordAuthMethodRadioButton.setSelected(true);
-            }
-            else
-            {
-                ChoosePrivateKeyAuthMethod();
-                sshKeyPathTextField.setText(_computer.GetSshConfig().GetPrivateKeyPath());
-                privateKeyAuthMethodRadioButton.setSelected(true);
-            }
-        }
 
         logExpirationTextField.setText(String.valueOf(_computer.GetLogExpiration().toSeconds()));
         maintainPeriodTextField.setText(String.valueOf(_computer.GetMaintainPeriod().toSeconds()));
@@ -319,9 +294,9 @@ public class ComputerInfoController implements Initializable
         passwordAuthMethodRadioButton.selectedProperty().addListener(new ChangeListener<Boolean>()
         {
             @Override
-            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue)
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean wasSet, Boolean isSet)
             {
-                if(newValue == true)
+                if(isSet)
                 {
                     ChoosePasswordAuthMethod();
                 }
@@ -331,9 +306,9 @@ public class ComputerInfoController implements Initializable
         privateKeyAuthMethodRadioButton.selectedProperty().addListener(new ChangeListener<Boolean>()
         {
             @Override
-            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue)
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean wasSet, Boolean isSet)
             {
-                if(newValue == true)
+                if(isSet)
                 {
                     ChoosePrivateKeyAuthMethod();
                 }
@@ -343,32 +318,20 @@ public class ComputerInfoController implements Initializable
 
     private void InitializeSshConfigChoiceBox()
     {
+        sshConfigObservableList.add(_localLocalConfig);
+
         SshConfig assignedSshConfig = _computer.GetSshConfig();
-        int selectedSshConfigIndex = 0;
-
-        if(assignedSshConfig.HasLocalScope())
-        {
-            sshConfigObservableList.add(assignedSshConfig);
-        }
-        else
-        {
-            sshConfigObservableList.add(_localConfig);
-        }
-
-        int i=1;
         for (SshConfig sshConfig : _computersAndSshConfigsManager.GetGlobalSshConfigs())
         {
             sshConfigObservableList.add(sshConfig);
             if(Utilities.AreEqual(sshConfig, _computer.GetSshConfig()))
             {
-                selectedSshConfigIndex = i;
+                assignedSshConfig = sshConfig;
             }
-
-            ++i;
         }
+
         sshConfigChoiceBox.setItems(sshConfigObservableList);
         sshConfigChoiceBox.setConverter(new SshConfigConverter());
-        sshConfigChoiceBox.getSelectionModel().select(selectedSshConfigIndex);
         sshConfigChoiceBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>()
         {
             @Override
@@ -376,19 +339,25 @@ public class ComputerInfoController implements Initializable
             {
                 if(newValue.intValue() != 0)
                 {
-                    if(oldValue.intValue() == 0)
+                    if(oldValue.intValue() == 0 && _isDiscardingChanges == false) // Backup when LOCAL -> GLOBAL
                     {
-                        _prevLocalSshConfigFieldsFulfillment.FillWithCurrentSshTextFieldsValues();
+                        _prevLocalSshFieldsState.FetchFromSshTextFields();
                     }
 
                     ChooseGlobalConfigInChoiceBox(sshConfigChoiceBox.getItems().get(newValue.intValue()));
                 }
-                else if(newValue.intValue() == 0 && oldValue.intValue() != 0)
+                else if(oldValue.intValue() != 0 && newValue.intValue() == 0) // GLOBAL -> LOCAL
                 {
                     ChooseLocalConfigInChoiceBox();
                 }
             }
         });
+
+        if(assignedSshConfig.HasLocalScope())
+        {
+            _prevLocalSshFieldsState.FetchFromSshConfig(assignedSshConfig);
+        }
+        sshConfigChoiceBox.getSelectionModel().select(assignedSshConfig);
     }
 
     private void InitializeAndPopulatePreferencesCheckboxes()
@@ -544,10 +513,10 @@ public class ComputerInfoController implements Initializable
     {
         if(Utilities.EmptyOrNull(newDisplayedName))
         {
-            if(displayedNameIsIncorrect == false)
+            if(_displayedNameIsIncorrect == false)
             {
                 displayedNameTextField.getStyleClass().add("validation-error");
-                displayedNameIsIncorrect = true;
+                _displayedNameIsIncorrect = true;
             }
 
             return "Displayed name cannot be empty.";
@@ -556,16 +525,16 @@ public class ComputerInfoController implements Initializable
         if(_computer.GetDisplayedName().equals(newDisplayedName) == false
                 && _computersAndSshConfigsManager.ComputerWithDisplayedNameExists(newDisplayedName))
         {
-            if(displayedNameIsIncorrect == false)
+            if(_displayedNameIsIncorrect == false)
             {
                 displayedNameTextField.getStyleClass().add("validation-error");
-                displayedNameIsIncorrect = true;
+                _displayedNameIsIncorrect = true;
             }
 
             return "Other computer has same displayed name.";
         }
 
-        if(displayedNameIsIncorrect)
+        if(_displayedNameIsIncorrect)
         {
             displayedNameTextField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
         }
@@ -577,10 +546,10 @@ public class ComputerInfoController implements Initializable
     {
         if(Utilities.EmptyOrNull(newHost))
         {
-            if(hostIsIncorrect == false)
+            if(_hostIsIncorrect == false)
             {
                 hostTextField.getStyleClass().add("validation-error");
-                hostIsIncorrect = true;
+                _hostIsIncorrect = true;
             }
 
             return "Host cannot be empty.";
@@ -589,16 +558,16 @@ public class ComputerInfoController implements Initializable
         if(_computer.GetHost().equals(newHost) == false
                 && _computersAndSshConfigsManager.ComputerWithHostExists(newHost))
         {
-            if(hostIsIncorrect == false)
+            if(_hostIsIncorrect == false)
             {
                 hostTextField.getStyleClass().add("validation-error");
-                hostIsIncorrect= true;
+                _hostIsIncorrect = true;
             }
 
             return "Other computer has same hostTextField.";
         }
 
-        if(hostIsIncorrect)
+        if(_hostIsIncorrect)
         {
             hostTextField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
         }
@@ -678,7 +647,7 @@ public class ComputerInfoController implements Initializable
         try
         {
             boolean hadGlobalConfig = _computer.GetSshConfig().HasGlobalScope();
-            CopyChangesToComputer();
+            CopyChangesToComputer(true);
             if(_computer.Changed() == false)
             {
                 Utilities.ShowInfoDialog("No changes to save.");
@@ -689,24 +658,20 @@ public class ComputerInfoController implements Initializable
 
             Utilities.ShowInfoDialog("Computer update has succeed.");
 
-            if(_computer.GetSshConfig().HasLocalScope())
+            if(_computer.GetSshConfig().HasLocalScope() && hadGlobalConfig) // GLOBAL -> LOCAL
             {
-                if(hadGlobalConfig)
-                {
-                    _localConfig = new SshConfig(_computer.GetSshConfig());
-                    _localConfig.ConvertToNonExistingInDb();
-                }
+                _localLocalConfig = new SshConfig(_computer.GetSshConfig());
+                _localLocalConfig.ConvertToNonExistingInDb();
+                _prevLocalSshFieldsState.FetchFromSshConfig(_localLocalConfig);
             }
-            else if(_computer.GetSshConfig().HasGlobalScope() && hadGlobalConfig == false)
+            else if(_computer.GetSshConfig().HasGlobalScope() && hadGlobalConfig == false) // LOCAL -> GLOBAL
             {
-                _localConfig = SshConfig.CreateEmpty();
+                _localLocalConfig = SshConfig.CreateEmpty();
+                _prevLocalSshFieldsState = new SshFieldsState();
             }
 
-            _prevLocalSshConfigFieldsFulfillment = new SshFieldsState();
             selectedCheckboxesBeforeChanges.clear();
             selectedCheckboxesBeforeChanges = GetSelectedPreferenceCheckboxes();
-
-            _decryptionFailed = false;
         }
         catch (NothingToDoException e)
         {
@@ -725,7 +690,7 @@ public class ComputerInfoController implements Initializable
         }
     }
 
-    private void CopyChangesToComputer()
+    private void CopyChangesToComputer(boolean encryptPassword) // TODO: DISCARD ERROR - GLOBAL -> LOCAL -> DISC -> DISC WITHOUT CHANGES
     {
         if(IsSelectedGlobalConfig()) // LOCAL -> GLOBAL & GLOBAL -> GLOBAL
         {
@@ -736,14 +701,44 @@ public class ComputerInfoController implements Initializable
             if((_computer.GetSshConfig().HasLocalScope() && LocalSshConfigChanged())) // LOCAL -> LOCAL
             {
                 SshFieldsState currentSshFieldsState = new SshFieldsState();
-                currentSshFieldsState.FillWithCurrentSshTextFieldsValues();
+                currentSshFieldsState.FetchFromSshTextFields();
+
+                if(currentSshFieldsState.AuthMethod == SshAuthMethod.PASSWORD)
+                {
+                    if(encryptPassword)
+                    {
+                        try
+                        {
+                            currentSshFieldsState.Password = Encrypter.GetInstance().Encrypt(currentSshFieldsState.Password);
+                        }
+                        catch (EncrypterException e)
+                        {
+                            // Never enters this block
+                        }
+                    }
+                }
 
                 _computer.SetSshConfig(currentSshFieldsState.ToSshConfig());
             }
             else if(_computer.GetSshConfig().HasGlobalScope()) // GLOBAL -> LOCAL
             {
                 SshFieldsState currentSshFieldsState = new SshFieldsState();
-                currentSshFieldsState.FillWithCurrentSshTextFieldsValues();
+                currentSshFieldsState.FetchFromSshTextFields();
+
+                if(currentSshFieldsState.AuthMethod == SshAuthMethod.PASSWORD)
+                {
+                    if(encryptPassword)
+                    {
+                        try
+                        {
+                            currentSshFieldsState.Password = Encrypter.GetInstance().Encrypt(currentSshFieldsState.Password);
+                        }
+                        catch (EncrypterException e)
+                        {
+                            // Never enter this block
+                        }
+                    }
+                }
 
                 _computer.SetSshConfig(currentSshFieldsState.ToSshConfig());
             }
@@ -768,6 +763,21 @@ public class ComputerInfoController implements Initializable
         _computer.SetPreferences(GetSelectedPreferences());
     }
 
+    private String GetDecryptedPasswordFromLocalSshConfig()
+    {
+        try
+        {
+            return Encrypter.GetInstance().Decrypt(_computer.GetSshConfig().GetEncryptedPassword());
+        }
+        catch (EncrypterException e)
+        {
+            Utilities.ShowErrorDialog("Ssh password from local config could not be decrypted." +
+                    "\nProvide new password.");
+
+            return null;
+        }
+    }
+
     @FXML
     void DiscardChanges(ActionEvent event)
     {
@@ -777,38 +787,37 @@ public class ComputerInfoController implements Initializable
             return;
         }
 
+        _isDiscardingChanges = true;
+
         isSelectedCheckBox.setSelected(_computer.IsSelected());
         displayedNameTextField.setText(_computer.GetDisplayedName());
         hostTextField.setText(_computer.GetHost());
         classroomTextField.setText(_computer.GetClassroom());
 
-        sshConfigChoiceBox.getSelectionModel().select(_computer.GetSshConfig());
-        sshUsernameTextField.setText(_computer.GetSshConfig().GetUsername());
-        sshPortTextField.setText(String.valueOf(_computer.GetSshConfig().GetPort()));
-
-        if(_computer.GetSshConfig().HasLocalScope())
+        if(sshConfigChoiceBox.getSelectionModel().getSelectedItem() != _computer.GetSshConfig())
         {
-            sshPasswordPasswordField.setText(_decryptedPassword);
-            if(_computer.GetSshConfig().HasPasswordAuth() && _decryptedPassword == null)
+            sshConfigChoiceBox.getSelectionModel().select(_computer.GetSshConfig()); // Responsible for setting ssh text fields
+        }
+        else
+        {
+            SshConfig oldSshConfig = sshConfigChoiceBox.getSelectionModel().getSelectedItem();
+            SshConfig newSshConfig = _computer.GetSshConfig();
+
+            if(newSshConfig.HasGlobalScope())
             {
-                Utilities.ShowErrorDialog("Ssh password from local config could not be decrypted." +
-                        "\nProvide new password.");
-            }
-        }
-        else
-        {
-            _prevLocalSshConfigFieldsFulfillment = new SshFieldsState();
-            sshPasswordPasswordField.setText(_computer.GetSshConfig().GetEncryptedPassword());
-        }
-        sshKeyPathTextField.setText(_computer.GetSshConfig().GetPrivateKeyPath());
+                if(oldSshConfig.HasLocalScope() && _isDiscardingChanges == false)
+                {
+                    _prevLocalSshFieldsState.FetchFromSshTextFields();
+                }
 
-        if(_computer.GetSshConfig().HasPasswordAuth()) // Also performs validation
-        {
-            passwordAuthMethodRadioButton.setSelected(true);
-        }
-        else
-        {
-            privateKeyAuthMethodRadioButton.setSelected(true);
+                ChooseGlobalConfigInChoiceBox(newSshConfig);
+            }
+            else
+            {
+                ChooseLocalConfigInChoiceBox();
+            }
+
+
         }
 
         requestIntervalTextField.setText(String.valueOf(_computer.GetRequestInterval().toSeconds()));
@@ -816,6 +825,8 @@ public class ComputerInfoController implements Initializable
         logExpirationTextField.setText(String.valueOf(_computer.GetLogExpiration().toSeconds()));
 
         SetPreferencesCheckBoxesAsBeforeChanges();
+
+        _isDiscardingChanges = false;
     }
 
     @FXML
@@ -838,7 +849,7 @@ public class ComputerInfoController implements Initializable
         else
         {
             SshFieldsState currentSshFieldsState = new SshFieldsState();
-            currentSshFieldsState.FillWithCurrentSshTextFieldsValues();
+            currentSshFieldsState.FetchFromSshTextFields();
             sshConfigToTest = currentSshFieldsState.ToSshConfig();
 
             if(IsSelectedPasswordAuthRadioButton())
@@ -879,44 +890,137 @@ public class ComputerInfoController implements Initializable
         }
     }
 
+    public void OnCloseAction(WindowEvent event)
+    {
+        if(SomethingChanged()
+                && Utilities.ShowYesNoDialog("Discard changes?", "Do you want to discard changes?") == false)
+        {
+            event.consume();
+        }
+    }
+
     // ---  CHOOSING SSH CONFIG IN CHOICEBOX  --------------------------------------------------------------------------
 
     private void ChooseLocalConfigInChoiceBox()
     {
-        sshConfigChoiceBox.getSelectionModel().select(_localConfig);
-
-        _prevLocalSshConfigFieldsFulfillment.FillSshTextFieldsUsingThisState();
-
-        if(_prevLocalSshConfigFieldsFulfillment.AuthMethod == SshAuthMethod.PASSWORD)
+        if(_computer.GetSshConfig().HasGlobalScope()) // GLOBAL -> LOCAL
         {
-            passwordAuthMethodRadioButton.setSelected(true);
-            ChoosePasswordAuthMethod();
+            _prevLocalSshFieldsState.FillSshTextFields();
+
+            if(_prevLocalSshFieldsState.AuthMethod == SshAuthMethod.PASSWORD)
+            {
+                if(passwordAuthMethodRadioButton.isSelected())
+                {
+                    ChoosePasswordAuthMethod();
+                }
+                else
+                {
+                    passwordAuthMethodRadioButton.setSelected(true);
+                }
+            }
+            else
+            {
+                if(privateKeyAuthMethodRadioButton.isSelected())
+                {
+                    ChoosePrivateKeyAuthMethod();
+                }
+                else
+                {
+                    privateKeyAuthMethodRadioButton.setSelected(true);
+                }
+            }
         }
-        else
+        else // LOCAL -> LOCAL
         {
-            privateKeyAuthMethodRadioButton.setSelected(true);
-            ChoosePrivateKeyAuthMethod();
+            SshFieldsState sshFieldsState = new SshFieldsState();
+            sshFieldsState.FetchFromSshConfig(_computer.GetSshConfig());
+            sshFieldsState.FillSshTextFields();
+
+            if(_prevLocalSshFieldsState.AuthMethod == SshAuthMethod.PASSWORD)
+            {
+                if(passwordAuthMethodRadioButton.isSelected())
+                {
+                    ChoosePasswordAuthMethod();
+                }
+                else
+                {
+                    passwordAuthMethodRadioButton.setSelected(true);
+                }
+            }
+            else
+            {
+                if(privateKeyAuthMethodRadioButton.isSelected())
+                {
+                    ChoosePrivateKeyAuthMethod();
+                }
+                else
+                {
+                    privateKeyAuthMethodRadioButton.setSelected(true);
+                }
+            }
         }
     }
 
     private void ChooseGlobalConfigInChoiceBox(SshConfig sshConfig)
     {
-        sshConfigChoiceBox.getSelectionModel().select(sshConfig);
-
         sshPortTextField.setText(String.valueOf(sshConfig.GetPort()));
         sshUsernameTextField.setText(sshConfig.GetUsername());
         if(sshConfig.HasPasswordAuth())
         {
-            passwordAuthMethodRadioButton.setSelected(true);
             sshPasswordPasswordField.setText(sshConfig.GetEncryptedPassword());
+            sshKeyPathTextField.setText(null);
+            if(passwordAuthMethodRadioButton.isSelected())
+            {
+                ChoosePasswordAuthMethod();
+            }
+            else
+            {
+                passwordAuthMethodRadioButton.setSelected(true);
+            }
         }
         else
         {
-            privateKeyAuthMethodRadioButton.setSelected(true);
+            sshPasswordPasswordField.setText(null);
             sshKeyPathTextField.setText(sshConfig.GetPrivateKeyPath());
+            if(privateKeyAuthMethodRadioButton.isSelected())
+            {
+                ChoosePrivateKeyAuthMethod();
+            }
+            else
+            {
+                privateKeyAuthMethodRadioButton.setSelected(true);
+            }
         }
 
         DisableAllSshFields();
+        RemoveValidationErrorsFromAllSshFields();
+    }
+
+    private void DisableAllSshFields()
+    {
+        SetDisabledAuthMethodRadioButtons(true);
+
+        sshUsernameTextField.setDisable(true);
+        sshPortTextField.setDisable(true);
+        sshPasswordPasswordField.setDisable(true);
+        sshKeyGridPane.setDisable(true);
+    }
+
+    private void SetDisabledAuthMethodRadioButtons(boolean value)
+    {
+        for (Toggle toggleButton : privateKeyAuthMethodRadioButton.getToggleGroup().getToggles())
+        {
+            Node node = (Node) toggleButton;
+            node.setDisable(value);
+        }
+    }
+
+    private void RemoveValidationErrorsFromAllSshFields()
+    {
+        sshUsernameTextField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
+        sshPortTextField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
+        sshPasswordPasswordField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
+        sshKeyPathTextField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
     }
 
     // ---  CHOOSING AUTH METHOD   -------------------------------------------------------------------------------------
@@ -924,7 +1028,6 @@ public class ComputerInfoController implements Initializable
     private void ChoosePasswordAuthMethod()
     {
         SetDisabledAuthMethodRadioButtons(false);
-
         sshPasswordPasswordField.setDisable(false);
         sshUsernameTextField.setDisable(false);
         sshPortTextField.setDisable(false);
@@ -938,7 +1041,6 @@ public class ComputerInfoController implements Initializable
     private void ChoosePrivateKeyAuthMethod()
     {
         SetDisabledAuthMethodRadioButtons(false);
-
         sshKeyGridPane.setDisable(false);
         sshUsernameTextField.setDisable(false);
         sshPortTextField.setDisable(false);
@@ -949,35 +1051,11 @@ public class ComputerInfoController implements Initializable
         ValidateIfRequiredFieldsEmpty(SshAuthMethod.KEY);
     }
 
-    private void SetDisabledAuthMethodRadioButtons(boolean value)
-    {
-        for (Toggle toggleButton : privateKeyAuthMethodRadioButton.getToggleGroup().getToggles())
-        {
-            Node node = (Node) toggleButton;
-            node.setDisable(value);
-        }
-    }
-
-    private void DisableAllSshFields()
-    {
-        SetDisabledAuthMethodRadioButtons(true);
-
-        sshUsernameTextField.setDisable(true);
-        sshPortTextField.setDisable(true);
-        sshPasswordPasswordField.setDisable(true);
-        sshKeyGridPane.setDisable(true);
-
-        sshUsernameTextField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
-        sshPortTextField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
-        sshPasswordPasswordField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
-        sshKeyPathTextField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
-    }
-
     // ---  PREDICATES  ------------------------------------------------------------------------------------------------
 
     public boolean SomethingChanged()
     {
-        CopyChangesToComputer();
+        CopyChangesToComputer(false);
         boolean somethingChanged = _computer.Changed();
         if(somethingChanged)
         {
@@ -1023,12 +1101,12 @@ public class ComputerInfoController implements Initializable
     private boolean LocalSshConfigChanged()
     {
         SshFieldsState currentSshFieldsState = new SshFieldsState();
-        currentSshFieldsState.FillWithCurrentSshTextFieldsValues();
+        currentSshFieldsState.FetchFromSshTextFields();
 
         return  !Utilities.AreEqual(_computer.GetSshConfig().GetUsername(), currentSshFieldsState.Username) ||
                 !Utilities.AreEqual(_computer.GetSshConfig().GetPort(), currentSshFieldsState.Port) ||
                 !Utilities.AreEqual(_computer.GetSshConfig().GetAuthMethod(), currentSshFieldsState.AuthMethod) ||
-                !Utilities.AreEqual(_decryptedPassword, currentSshFieldsState.Password) ||
+                !Utilities.AreEqual(GetDecryptedPasswordFromLocalSshConfig(), currentSshFieldsState.Password) ||
                 !Utilities.AreEqual(_computer.GetSshConfig().GetPrivateKeyPath(), currentSshFieldsState.PrivateKeyPath);
     }
 
@@ -1068,7 +1146,6 @@ public class ComputerInfoController implements Initializable
     {
         _computer.Restore();
     }
-
 
     private void SetPreferencesCheckBoxesAsBeforeChanges()
     {
