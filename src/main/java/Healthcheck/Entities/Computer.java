@@ -82,6 +82,7 @@ public class Computer
             Duration maintainPeriod,
             Duration logExpiration,
             boolean isSelected)
+            throws IllegalArgumentException
     {
         if(Utilities.EmptyOrNull(displayedName) || Utilities.EmptyOrNull(host) || Utilities.EmptyOrNull(classroom)
                 || sshConfig == null || requestInterval == null || maintainPeriod == null || logExpiration == null)
@@ -744,6 +745,11 @@ public class Computer
     }
 
     // ---  MISC  ------------------------------------------------------------------------------------------------------
+
+    public boolean ExistsInDb()
+    {
+        return _existsInDb;
+    }
 
     public boolean Changed()
     {

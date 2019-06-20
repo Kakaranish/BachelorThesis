@@ -26,7 +26,6 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.StringConverter;
 import java.io.File;
-import java.lang.reflect.Array;
 import java.net.URL;
 import java.time.Duration;
 import java.util.*;
@@ -239,14 +238,22 @@ public class ComputerInfoController implements Initializable
     @Override
     public void initialize(URL location, ResourceBundle resources)
     {
-        if(_computer.GetSshConfig().HasLocalScope())
+        if(IsInEditMode())
         {
-            _localLocalConfig = _computer.GetSshConfig();
+            if(_computer.GetSshConfig().HasLocalScope())
+            {
+                _localLocalConfig = _computer.GetSshConfig();
+            }
+            else
+            {
+                _localLocalConfig = SshConfig.CreateEmpty();
+            }
         }
         else
         {
             _localLocalConfig = SshConfig.CreateEmpty();
         }
+
 
         InitializeAndFillGuiComponents();
 
@@ -254,24 +261,41 @@ public class ComputerInfoController implements Initializable
         SetUpEmptinessValidators();
     }
 
+    private void ValidateAllFieldsIfEmpty()
+    {
+        ValidateIfEmpty(displayedNameTextField);
+        ValidateIfEmpty(hostTextField);
+        ValidateIfEmpty(classroomTextField);
+        ValidateIfEmpty(logExpirationTextField);
+        ValidateIfEmpty(maintainPeriodTextField);
+        ValidateIfEmpty(requestIntervalTextField);
+    }
+
     private void InitializeAndFillGuiComponents()
     {
         InitializeChooseFileButton();
         InitializeAuthMethodRadioButtons();
-
-        isSelectedCheckBox.setSelected(_computer.IsSelected());
-        displayedNameTextField.setText(_computer.GetDisplayedName());
-        hostTextField.setText(_computer.GetHost());
-        classroomTextField.setText(_computer.GetClassroom());
-
         InitializeSshConfigChoiceBox();
 
-        logExpirationTextField.setText(String.valueOf(_computer.GetLogExpiration().toSeconds()));
-        maintainPeriodTextField.setText(String.valueOf(_computer.GetMaintainPeriod().toSeconds()));
-        requestIntervalTextField.setText(String.valueOf(_computer.GetRequestInterval().toSeconds()));
+        if(IsInEditMode())
+        {
+            isSelectedCheckBox.setSelected(_computer.IsSelected());
+            displayedNameTextField.setText(_computer.GetDisplayedName());
+            hostTextField.setText(_computer.GetHost());
+            classroomTextField.setText(_computer.GetClassroom());
 
-        InitializeAndPopulatePreferencesCheckboxes();
-        SetPreferencesCheckBoxesAsBeforeChanges();
+            logExpirationTextField.setText(String.valueOf(_computer.GetLogExpiration().toSeconds()));
+            maintainPeriodTextField.setText(String.valueOf(_computer.GetMaintainPeriod().toSeconds()));
+            requestIntervalTextField.setText(String.valueOf(_computer.GetRequestInterval().toSeconds()));
+        }
+        else
+        {
+            isSelectedCheckBox.setSelected(true);
+        }
+
+        ValidateAllFieldsIfEmpty();
+        InitializePreferencesCheckboxes();
+        DiscardChangesInPreferenceCheckboxes();
     }
 
     private void InitializeChooseFileButton()
@@ -321,11 +345,20 @@ public class ComputerInfoController implements Initializable
     {
         sshConfigObservableList.add(_localLocalConfig);
 
-        SshConfig assignedSshConfig = _computer.GetSshConfig();
+        SshConfig assignedSshConfig;
+        if(IsInEditMode())
+        {
+            assignedSshConfig = _computer.GetSshConfig();
+        }
+        else
+        {
+            assignedSshConfig = _localLocalConfig;
+        }
+
         for (SshConfig sshConfig : _computersAndSshConfigsManager.GetGlobalSshConfigs())
         {
             sshConfigObservableList.add(sshConfig);
-            if(Utilities.AreEqual(sshConfig, _computer.GetSshConfig()))
+            if(IsInEditMode() && Utilities.AreEqual(sshConfig, _computer.GetSshConfig()))
             {
                 assignedSshConfig = sshConfig;
             }
@@ -371,7 +404,7 @@ public class ComputerInfoController implements Initializable
         sshConfigChoiceBox.getSelectionModel().select(assignedSshConfig);
     }
 
-    private void InitializeAndPopulatePreferencesCheckboxes()
+    private void InitializePreferencesCheckboxes()
     {
         int gridRowsNum = (int) Math.ceil((double) Utilities.AvailablePreferences.size() / preferencesGridColsNum);
 
@@ -380,7 +413,7 @@ public class ComputerInfoController implements Initializable
             CheckBox checkBox = new CheckBox();
             checkBox.setText(Utilities.ExtractPreferenceName(Utilities.AvailablePreferences.get(i).ClassName));
 
-            if(_computer.HasPreferenceWithGivenClassName(Utilities.AvailablePreferences.get(i).ClassName))
+            if(IsInEditMode() && _computer.HasPreferenceWithGivenClassName(Utilities.AvailablePreferences.get(i).ClassName))
             {
                 selectedCheckboxesBeforeChanges.add(checkBox);
             }
@@ -450,29 +483,30 @@ public class ComputerInfoController implements Initializable
 
     private void ValidateIfEmpty(TextField textField)
     {
-        textField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
         if(Utilities.EmptyOrNull(textField.getText()))
         {
             textField.getStyleClass().add("validation-error");
+        }
+        else
+        {
+            textField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
         }
     }
 
     // ---  BEFORE SAVE VALIDATION  ------------------------------------------------------------------------------------
 
-    private List<String> ValidateBeforeSave()
+    private List<String> ValidateFieldsAreFilledCorrectly()
     {
         List<String> errors = new ArrayList<>();
 
-        String displayedNameError = ValidateDisplayedName(displayedNameTextField.getText());
-        if(displayedNameError != null)
+        if(Utilities.EmptyOrNull(displayedNameTextField.getText()))
         {
-            errors.add(displayedNameError);
+            errors.add("Displayed name cannot be empty.");
         }
 
-        String hostError = ValidateHost(hostTextField.getText());
-        if(hostError != null)
+        if(Utilities.EmptyOrNull(hostTextField.getText()))
         {
-            errors.add(hostError);
+            errors.add("Host cannot be empty.");
         }
 
         if(Utilities.EmptyOrNull(classroomTextField.getText()))
@@ -520,29 +554,33 @@ public class ComputerInfoController implements Initializable
         return errors;
     }
 
-    private String ValidateDisplayedName(String newDisplayedName)
+    private String ValidateDisplayedNameExistsInDb(String newDisplayedName)
     {
-        if(Utilities.EmptyOrNull(newDisplayedName))
+        if(IsInEditMode())
         {
-            if(_displayedNameIsIncorrect == false)
+            if(_computer.GetDisplayedName().equals(newDisplayedName) == false
+                    && _computersAndSshConfigsManager.ComputerWithDisplayedNameExists(newDisplayedName))
             {
-                displayedNameTextField.getStyleClass().add("validation-error");
-                _displayedNameIsIncorrect = true;
-            }
+                if(_displayedNameIsIncorrect == false)
+                {
+                    displayedNameTextField.getStyleClass().add("validation-error");
+                    _displayedNameIsIncorrect = true;
+                }
 
-            return "Displayed name cannot be empty.";
+                return "Other computer has same displayed name.";
+            }
         }
-
-        if(_computer.GetDisplayedName().equals(newDisplayedName) == false
-                && _computersAndSshConfigsManager.ComputerWithDisplayedNameExists(newDisplayedName))
+        else
         {
-            if(_displayedNameIsIncorrect == false)
+            if(_computersAndSshConfigsManager.ComputerWithDisplayedNameExists(newDisplayedName))
             {
-                displayedNameTextField.getStyleClass().add("validation-error");
-                _displayedNameIsIncorrect = true;
+                if(_displayedNameIsIncorrect == false)
+                {
+                    displayedNameTextField.getStyleClass().add("validation-error");
+                    _displayedNameIsIncorrect = true;
+                }
+                return "Other computer has same displayed name.";
             }
-
-            return "Other computer has same displayed name.";
         }
 
         if(_displayedNameIsIncorrect)
@@ -646,29 +684,25 @@ public class ComputerInfoController implements Initializable
 
     // ---  BUTTONS LOGIC  ---------------------------------------------------------------------------------------------
 
+    // TODO: Restoring changes in observable list when exception thrown
     @FXML
     void SaveChanges(ActionEvent event)
     {
-        List<String> errors = ValidateBeforeSave();
-
+        boolean hadGlobalConfig = _computer.GetSshConfig().HasGlobalScope();
+        List<String> errors = CopyChangesToComputer(true);
         if(errors.size() > 0)
         {
             Utilities.ShowSaveErrorDialog(errors);
             return;
         }
 
-        SshConfig backupSshConfig = null;
         try
         {
-            boolean hadGlobalConfig = _computer.GetSshConfig().HasGlobalScope();
-            CopyChangesToComputer(true);
             if(_computer.Changed() == false)
             {
                 Utilities.ShowInfoDialog("No changes to save.");
                 return;
             }
-            backupSshConfig = _localLocalConfig;
-
             if(_computer.GetSshConfig().HasGlobalScope() && hadGlobalConfig == false) // LOCAL -> GLOBAL
             {
                 _localLocalConfig = SshConfig.CreateEmpty();
@@ -697,21 +731,78 @@ public class ComputerInfoController implements Initializable
         }
         catch(DatabaseException e)
         {
-            _localLocalConfig = backupSshConfig;
             RestoreComputerChanges();
             Utilities.ShowErrorDialog("Computer update in db has failed.");
         }
         catch(Exception e)
         {
             e.printStackTrace();
-            _localLocalConfig = backupSshConfig;
             RestoreComputerChanges();
             Utilities.ShowErrorDialog("Unknown error has occurred while saving.");
         }
     }
 
-    private void CopyChangesToComputer(boolean encryptPassword) // TODO: DISCARD ERROR - GLOBAL -> LOCAL -> DISC -> DISC WITHOUT CHANGES
+
+    private List<String> CopyChangesToComputer(boolean encryptPassword)
     {
+        List<String> errors = ValidateFieldsAreFilledCorrectly();
+        if (errors.size() > 0)
+        {
+            return errors;
+        }
+
+        Duration requestIntervalDuration =
+                Utilities.ConvertSecondsToDurationInNanos(Long.parseLong(requestIntervalTextField.getText()));
+        Duration maintainPeriodDuration =
+                Utilities.ConvertSecondsToDurationInNanos(Long.parseLong(maintainPeriodTextField.getText()));
+        Duration logExpirationDuration =
+                Utilities.ConvertSecondsToDurationInNanos(Long.parseLong(logExpirationTextField.getText()));
+
+        if(IsInSaveMode()) // All fields are correctly filled and we can surely create instance of Computer
+        {
+            SshConfig sshConfig;
+            if(IsSelectedGlobalConfig()) // EMPTY LOCAL -> GLOBAL
+            {
+                sshConfig = sshConfigChoiceBox.getSelectionModel().getSelectedItem();
+            }
+            else
+            {
+                SshFieldsState currentSshFieldsState = new SshFieldsState();
+                currentSshFieldsState.FetchFromSshTextFields();
+
+                if(currentSshFieldsState.AuthMethod == SshAuthMethod.PASSWORD)
+                {
+                    if(encryptPassword)
+                    {
+                        try
+                        {
+                            currentSshFieldsState.Password = Encrypter.GetInstance().Encrypt(currentSshFieldsState.Password);
+                        }
+                        catch (EncrypterException e)
+                        {
+                            // Never enters this block
+                        }
+                    }
+                }
+
+                sshConfig = currentSshFieldsState.ToSshConfig();
+            }
+
+            _computer = new Computer(
+                    displayedNameTextField.getText(),
+                    hostTextField.getText(),
+                    classroomTextField.getText(),
+                    sshConfig,
+                    requestIntervalDuration,
+                    maintainPeriodDuration,
+                    logExpirationDuration,
+                    isSelectedCheckBox.isSelected()
+            );
+            return null;
+        }
+
+        // ---  IN EDIT MODE  ---
+
         if(IsSelectedGlobalConfig()) // LOCAL -> GLOBAL & GLOBAL -> GLOBAL
         {
             _computer.SetSshConfig(sshConfigChoiceBox.getSelectionModel().getSelectedItem());
@@ -755,7 +846,7 @@ public class ComputerInfoController implements Initializable
                         }
                         catch (EncrypterException e)
                         {
-                            // Never enter this block
+                            // Never enters this block
                         }
                     }
                 }
@@ -769,19 +860,13 @@ public class ComputerInfoController implements Initializable
         _computer.SetHost(hostTextField.getText());
         _computer.SetClassroom(classroomTextField.getText());
 
-        Duration requestIntervalDuration =
-                Utilities.ConvertSecondsToDurationInNanos(Long.parseLong(requestIntervalTextField.getText()));
         _computer.SetRequestInterval(requestIntervalDuration);
-
-        Duration maintainPeriodDuration =
-                Utilities.ConvertSecondsToDurationInNanos(Long.parseLong(maintainPeriodTextField.getText()));
         _computer.SetMaintainPeriod(maintainPeriodDuration);
-
-        Duration logExpirationDuration =
-                Utilities.ConvertSecondsToDurationInNanos(Long.parseLong(logExpirationTextField.getText()));
         _computer.SetLogExpiration(logExpirationDuration);
 
         _computer.SetPreferences(GetSelectedPreferences());
+
+        return null;
     }
 
     private String GetDecryptedPasswordFromLocalSshConfig()
@@ -810,48 +895,73 @@ public class ComputerInfoController implements Initializable
 
         _isDiscardingChanges = true;
 
-        isSelectedCheckBox.setSelected(_computer.IsSelected());
-        displayedNameTextField.setText(_computer.GetDisplayedName());
-        hostTextField.setText(_computer.GetHost());
-        classroomTextField.setText(_computer.GetClassroom());
-
-        if(sshConfigChoiceBox.getSelectionModel().getSelectedItem() != _computer.GetSshConfig())
+        if(IsInSaveMode())
         {
-            sshConfigChoiceBox.getSelectionModel().select(_computer.GetSshConfig()); // Responsible for setting ssh text fields
-        }
-        else
-        {
-            SshConfig oldSshConfig = sshConfigChoiceBox.getSelectionModel().getSelectedItem();
-            SshConfig newSshConfig = _computer.GetSshConfig();
+            isSelectedCheckBox.setSelected(true);
+            displayedNameTextField.setText(null);
+            hostTextField.setText(null);
+            classroomTextField.setText(null);
 
-            if(newSshConfig.HasGlobalScope())
+            if(sshConfigChoiceBox.getSelectionModel().getSelectedItem() != _localLocalConfig)
             {
-                if(oldSshConfig.HasLocalScope() && _isDiscardingChanges == false)
-                {
-                    if(_prevLocalSshFieldsState == null)
-                    {
-                        _prevLocalSshFieldsState = new SshFieldsState();
-                    }
-                    _prevLocalSshFieldsState.FetchFromSshTextFields();
-                }
-
-                ChooseGlobalConfigInChoiceBox(newSshConfig);
+                sshConfigChoiceBox.getSelectionModel().select(_localLocalConfig);
             }
             else
             {
-                ChooseLocalConfigInChoiceBox();
+                sshUsernameTextField.setText(null);
+                sshPasswordPasswordField.setText(null);
+                sshKeyPathTextField.setText(null);
+                sshPortTextField.setText(null);
             }
+            ChooseLocalConfigInChoiceBox();
+
+            requestIntervalTextField.setText(null);
+            maintainPeriodTextField.setText(null);
+            logExpirationTextField.setText(null);
+        }
+        else if(IsInEditMode())
+        {
+            isSelectedCheckBox.setSelected(_computer.IsSelected());
+            displayedNameTextField.setText(_computer.GetDisplayedName());
+            hostTextField.setText(_computer.GetHost());
+            classroomTextField.setText(_computer.GetClassroom());
+
+            if(sshConfigChoiceBox.getSelectionModel().getSelectedItem() != _computer.GetSshConfig())
+            {
+                sshConfigChoiceBox.getSelectionModel().select(_computer.GetSshConfig()); // Responsible for setting ssh text fields
+            }
+            else
+            {
+                SshConfig oldSshConfig = sshConfigChoiceBox.getSelectionModel().getSelectedItem();
+                SshConfig newSshConfig = _computer.GetSshConfig();
+
+                if(newSshConfig.HasGlobalScope())
+                {
+                    if(oldSshConfig.HasLocalScope() && _isDiscardingChanges == false)
+                    {
+                        if(_prevLocalSshFieldsState == null)
+                        {
+                            _prevLocalSshFieldsState = new SshFieldsState();
+                        }
+                        _prevLocalSshFieldsState.FetchFromSshTextFields();
+                    }
+
+                    ChooseGlobalConfigInChoiceBox(newSshConfig);
+                }
+                else
+                {
+                    ChooseLocalConfigInChoiceBox();
+                }
+            }
+
+            requestIntervalTextField.setText(String.valueOf(_computer.GetRequestInterval().toSeconds()));
+            maintainPeriodTextField.setText(String.valueOf(_computer.GetMaintainPeriod().toSeconds()));
+            logExpirationTextField.setText(String.valueOf(_computer.GetLogExpiration().toSeconds()));
         }
 
-        requestIntervalTextField.setText(String.valueOf(_computer.GetRequestInterval().toSeconds()));
-        maintainPeriodTextField.setText(String.valueOf(_computer.GetMaintainPeriod().toSeconds()));
-        logExpirationTextField.setText(String.valueOf(_computer.GetLogExpiration().toSeconds()));
-
-        SetPreferencesCheckBoxesAsBeforeChanges();
-
-        _isDiscardingChanges = false;
-
+        DiscardChangesInPreferenceCheckboxes();
         _prevLocalSshFieldsState = null;
+        _isDiscardingChanges = false;
     }
 
     @FXML
@@ -927,6 +1037,81 @@ public class ComputerInfoController implements Initializable
     // ---  CHOOSING SSH CONFIG IN CHOICEBOX  --------------------------------------------------------------------------
 
     private void ChooseLocalConfigInChoiceBox()
+    {
+        if(IsInSaveMode())
+        {
+            ChooseLocalConfigInChoiceBoxInSaveMode();
+        }
+        else
+        {
+            ChooseLocalConfigInChoiceBoxInEditMode();
+        }
+    }
+
+    private void ChooseLocalConfigInChoiceBoxInSaveMode()
+    {
+        if(_prevLocalSshFieldsState != null && _isDiscardingChanges == false) // GLOBAL -> EMPTY LOCAL
+        {
+            _prevLocalSshFieldsState.FillSshTextFields();
+
+            if(_prevLocalSshFieldsState.AuthMethod == SshAuthMethod.PASSWORD)
+            {
+                if(passwordAuthMethodRadioButton.isSelected())
+                {
+                    ChoosePasswordAuthMethod();
+                }
+                else
+                {
+                    passwordAuthMethodRadioButton.setSelected(true);
+                }
+            }
+            else
+            {
+                if(privateKeyAuthMethodRadioButton.isSelected())
+                {
+                    ChoosePrivateKeyAuthMethod();
+                }
+                else
+                {
+                    privateKeyAuthMethodRadioButton.setSelected(true);
+                }
+            }
+        }
+        else // EMPTY LOCAL -> EMPTY LOCAL
+        {
+            sshUsernameTextField.setText(null);
+            sshPasswordPasswordField.setText(null);
+            sshKeyPathTextField.setText(null);
+            sshPortTextField.setText(null);
+
+            if(_localLocalConfig.GetAuthMethod()  == SshAuthMethod.PASSWORD)
+            {
+                if(passwordAuthMethodRadioButton.isSelected())
+                {
+                    ChoosePasswordAuthMethod();
+                }
+                else
+                {
+                    passwordAuthMethodRadioButton.setSelected(true);
+                }
+            }
+            else
+            {
+                if(privateKeyAuthMethodRadioButton.isSelected())
+                {
+                    ChoosePrivateKeyAuthMethod();
+                }
+                else
+                {
+                    privateKeyAuthMethodRadioButton.setSelected(true);
+                }
+            }
+        }
+
+        _prevLocalSshFieldsState = null;
+    }
+
+    private void ChooseLocalConfigInChoiceBoxInEditMode()
     {
         if(_computer.GetSshConfig().HasGlobalScope()) // GLOBAL -> LOCAL
         {
@@ -1097,16 +1282,42 @@ public class ComputerInfoController implements Initializable
 
     // ---  PREDICATES  ------------------------------------------------------------------------------------------------
 
+    private boolean IsInSaveMode()
+    {
+        return _computer == null;
+    }
+
+    private boolean IsInEditMode()
+    {
+        return _computer != null;
+    }
+
     public boolean SomethingChanged()
     {
         CopyChangesToComputer(false);
-        boolean somethingChanged = _computer.Changed();
-        if(somethingChanged)
-        {
-            _computer.Restore();
-        }
 
-        return somethingChanged;
+        if(IsInEditMode())
+        {
+            boolean somethingChanged = _computer.Changed();
+            if(somethingChanged)
+            {
+                _computer.Restore();
+            }
+
+            return somethingChanged;
+        }
+        else
+        {
+            if(_computer != null)
+            {
+                _computer = null;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 
     private boolean IsSelectedLocalConfig()
@@ -1191,7 +1402,7 @@ public class ComputerInfoController implements Initializable
         _computer.Restore();
     }
 
-    private void SetPreferencesCheckBoxesAsBeforeChanges()
+    private void DiscardChangesInPreferenceCheckboxes()
     {
         for (CheckBox preferenceCheckbox : preferenceCheckboxes)
         {

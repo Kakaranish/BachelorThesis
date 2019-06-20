@@ -481,11 +481,6 @@ public class SshConfig
         return _prevState;
     }
 
-    public boolean ExistsInDb()
-    {
-        return _existsInDb;
-    }
-
     // ---  SETTERS  ---------------------------------------------------------------------------------------------------
 
     public void ResetPreviousState()
@@ -653,6 +648,11 @@ public class SshConfig
         return Scope == SshConfigScope.GLOBAL;
     }
 
+    public boolean ExistsInDb()
+    {
+        return _existsInDb;
+    }
+
     @Override
     public boolean equals(Object obj)
     {
@@ -670,17 +670,6 @@ public class SshConfig
 
         return  this.Id == other.Id &&
                 Utilities.AreEqual(this.Name, other.Name) &&
-                Utilities.AreEqual(this.Scope, other.Scope) &&
-                Utilities.AreEqual(this.Port, other.Port) &&
-                Utilities.AreEqual(this.AuthMethod, other.AuthMethod) &&
-                Utilities.AreEqual(this.Username, other.Username) &&
-                Utilities.AreEqual(this.PrivateKeyPath, other.PrivateKeyPath) &&
-                Utilities.AreEqual(this.EncryptedPassword, other.EncryptedPassword);
-    }
-
-    public boolean HasSameContentAs(SshConfig other)
-    {
-        return  Utilities.AreEqual(this.Name, other.Name) &&
                 Utilities.AreEqual(this.Scope, other.Scope) &&
                 Utilities.AreEqual(this.Port, other.Port) &&
                 Utilities.AreEqual(this.AuthMethod, other.AuthMethod) &&
