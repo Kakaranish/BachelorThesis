@@ -589,7 +589,7 @@ public class SshConfig
         EncryptedPassword = null;
     }
 
-    private void SetLocalScope()
+    public void SetLocalScope()
     {
         if(HasLocalScope())
         {
@@ -602,7 +602,7 @@ public class SshConfig
         Name = null;
     }
 
-    private void SetGlobalScope(String name)
+    public void SetGlobalScope(String name)
     {
         if(HasGlobalScope() && Utilities.AreEqual(Name, name))
         {
@@ -616,6 +616,11 @@ public class SshConfig
     }
 
     // ---  MISC  ------------------------------------------------------------------------------------------------------
+
+    public boolean Changed()
+    {
+        return _prevState != null;
+    }
 
     public void ConvertToNonExistingInDb()
     {
@@ -685,5 +690,18 @@ public class SshConfig
                 Utilities.AreEqual(this.Username, other.Username) &&
                 Utilities.AreEqual(this.PrivateKeyPath, other.PrivateKeyPath) &&
                 Utilities.AreEqual(this.EncryptedPassword, other.EncryptedPassword);
+    }
+
+    @Override
+    public String toString()
+    {
+        if(HasLocalScope())
+        {
+            return "LOCAL - Username[" + Username + "], Port[" + Port + "]";
+        }
+        else
+        {
+            return "GLOBAL - ConfigName[" + Name + "], Username[" + Username + "], Port[" + Port + "]";
+        }
     }
 }

@@ -5,9 +5,7 @@ import Healthcheck.DatabaseManagement.DatabaseException;
 import Healthcheck.Encryption.Encrypter;
 import Healthcheck.Encryption.EncrypterException;
 import Healthcheck.Entities.*;
-import Healthcheck.LogsManagement.LogsGetter;
 import Healthcheck.LogsManagement.LogsMaintainer;
-import Healthcheck.LogsManagement.LogsManager;
 import Healthcheck.LogsManagement.NothingToDoException;
 import Healthcheck.SSHConnectionManagement.SSHConnection;
 import Healthcheck.SSHConnectionManagement.SSHConnectionException;
@@ -315,7 +313,10 @@ public class ComputerInfoController implements Initializable
 
                 FileChooser fileChooser = new FileChooser();
                 File file = fileChooser.showOpenDialog(stage);
-                sshKeyPathTextField.setText(file.getAbsolutePath());
+                if(file != null)
+                {
+                    sshKeyPathTextField.setText(file.getAbsolutePath());
+                }
             }
         });
     }
@@ -478,7 +479,7 @@ public class ComputerInfoController implements Initializable
     private void ValidateIfEmpty(TextField textField, String oldValue, String newValue)
     {
         textField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
-        if(!Utilities.EmptyOrNull(oldValue) && Utilities.EmptyOrNull(newValue))
+        if(Utilities.EmptyOrNull(newValue))
         {
             textField.getStyleClass().add("validation-error");
         }
@@ -494,115 +495,6 @@ public class ComputerInfoController implements Initializable
         {
             textField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
         }
-    }
-
-    // ---  BEFORE SAVE VALIDATION  ------------------------------------------------------------------------------------
-
-    private List<String> ValidateFieldsAreFilledCorrectly()
-    {
-        List<String> errors = new ArrayList<>();
-
-        if(Utilities.EmptyOrNull(displayedNameTextField.getText()))
-        {
-            errors.add("Displayed name cannot be empty.");
-        }
-
-        if(Utilities.EmptyOrNull(hostTextField.getText()))
-        {
-            errors.add("Host cannot be empty.");
-        }
-
-        if(Utilities.EmptyOrNull(classroomTextField.getText()))
-        {
-            errors.add("Classroom cannot be empty.");
-        }
-
-        if(IsSelectedLocalConfig())
-        {
-            if(Utilities.EmptyOrNull(sshUsernameTextField.getText()))
-            {
-                errors.add("Ssh username cannot be empty.");
-            }
-
-            if(IsParsableToInteger(sshPortTextField.getText()) == false)
-            {
-                errors.add("Ssh port must be integer.");
-            }
-
-            if(IsSelectedPasswordAuthRadioButton() && Utilities.EmptyOrNull(sshPasswordPasswordField.getText()))
-            {
-                errors.add("Ssh password cannot be empty.");
-            }
-            else if(IsSelectedPrivateKeyAuthRadioButton() && Utilities.EmptyOrNull(sshKeyPathTextField.getText()))
-            {
-                errors.add("Ssh private key path cannot be empty.");
-            }
-        }
-
-        if(IsParsableToInteger(requestIntervalTextField.getText()) == false)
-        {
-            errors.add("Request interval must be integer.");
-        }
-
-        if(IsParsableToInteger(maintainPeriodTextField.getText()) == false)
-        {
-            errors.add("Maintenance period must be integer.");
-        }
-
-        if(IsParsableToInteger(logExpirationTextField.getText()) == false)
-        {
-            errors.add("Log expiration value must be integer.");
-        }
-
-        return errors;
-    }
-
-    // ---  COPYING CHANGES TO COMPUTER  -------------------------------------------------------------------------------
-
-    private String ValidateDisplayedNameExistsInDb(String newDisplayedName)
-    {
-        if(IsInEditMode())
-        {
-            if(_computer.GetDisplayedName().equals(newDisplayedName) == false
-                    && _computersAndSshConfigsManager.ComputerWithDisplayedNameExists(newDisplayedName))
-            {
-                displayedNameTextField.getStyleClass().add("validation-error");
-                return "Other computer has same displayed name.";
-            }
-        }
-        else
-        {
-            if(_computersAndSshConfigsManager.ComputerWithDisplayedNameExists(newDisplayedName))
-            {
-                displayedNameTextField.getStyleClass().add("validation-error");
-                return "Other computer has same displayed name.";
-            }
-        }
-
-        return null;
-    }
-
-    private String ValidateHostExistsInDb(String newHost)
-    {
-        if(IsInEditMode())
-        {
-            if(_computer.GetHost().equals(newHost) == false
-                    && _computersAndSshConfigsManager.ComputerWithHostExists(newHost))
-            {
-                hostTextField.getStyleClass().add("validation-error");
-                return "Other computer has same host.";
-            }
-        }
-        else
-        {
-            if(_computersAndSshConfigsManager.ComputerWithHostExists(newHost))
-            {
-                hostTextField.getStyleClass().add("validation-error");
-                return "Other computer has same host.";
-            }
-        }
-
-        return null;
     }
 
     // ---  OTHER VALIDATION  ------------------------------------------------------------------------------------------
@@ -673,6 +565,114 @@ public class ComputerInfoController implements Initializable
         }
     }
 
+    // ---  BEFORE SAVE VALIDATION  ------------------------------------------------------------------------------------
+
+    private List<String> GetValidationErrorListBeforeSaveOrUpdate()
+    {
+        List<String> errors = new ArrayList<>();
+
+        if(Utilities.EmptyOrNull(displayedNameTextField.getText()))
+        {
+            errors.add("Displayed name cannot be empty.");
+        }
+
+        if(Utilities.EmptyOrNull(hostTextField.getText()))
+        {
+            errors.add("Host cannot be empty.");
+        }
+
+        if(Utilities.EmptyOrNull(classroomTextField.getText()))
+        {
+            errors.add("Classroom cannot be empty.");
+        }
+
+        if(IsSelectedLocalConfig())
+        {
+            if(Utilities.EmptyOrNull(sshUsernameTextField.getText()))
+            {
+                errors.add("Ssh username cannot be empty.");
+            }
+
+            if(IsParsableToInteger(sshPortTextField.getText()) == false)
+            {
+                errors.add("Ssh port must be integer.");
+            }
+
+            if(IsSelectedPasswordAuthRadioButton() && Utilities.EmptyOrNull(sshPasswordPasswordField.getText()))
+            {
+                errors.add("Ssh password cannot be empty.");
+            }
+            else if(IsSelectedPrivateKeyAuthRadioButton() && Utilities.EmptyOrNull(sshKeyPathTextField.getText()))
+            {
+                errors.add("Ssh private key path cannot be empty.");
+            }
+        }
+
+        if(IsParsableToInteger(requestIntervalTextField.getText()) == false)
+        {
+            errors.add("Request interval must be integer.");
+        }
+
+        if(IsParsableToInteger(maintainPeriodTextField.getText()) == false)
+        {
+            errors.add("Maintenance period must be integer.");
+        }
+
+        if(IsParsableToInteger(logExpirationTextField.getText()) == false)
+        {
+            errors.add("Log expiration value must be integer.");
+        }
+
+        return errors;
+    }
+
+    private String ValidateDisplayedNameExistsInDb(String newDisplayedName)
+    {
+        if(IsInEditMode())
+        {
+            if(_computer.GetDisplayedName().equals(newDisplayedName) == false
+                    && _computersAndSshConfigsManager.ComputerWithDisplayedNameExists(newDisplayedName))
+            {
+                displayedNameTextField.getStyleClass().add("validation-error");
+                return "Other computer has same displayed name.";
+            }
+        }
+        else
+        {
+            if(_computersAndSshConfigsManager.ComputerWithDisplayedNameExists(newDisplayedName))
+            {
+                displayedNameTextField.getStyleClass().add("validation-error");
+                return "Other computer has same displayed name.";
+            }
+        }
+
+        return null;
+    }
+
+    private String ValidateHostExistsInDb(String newHost)
+    {
+        if(IsInEditMode())
+        {
+            if(_computer.GetHost().equals(newHost) == false
+                    && _computersAndSshConfigsManager.ComputerWithHostExists(newHost))
+            {
+                hostTextField.getStyleClass().add("validation-error");
+                return "Other computer has same host.";
+            }
+        }
+        else
+        {
+            if(_computersAndSshConfigsManager.ComputerWithHostExists(newHost))
+            {
+                hostTextField.getStyleClass().add("validation-error");
+                return "Other computer has same host.";
+            }
+        }
+
+        return null;
+    }
+
+    // ---  COPYING CHANGES TO COMPUTER  -------------------------------------------------------------------------------
 
     private void CopyChangesToComputerInSaveMode(boolean encryptPassword)
     {
@@ -786,7 +786,7 @@ public class ComputerInfoController implements Initializable
     @FXML
     void SaveOrUpdateComputer(ActionEvent event)
     {
-        List<String> emptinessOrIntegerErrors = ValidateFieldsAreFilledCorrectly();
+        List<String> emptinessOrIntegerErrors = GetValidationErrorListBeforeSaveOrUpdate();
         if (emptinessOrIntegerErrors.size() > 0)
         {
             Utilities.ShowSaveErrorDialog(emptinessOrIntegerErrors);
@@ -820,7 +820,7 @@ public class ComputerInfoController implements Initializable
                 removeButton.setDisable(false);
 
                 ChangedEvent changedEvent = new ChangedEvent();
-                changedEvent.ChangeType = ChangeEventType.ADDED;
+                changedEvent.ChangeType = ChangedEventType.ADDED;
                 changedEvent.Computer = _computer;
 
                 new Thread(() -> _parent.NotifyChanged(changedEvent)).start();
@@ -832,7 +832,7 @@ public class ComputerInfoController implements Initializable
             if(updateSucceed)
             {
                 ChangedEvent changedEvent = new ChangedEvent();
-                changedEvent.ChangeType = ChangeEventType.UPDATED;
+                changedEvent.ChangeType = ChangedEventType.UPDATED;
                 changedEvent.Computer = _computer;
 
                 new Thread(() -> _parent.NotifyChanged(changedEvent)).start();
@@ -872,7 +872,7 @@ public class ComputerInfoController implements Initializable
             selectedCheckboxesBeforeChanges = GetSelectedPreferenceCheckboxes();
             _prevLocalSshFieldsState = null;
 
-            Utilities.ShowInfoDialog("Computer update has succeed.");
+            Utilities.ShowInfoDialog("Adding computer has succeed.");
 
             return true;
         }
@@ -887,7 +887,7 @@ public class ComputerInfoController implements Initializable
         {
             _computer = null;
             e.printStackTrace();
-            Utilities.ShowErrorDialog("Unknown error has occurred while saving.");
+            Utilities.ShowErrorDialog("Unknown error has occurred while saving computer.");
 
             return false;
         }
@@ -899,13 +899,14 @@ public class ComputerInfoController implements Initializable
 
         CopyChangesToComputerInEditMode(true);
 
+        if(_computer.Changed() == false)
+        {
+            Utilities.ShowInfoDialog("No changes to save.");
+            return false;
+        }
+
         try
         {
-            if(_computer.Changed() == false)
-            {
-                Utilities.ShowInfoDialog("No changes to save.");
-                return false;
-            }
             if(_computer.GetSshConfig().HasGlobalScope() && hadGlobalConfig == false) // LOCAL -> GLOBAL
             {
                 _localLocalConfig = SshConfig.CreateEmpty();
@@ -945,7 +946,7 @@ public class ComputerInfoController implements Initializable
         {
             RestoreComputerChanges();
             e.printStackTrace();
-            Utilities.ShowErrorDialog("Unknown error has occurred while saving.");
+            Utilities.ShowErrorDialog("Unknown error has occurred while updating computer.");
 
             return false;
         }
@@ -973,11 +974,14 @@ public class ComputerInfoController implements Initializable
            _computer.RemoveFromDb();
 
            ChangedEvent changedEvent = new ChangedEvent();
-           changedEvent.ChangeType = ChangeEventType.REMOVED;
+           changedEvent.ChangeType = ChangedEventType.REMOVED;
            changedEvent.Computer = _computer;
 
            new Thread(() -> _parent.NotifyChanged(changedEvent)).start();
-           ((Stage) removeButton.getScene().getWindow()).close();
+
+            Utilities.ShowInfoDialog("Removing computer succeed.");
+
+            ((Stage) removeButton.getScene().getWindow()).close();
         }
         catch (DatabaseException e)
         {
@@ -1029,7 +1033,7 @@ public class ComputerInfoController implements Initializable
             maintainPeriodTextField.setText(null);
             logExpirationTextField.setText(null);
         }
-        else if(IsInEditMode())
+        else
         {
             isSelectedCheckBox.setSelected(_computer.IsSelected());
             displayedNameTextField.setText(_computer.GetDisplayedName());

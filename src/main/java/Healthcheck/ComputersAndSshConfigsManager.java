@@ -148,7 +148,7 @@ public class ComputersAndSshConfigsManager
     public boolean OtherGlobalSshConfigWithNameExists(SshConfig sshConfig, String name)
     {
         List<SshConfig> results = _sshConfigs.stream()
-                .filter(s -> s.GetName().equals(name) && s != sshConfig).collect(Collectors.toList());
+                .filter(s -> s.GetName() != null && s.GetName().equals(name) && s != sshConfig).collect(Collectors.toList());
 
         return results.isEmpty() == false;
     }

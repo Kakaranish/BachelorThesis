@@ -33,7 +33,7 @@ public class Computer
     private String Classroom;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "SSHConfiguration_Id", referencedColumnName = "Id", nullable = false)
+    @JoinColumn(name = "SSHConfiguration_Id", referencedColumnName = "Id", nullable = true)
     private SshConfig SshConfig;
 
     @Column(nullable = false)
@@ -451,8 +451,13 @@ public class Computer
             catch (DatabaseException e)
             {
                 session.close();
+                throw e;
             }
         }
+
+        SshConfig backupConfig = SshConfig;
+        SshConfig.RemoveComputer(this);
+        SshConfig = null;
 
         String attemptErrorMessage = "[ERROR] Computer: Attempt of removing computer from db failed.";
         boolean removeSucceed = DatabaseManager.RemoveWithRetryPolicy(session, this, attemptErrorMessage);
@@ -460,25 +465,25 @@ public class Computer
         {
             try
             {
+                SshConfig = backupConfig;
+                SshConfig.AddComputer(this);
                 SshConfig.AddToDb(session);
             }
             catch (DatabaseException|SshConfigException e)
             {
                 session.close();
-                throw new FatalErrorException("Restoring ssh configs after computer adding failed!");
+                throw new FatalErrorException("Restoring ssh configs after computer adding failure failed!");
             }
 
             session.close();
-            throw new DatabaseException("Unable to remove global ssh config in db.");
+            throw new DatabaseException("Unable to remove computer from db. Ssh config restored.");
         }
-
 
         if(_computersAndSshConfigsManager != null)
         {
             _computersAndSshConfigsManager.RemovedComputer(this);
         }
 
-        SshConfig.RemoveComputer(this);
         _existsInDb = false;
     }
 

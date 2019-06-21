@@ -3,7 +3,7 @@ package GUI.Controllers;
 import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.SshConfig;
 
-enum ChangeEventType
+enum ChangedEventType
 {
     ADDED,
 
@@ -14,7 +14,7 @@ enum ChangeEventType
 
 public class ChangedEvent
 {
-    public ChangeEventType ChangeType;
+    public ChangedEventType ChangeType;
 
     public Computer Computer;
 

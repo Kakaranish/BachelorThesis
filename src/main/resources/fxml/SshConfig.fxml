@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="405.0" prefWidth="695.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <Text layoutX="40.0" layoutY="48.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Add or update ssh config">
+         <font>
+            <Font size="20.0" />
+         </font>
+      </Text>
+      <GridPane layoutX="39.0" layoutY="73.0" prefHeight="247.0" prefWidth="618.0">
+        <columnConstraints>
+          <ColumnConstraints hgrow="SOMETIMES" maxWidth="304.0" minWidth="10.0" prefWidth="208.0" />
+          <ColumnConstraints hgrow="SOMETIMES" maxWidth="468.0" minWidth="10.0" prefWidth="410.0" />
+        </columnConstraints>
+        <rowConstraints>
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        </rowConstraints>
+         <children>
+            <Label text="Displayed Name" />
+            <Label text="Username" GridPane.rowIndex="1" />
+            <Label text="Authentication Method" GridPane.rowIndex="2" />
+            <Label text="Ssh Password" GridPane.rowIndex="3" />
+            <Label text="Ssh Private Key Path" GridPane.rowIndex="4" />
+            <Label text="Port" GridPane.rowIndex="5" />
+            <TextField fx:id="displayedNameTextField" GridPane.columnIndex="1" />
+            <TextField fx:id="usernameTextField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <GridPane GridPane.columnIndex="1" GridPane.rowIndex="2">
+              <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="200.0" minWidth="10.0" prefWidth="100.0" />
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="316.0" minWidth="10.0" prefWidth="310.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+               <children>
+                  <RadioButton fx:id="passwordAuthMethodRadioButton" mnemonicParsing="false" text="Password">
+                     <toggleGroup>
+                        <ToggleGroup fx:id="authenticationMethodGroup" />
+                     </toggleGroup>
+                  </RadioButton>
+                  <RadioButton fx:id="privateKeyAuthMethodRadioButton" mnemonicParsing="false" text="Key" toggleGroup="$authenticationMethodGroup" GridPane.columnIndex="1" />
+               </children>
+            </GridPane>
+            <PasswordField fx:id="passwordPasswordField" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+            <GridPane fx:id="keyGridPane" layoutX="244.0" layoutY="86.0" prefHeight="41.0" prefWidth="429.0" GridPane.columnIndex="1" GridPane.rowIndex="4">
+               <columnConstraints>
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="274.0" minWidth="10.0" prefWidth="264.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="149.0" minWidth="10.0" prefWidth="103.0" />
+               </columnConstraints>
+               <rowConstraints>
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+               </rowConstraints>
+               <children>
+                  <TextField fx:id="keyPathTextField" prefHeight="30.0" prefWidth="298.0" />
+                  <Button fx:id="chooseSshKeyButton" alignment="BASELINE_CENTER" contentDisplay="CENTER" mnemonicParsing="false" prefHeight="30.0" prefWidth="146.0" text="Choose file" GridPane.columnIndex="1" />
+               </children>
+            </GridPane>
+            <TextField fx:id="portTextField" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+         </children>
+      </GridPane>
+      <Button fx:id="saveOrUpdateButton" layoutX="39.0" layoutY="348.0" mnemonicParsing="false" onAction="#SaveOrUpdate" prefWidth="130.0" />
+      <Button fx:id="removeButton" layoutX="187.0" layoutY="348.0" mnemonicParsing="false" onAction="#Remove" prefWidth="130.0" text="Remove" />
+      <Button layoutX="333.0" layoutY="348.0" mnemonicParsing="false" onAction="#DiscardChanges" prefWidth="130.0" text="Discard changes" />
+   </children>
+</AnchorPane>
