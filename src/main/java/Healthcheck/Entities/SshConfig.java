@@ -300,20 +300,11 @@ public class SshConfig
 
     public void RemoveLocalFromDb(Session session) throws SshConfigException, DatabaseException
     {
-        Validate_RemoveFromDb();
-
-        SshConfig sshConfigBackup = new SshConfig(this);
+        Validate_RemoveLocalFromDb();
 
         String removeAttemptErrorMessage = "[ERROR] SshConfig: Attempt of removing local ssh config from db failed.";
-        boolean removeSucceed = false;
-        if(_prevState == null)
-        {
-            removeSucceed = DatabaseManager.RemoveWithRetryPolicy(session, this, removeAttemptErrorMessage);
-        }
-        else if(_prevState != null && this.equals(_prevState) == false)
-        {
-            removeSucceed = DatabaseManager.RemoveWithRetryPolicy(session, _prevState, removeAttemptErrorMessage);
-        }
+        boolean removeSucceed =
+                DatabaseManager.RemoveWithRetryPolicy(session, this, removeAttemptErrorMessage);
 
         if(removeSucceed == false)
         {
@@ -330,6 +321,19 @@ public class SshConfig
         _prevState = null;
     }
 
+    private void Validate_RemoveLocalFromDb() throws SshConfigException
+    {
+        if(_prevState != null)
+        {
+            throw new SshConfigException("Ssh config was changed. Restore changes to remove it.");
+        }
+
+        if(_existsInDb == false)
+        {
+            throw new SshConfigException("Ssh config does not exist in db.");
+        }
+    }
+
     public void RemoveGlobalFromDb() throws SshConfigException, DatabaseException
     {
         Session session = DatabaseManager.GetInstance().GetSession();
@@ -339,7 +343,7 @@ public class SshConfig
 
     public void RemoveGlobalFromDb(Session session) throws SshConfigException, DatabaseException, FatalErrorException
     {
-        Validate_RemoveFromDb();
+        Validate_RemoveGlobalFromDb();
 
         List<Computer> computers = new ArrayList<>(_computers);
         for (Computer computer : computers)
@@ -385,8 +389,13 @@ public class SshConfig
         _prevState = null;
     }
 
-    private void Validate_RemoveFromDb() throws SshConfigException
+    private void Validate_RemoveGlobalFromDb() throws SshConfigException
     {
+        if(HasLocalScope())
+        {
+            throw new SshConfigException("Ssh config has local scope.");
+        }
+
         if(_existsInDb == false)
         {
             throw new SshConfigException("Ssh config does not exist in db.");

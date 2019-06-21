@@ -431,51 +431,55 @@ public class Computer
 
     // ---  REMOVE FROM DB  --------------------------------------------------------------------------------------------
 
-    public void RemoveFromDb() throws NothingToDoException, ComputerException, SshConfigException
+    public void RemoveFromDb() throws ComputerException
     {
         Session session = DatabaseManager.GetInstance().GetSession();
         RemoveFromDb(session);
         session.close();
     }
 
-    public void RemoveFromDb(Session session) throws NothingToDoException, ComputerException, SshConfigException
+    public void RemoveFromDb(Session session) throws ComputerException
     {
         Validate_RemoveFromDb();
 
-        SshConfig.RemoveComputer(this);
         if(SshConfig.HasLocalScope())
         {
-            SshConfig.RemoveGlobalFromDb(session);
+            try
+            {
+                SshConfig.RemoveLocalFromDb(session);
+            }
+            catch (DatabaseException e)
+            {
+                session.close();
+            }
         }
 
         String attemptErrorMessage = "[ERROR] Computer: Attempt of removing computer from db failed.";
-        boolean removeSucceed;
-        if(_prevState != null) // TODO: Validate
-        {
-            removeSucceed = DatabaseManager.RemoveWithRetryPolicy(session, _prevState, attemptErrorMessage);
-        }
-        else
-        {
-            removeSucceed = DatabaseManager.RemoveWithRetryPolicy(session, this, attemptErrorMessage);
-        }
-
+        boolean removeSucceed = DatabaseManager.RemoveWithRetryPolicy(session, this, attemptErrorMessage);
         if(removeSucceed == false)
         {
             try
             {
-                SshConfig.AddComputer(this);
+                SshConfig.AddToDb(session);
             }
             catch (DatabaseException|SshConfigException e)
             {
+                session.close();
                 throw new FatalErrorException("Restoring ssh configs after computer adding failed!");
             }
+
+            session.close();
             throw new DatabaseException("Unable to remove global ssh config in db.");
         }
+
 
         if(_computersAndSshConfigsManager != null)
         {
             _computersAndSshConfigsManager.RemovedComputer(this);
         }
+
+        SshConfig.RemoveComputer(this);
+        _existsInDb = false;
     }
 
     private void Validate_RemoveFromDb()
@@ -485,9 +489,9 @@ public class Computer
             throw new ComputerException("Computer does not exist in db.");
         }
 
-        if(_prevState == null || this.equals(_prevState))
+        if(_prevState != null)
         {
-            throw new ComputerException("Computer was changed. Restore changes to ");
+            throw new ComputerException("Computer was changed. Restore changes to remove it.");
         }
     }
 
@@ -839,5 +843,11 @@ public class Computer
                 (this.Preferences == other.Preferences ||
                         (this.Preferences.containsAll(other.Preferences) &&
                                 other.Preferences.containsAll(this.Preferences)));
+    }
+
+    @Override
+    public String toString()
+    {
+        return DisplayedName + " (" + Host + ")";
     }
 }

@@ -10,6 +10,7 @@ import javax.persistence.Query;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.List;
 
 public class LogsMaintainer
@@ -219,7 +220,7 @@ public class LogsMaintainer
         return true;
     }
 
-    public static void RemoveAllLogsAssociatedWithComputerFromDb(Computer computer, Session session)
+    public static void RemoveAllLogsAssociatedWithComputerFromDb(Computer computer) throws DatabaseException
     {
         for (IPreference computerPreference : Preferences.AllPreferencesList)
         {
@@ -227,10 +228,19 @@ public class LogsMaintainer
                     computerPreference.GetClassName() +
                     " t where t.Computer = :computer";
 
+            Session session = DatabaseManager.GetInstance().GetSession();
             Query query = session.createQuery(hql);
             query.setParameter("computer", computer);
 
-            query.executeUpdate();
+            String attemptErrorMessage =
+                    "[ERROR] LogsMaintainer: Attempt of removing logs associated with '" + computer + "' failed.";
+            boolean removeSucceed =
+                    DatabaseManager.ExecuteDeleteQueryWithRetryPolicy(session, query, attemptErrorMessage);
+            session.close();
+            if(removeSucceed == false)
+            {
+                throw new DatabaseException("Unable to remove logs associated with '" + computer + "'.");
+            }
         }
     }
 

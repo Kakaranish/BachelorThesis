@@ -187,14 +187,14 @@ public class DatabaseManager
 
     public static boolean RemoveWithRetryPolicy(
             Session session,
-            Object objectToUpdate,
+            Object objectToRemove,
             String attemptErrorMessage)
     {
         try
         {
             // First attempt
             session.beginTransaction();
-            session.remove(objectToUpdate);
+            session.remove(objectToRemove);
             session.getTransaction().commit();
 
             return true;
@@ -215,7 +215,7 @@ public class DatabaseManager
                     Thread.sleep(Utilities.RemoveCooldown + randomFactor);
 
                     session.beginTransaction();
-                    session.remove(objectToUpdate);
+                    session.remove(objectToRemove);
                     session.getTransaction().commit();
 
                     return true;
@@ -245,7 +245,6 @@ public class DatabaseManager
         {
             // First attempt
             session.beginTransaction();
-
             List results = query.getResultList();
             session.getTransaction().commit();
 

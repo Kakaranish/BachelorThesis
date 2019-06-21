@@ -2,6 +2,7 @@ package GUI.Controllers;
 
 import Healthcheck.ComputersAndSshConfigsManager;
 import Healthcheck.Entities.Computer;
+import Healthcheck.FakeDataFactory;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -56,8 +57,6 @@ class CustomListCell extends ListCell<CustomThing> {
         image = new Image(CustomListCell.class.getResource("/pics/computer.png").toString());
     }
 
-
-
     public CustomListCell() {
         super();
         name = new Text();
@@ -91,7 +90,6 @@ class CustomListCell extends ListCell<CustomThing> {
 
 public class TestController implements Initializable
 {
-
     ObservableList data = FXCollections.observableArrayList();
     @FXML
     private ListView<CustomThing> listView;
@@ -102,6 +100,12 @@ public class TestController implements Initializable
     @FXML
     void dodajCheese(ActionEvent event) {
         data.add(new CustomThing("Cheese spierdala", "XD"));
+    }
+
+    public void NotifyChanged(ChangedEvent changeEvent)
+    {
+        // TODO: Implement
+
     }
 
     @FXML
@@ -115,14 +119,12 @@ public class TestController implements Initializable
         {
             e.printStackTrace();
         }
-        Computer computer = _computersAndSshConfigsManager.GetComputerByDisplayedName("OVH-1");
+        Computer computer = _computersAndSshConfigsManager.GetComputerByDisplayedName("test-comp-to-remove");
 
-//          Encrypter.GetInstance().Decrypt(computer.GetSshConfig().GetEncryptedPassword());
-
-        ComputerInfoController computerInfoController = new ComputerInfoController(computer, _computersAndSshConfigsManager);
+        ComputerInfoController computerInfoController =
+                new ComputerInfoController(this, computer, _computersAndSshConfigsManager);
         fxmlLoader.setController(computerInfoController);
 
-        // Password decryption here
         try
         {
             final Parent root = fxmlLoader.load();
@@ -150,6 +152,13 @@ public class TestController implements Initializable
     private void LoadData()
     {
         _computersAndSshConfigsManager = new ComputersAndSshConfigsManager();
+//        Computer comp = _computersAndSshConfigsManager.GetComputerByDisplayedName("L-G2");
+//        FakeDataFactory.CreateCpuLogsForComputer(comp, 10);
+//        FakeDataFactory.CreateSwapLogsForComputer(comp, 10);
+//
+//        Computer comp = FakeDataFactory.AddComputerWithLocalSshConfig("test-comp-to-remove", "test-comp-to-remove");
+//        FakeDataFactory.CreateSwapLogsForComputer(comp, 10);
+//        FakeDataFactory.CreateCpuLogsForComputer(comp, 10);
 
         for (Computer computer : _computersAndSshConfigsManager.GetComputers())
         {
@@ -168,7 +177,6 @@ public class TestController implements Initializable
     @Override
     public void initialize(URL location, ResourceBundle resources)
     {
-        System.out.println("Before load");
         LoadData();
     }
 }

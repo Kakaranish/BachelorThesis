@@ -5,6 +5,9 @@ import Healthcheck.DatabaseManagement.DatabaseException;
 import Healthcheck.Encryption.Encrypter;
 import Healthcheck.Encryption.EncrypterException;
 import Healthcheck.Entities.*;
+import Healthcheck.LogsManagement.LogsGetter;
+import Healthcheck.LogsManagement.LogsMaintainer;
+import Healthcheck.LogsManagement.LogsManager;
 import Healthcheck.LogsManagement.NothingToDoException;
 import Healthcheck.SSHConnectionManagement.SSHConnection;
 import Healthcheck.SSHConnectionManagement.SSHConnectionException;
@@ -84,12 +87,19 @@ public class ComputerInfoController implements Initializable
     @FXML
     private GridPane preferencesGridPane;
 
+    @FXML
+    private Button saveOrUpdateButton;
+
+    @FXML
+    private Button removeButton;
+
     private ObservableList<SshConfig> sshConfigObservableList = FXCollections.observableArrayList();
 
     // -----------------------------------------------------------------------------------------------------------------
 
     private final static int preferencesGridColsNum = 2;
 
+    private TestController _parent;
     private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
     private Computer _computer;
 
@@ -225,8 +235,10 @@ public class ComputerInfoController implements Initializable
         }
     }
 
-    public ComputerInfoController(Computer computer, ComputersAndSshConfigsManager computersAndSshConfigsManager)
+    public ComputerInfoController(
+            TestController parent, Computer computer, ComputersAndSshConfigsManager computersAndSshConfigsManager)
     {
+        _parent = parent;
         _computersAndSshConfigsManager = computersAndSshConfigsManager;
         _computer = computer;
     }
@@ -267,6 +279,9 @@ public class ComputerInfoController implements Initializable
 
         if(IsInEditMode())
         {
+            saveOrUpdateButton.setText("Update");
+            removeButton.setDisable(false);
+
             isSelectedCheckBox.setSelected(_computer.IsSelected());
             displayedNameTextField.setText(_computer.GetDisplayedName());
             hostTextField.setText(_computer.GetHost());
@@ -278,6 +293,9 @@ public class ComputerInfoController implements Initializable
         }
         else
         {
+            saveOrUpdateButton.setText("Add");
+            removeButton.setDisable(true);
+
             isSelectedCheckBox.setSelected(true);
         }
 
@@ -766,7 +784,7 @@ public class ComputerInfoController implements Initializable
 
     // TODO: Restoring changes in observable list when exception thrown
     @FXML
-    void SaveChanges(ActionEvent event)
+    void SaveOrUpdateComputer(ActionEvent event)
     {
         List<String> emptinessOrIntegerErrors = ValidateFieldsAreFilledCorrectly();
         if (emptinessOrIntegerErrors.size() > 0)
@@ -795,11 +813,30 @@ public class ComputerInfoController implements Initializable
 
         if(IsInSaveMode())
         {
-            SaveComputer();
+            boolean saveSucceed = SaveComputer();
+            if(saveSucceed)
+            {
+                saveOrUpdateButton.setText("Update");
+                removeButton.setDisable(false);
+
+                ChangedEvent changedEvent = new ChangedEvent();
+                changedEvent.ChangeType = ChangeEventType.ADDED;
+                changedEvent.Computer = _computer;
+
+                new Thread(() -> _parent.NotifyChanged(changedEvent)).start();
+            }
         }
         else
         {
-            UpdateComputer();
+            boolean updateSucceed = UpdateComputer();
+            if(updateSucceed)
+            {
+                ChangedEvent changedEvent = new ChangedEvent();
+                changedEvent.ChangeType = ChangeEventType.UPDATED;
+                changedEvent.Computer = _computer;
+
+                new Thread(() -> _parent.NotifyChanged(changedEvent)).start();
+            }
         }
     }
 
@@ -808,7 +845,7 @@ public class ComputerInfoController implements Initializable
         // TODO:
     }
 
-    private void SaveComputer()
+    private boolean SaveComputer()
     {
         CopyChangesToComputerInSaveMode(true);
 
@@ -836,21 +873,27 @@ public class ComputerInfoController implements Initializable
             _prevLocalSshFieldsState = null;
 
             Utilities.ShowInfoDialog("Computer update has succeed.");
+
+            return true;
         }
         catch(DatabaseException e)
         {
             _computer = null;
             Utilities.ShowErrorDialog("Adding computer to db has failed.");
+
+            return false;
         }
         catch(Exception e)
         {
             _computer = null;
             e.printStackTrace();
             Utilities.ShowErrorDialog("Unknown error has occurred while saving.");
+
+            return false;
         }
     }
 
-    private void UpdateComputer()
+    private boolean UpdateComputer()
     {
         boolean hadGlobalConfig = _computer.GetSshConfig().HasGlobalScope();
 
@@ -861,7 +904,7 @@ public class ComputerInfoController implements Initializable
             if(_computer.Changed() == false)
             {
                 Utilities.ShowInfoDialog("No changes to save.");
-                return;
+                return false;
             }
             if(_computer.GetSshConfig().HasGlobalScope() && hadGlobalConfig == false) // LOCAL -> GLOBAL
             {
@@ -883,21 +926,71 @@ public class ComputerInfoController implements Initializable
             _prevLocalSshFieldsState = null;
 
              Utilities.ShowInfoDialog("Computer update has succeed.");
+
+             return true;
         }
         catch (NothingToDoException e)
         {
             Utilities.ShowInfoDialog("No changes to save.");
+            return false;
         }
         catch(DatabaseException e)
         {
             RestoreComputerChanges();
             Utilities.ShowErrorDialog("Computer update in db has failed.");
+
+            return false;
         }
         catch(Exception e)
         {
             RestoreComputerChanges();
             e.printStackTrace();
             Utilities.ShowErrorDialog("Unknown error has occurred while saving.");
+
+            return false;
+        }
+    }
+
+    @FXML
+    void RemoveComputer(ActionEvent event)
+    {
+        boolean removeResponse = Utilities.ShowYesNoDialog("Remove computer?", "Do your want to remove computer?");
+        if(removeResponse == false)
+        {
+            return;
+        }
+
+        boolean removeLogsResponse = Utilities.ShowYesNoDialog(
+                "Remove logs?", "Do your want to remove logs associated with computer?");
+
+        try
+        {
+           if(removeLogsResponse)
+           {
+               LogsMaintainer.RemoveAllLogsAssociatedWithComputerFromDb(_computer);
+           }
+
+           _computer.RemoveFromDb();
+
+           ChangedEvent changedEvent = new ChangedEvent();
+           changedEvent.ChangeType = ChangeEventType.REMOVED;
+           changedEvent.Computer = _computer;
+
+           new Thread(() -> _parent.NotifyChanged(changedEvent)).start();
+           ((Stage) removeButton.getScene().getWindow()).close();
+        }
+        catch (DatabaseException e)
+        {
+           Utilities.ShowErrorDialog("Removing computer from db has failed - database error.");
+        }
+        catch (ComputerException e)
+        {
+           Utilities.ShowErrorDialog("Removing computer from db has failed.");
+        }
+        catch (Exception e)
+        {
+           e.printStackTrace();
+           Utilities.ShowErrorDialog("Removing computer from db has failed - unknown error.");
         }
     }
 

@@ -12,7 +12,7 @@ import java.sql.Timestamp;
 public class CpuLog extends BaseEntity
 {
     @Embedded
-    public CpuInfo CPUInfo;
+    public CpuInfo CpuInfo;
 
     private CpuLog()
     {
@@ -21,12 +21,12 @@ public class CpuLog extends BaseEntity
     public CpuLog(Computer computer, CpuInfo cpuInfo)
     {
         super(computer);
-        CPUInfo = cpuInfo;
+        CpuInfo = cpuInfo;
     }
 
     public CpuLog(Computer computer, CpuInfo cpuInfo, Timestamp timestamp)
     {
         super(computer, timestamp);
-        CPUInfo = cpuInfo;
+        CpuInfo = cpuInfo;
     }
 }
