@@ -334,7 +334,7 @@ public class SshConfig
         }
     }
 
-    public void RemoveGlobalFromDb() throws SshConfigException, DatabaseException
+    public void RemoveGlobalFromDb() throws SshConfigException, DatabaseException, FatalErrorException
     {
         Session session = DatabaseManager.GetInstance().GetSession();
         RemoveGlobalFromDb(session);
@@ -364,16 +364,8 @@ public class SshConfig
         }
 
         String removeAttemptErrorMessage = "[ERROR] SshConfig: Attempt of removing global ssh config from db failed.";
-        boolean removeSucceed = false;
-        if(_prevState == null)
-        {
-            removeSucceed = DatabaseManager.RemoveWithRetryPolicy(session, this, removeAttemptErrorMessage);
-        }
-        else if(_prevState != null && this.equals(_prevState) == false)
-        {
-            removeSucceed = DatabaseManager.RemoveWithRetryPolicy(session, _prevState, removeAttemptErrorMessage);
-        }
-
+        boolean removeSucceed =
+                DatabaseManager.RemoveWithRetryPolicy(session, this, removeAttemptErrorMessage);
         if(removeSucceed == false)
         {
             throw new DatabaseException("Unable to remove global ssh config in db.");
@@ -391,6 +383,11 @@ public class SshConfig
 
     private void Validate_RemoveGlobalFromDb() throws SshConfigException
     {
+        if(_prevState != null)
+        {
+            throw new SshConfigException("Ssh config was changed. Restore changes to remove it.");
+        }
+
         if(HasLocalScope())
         {
             throw new SshConfigException("Ssh config has local scope.");

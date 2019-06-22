@@ -449,14 +449,26 @@ public class ComputerInfoController implements Initializable
 
     private void ValidateIfInteger(TextField textField)
     {
-        try
+        if(IsParsableToInteger(textField.getText()))
         {
-            Integer.parseInt(textField.getText());
             textField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
         }
-        catch (NumberFormatException e)
+        else
         {
             textField.getStyleClass().add("validation-error");
+        }
+    }
+
+    private boolean IsParsableToInteger(String str)
+    {
+        try
+        {
+            Integer.parseInt(str);
+            return true;
+        }
+        catch(NumberFormatException e)
+        {
+            return false;
         }
     }
 
@@ -482,18 +494,6 @@ public class ComputerInfoController implements Initializable
         if(Utilities.EmptyOrNull(newValue))
         {
             textField.getStyleClass().add("validation-error");
-        }
-    }
-
-    private void ValidateIfEmpty(TextField textField)
-    {
-        if(Utilities.EmptyOrNull(textField.getText()))
-        {
-            textField.getStyleClass().add("validation-error");
-        }
-        else
-        {
-            textField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
         }
     }
 
@@ -524,6 +524,18 @@ public class ComputerInfoController implements Initializable
             ValidateIfEmpty(sshPortTextField);
             ValidateIfInteger(sshPortTextField);
             ValidateIfEmpty(sshKeyPathTextField);
+        }
+    }
+
+    private void ValidateIfEmpty(TextField textField)
+    {
+        if(Utilities.EmptyOrNull(textField.getText()))
+        {
+            textField.getStyleClass().add("validation-error");
+        }
+        else
+        {
+            textField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
         }
     }
 
@@ -901,7 +913,7 @@ public class ComputerInfoController implements Initializable
 
         if(_computer.Changed() == false)
         {
-            Utilities.ShowInfoDialog("No changes to save.");
+            Utilities.ShowInfoDialog("Nothing to update.");
             return false;
         }
 
@@ -955,7 +967,8 @@ public class ComputerInfoController implements Initializable
     @FXML
     void RemoveComputer(ActionEvent event)
     {
-        boolean removeResponse = Utilities.ShowYesNoDialog("Remove computer?", "Do your want to remove computer?");
+        boolean removeResponse = Utilities.ShowYesNoDialog("Remove computer?",
+                "Do your want to remove computer?");
         if(removeResponse == false)
         {
             return;
@@ -1471,19 +1484,6 @@ public class ComputerInfoController implements Initializable
     private boolean IsSelectedPrivateKeyAuthRadioButton()
     {
         return privateKeyAuthMethodRadioButton.isSelected();
-    }
-
-    private boolean IsParsableToInteger(String str)
-    {
-        try
-        {
-            Integer.parseInt(str);
-            return true;
-        }
-        catch(NumberFormatException e)
-        {
-            return false;
-        }
     }
 
     private boolean LocalSshConfigChanged()

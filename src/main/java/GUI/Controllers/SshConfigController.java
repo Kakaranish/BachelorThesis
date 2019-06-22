@@ -6,6 +6,7 @@ import Healthcheck.Encryption.Encrypter;
 import Healthcheck.Encryption.EncrypterException;
 import Healthcheck.Entities.SshAuthMethod;
 import Healthcheck.Entities.SshConfig;
+import Healthcheck.Entities.SshConfigException;
 import Healthcheck.Entities.SshConfigScope;
 import Healthcheck.LogsManagement.NothingToDoException;
 import Healthcheck.Utilities;
@@ -106,27 +107,28 @@ public class SshConfigController implements Initializable
 
             displayedNameTextField.setText(_sshConfig.GetName());
             usernameTextField.setText(_sshConfig.GetUsername());
-            String decryptedPassword = null;
-            try
-            {
-                decryptedPassword = Encrypter.GetInstance().Decrypt(_sshConfig.GetEncryptedPassword());
-            }
-            catch (EncrypterException e)
-            {
-                Utilities.ShowErrorDialog("Connection with computer cannot be established." +
-                        "\nUnable to decrypt ssh password.");
-            }
-            passwordPasswordField.setText(decryptedPassword);
-            portTextField.setText(String.valueOf(_sshConfig.GetPort()));
 
             if(_sshConfig.HasPasswordAuth())
             {
+                String decryptedPassword = null;
+                try
+                {
+                    decryptedPassword = Encrypter.GetInstance().Decrypt(_sshConfig.GetEncryptedPassword());
+                }
+                catch (EncrypterException e)
+                {
+                    Utilities.ShowErrorDialog("Connection with computer cannot be established." +
+                            "\nUnable to decrypt ssh password.");
+                }
+                passwordPasswordField.setText(decryptedPassword);
                 passwordAuthMethodRadioButton.setSelected(true);
             }
             else
             {
+                keyPathTextField.setText(_sshConfig.GetPrivateKeyPath());
                 privateKeyAuthMethodRadioButton.setSelected(true);
             }
+            portTextField.setText(String.valueOf(_sshConfig.GetPort()));
         }
         else
         {
@@ -299,6 +301,124 @@ public class SshConfigController implements Initializable
         }
     }
 
+    // ---  BEFORE SAVE VALIDATION  ------------------------------------------------------------------------------------
+
+    private List<String> GetValidationErrorListBeforeSaveOrUpdate()
+    {
+        List<String> errors = new ArrayList<>();
+
+        if(Utilities.EmptyOrNull(displayedNameTextField.getText()))
+        {
+            errors.add("Displayed name cannot be empty.");
+        }
+
+        if(Utilities.EmptyOrNull(usernameTextField.getText()))
+        {
+            errors.add("Username cannot be empty.");
+        }
+
+        if(IsSelectedPasswordAuthMethod() && Utilities.EmptyOrNull(passwordPasswordField.getText()))
+        {
+            errors.add("Password cannot be empty.");
+        }
+        else if(IsSelectedPrivateKeyAuthMethod() && Utilities.EmptyOrNull(keyPathTextField.getText()))
+        {
+            errors.add("Private key path cannot be empty.");
+        }
+
+        if(IsParsableToInteger(portTextField.getText()) == false)
+        {
+            errors.add("Port must be integer.");
+        }
+
+        return errors;
+    }
+
+    private String ValidateOtherSshConfigHasSameDisplayedName()
+    {
+        if(IsInEditMode())
+        {
+            if(_sshConfig.GetName().equals(displayedNameTextField.getText()) == false
+                    && _computersAndSshConfigsManager.SshConfigWithNameExists(displayedNameTextField.getText()))
+            {
+                displayedNameTextField.getStyleClass().add("validation-error");
+                return "Other ssh config has same displayed name.";
+            }
+        }
+        else
+        {
+            if(_computersAndSshConfigsManager.SshConfigWithNameExists(displayedNameTextField.getText()))
+            {
+                displayedNameTextField.getStyleClass().add("validation-error");
+                return "Other ssh config has same displayed name.";
+            }
+        }
+
+        return null;
+    }
+
+    // ---  COPYING CHANGES TO SSH CONFIG  -----------------------------------------------------------------------------
+
+    private void CopyChangesToSshConfigInSaveMode()
+    {
+        if(IsSelectedPasswordAuthMethod())
+        {
+            try
+            {
+                String encryptedPassword = Encrypter.GetInstance().Encrypt(passwordPasswordField.getText());
+                _sshConfig  = new SshConfig(
+                        displayedNameTextField.getText(),
+                        SshConfigScope.GLOBAL,
+                        Integer.valueOf(portTextField.getText()),
+                        SshAuthMethod.PASSWORD,
+                        usernameTextField.getText(),
+                        encryptedPassword
+                );
+            }
+            catch (EncrypterException e)
+            {
+                // This block will be never entered
+            }
+        }
+        else
+        {
+            _sshConfig  = new SshConfig(
+                    displayedNameTextField.getText(),
+                    SshConfigScope.GLOBAL,
+                    Integer.valueOf(portTextField.getText()),
+                    SshAuthMethod.KEY,
+                    usernameTextField.getText(),
+                    keyPathTextField.getText()
+            );
+        }
+        _sshConfig.SetComputersAndSshConfigsManager(_computersAndSshConfigsManager);
+    }
+
+    private void CopyChangesToSshConfigInEditMode()
+    {
+        _sshConfig.SetGlobalScope(displayedNameTextField.getText());
+        _sshConfig.SetUsername(usernameTextField.getText());
+        if(IsSelectedPasswordAuthMethod())
+        {
+            try
+            {
+                String encryptedPassword = Encrypter.GetInstance().Encrypt(passwordPasswordField.getText());
+                _sshConfig.SetPasswordAuthMethod(encryptedPassword);
+            }
+            catch (EncrypterException e)
+            {
+                // This block will be never entered
+            }
+        }
+        else
+        {
+            _sshConfig.SetSshKeyAuthMethod(keyPathTextField.getText());
+        }
+        _sshConfig.SetPort(Integer.valueOf(portTextField.getText()));
+    }
+
+    // ---  BUTTONS LOGIC  ---------------------------------------------------------------------------------------------
+
     @FXML
     void SaveOrUpdate(ActionEvent event)
     {
@@ -381,7 +501,7 @@ public class SshConfigController implements Initializable
 
         if(_sshConfig.Changed() == false)
         {
-            Utilities.ShowInfoDialog("No changes to save.");
+            Utilities.ShowInfoDialog("Nothing to update.");
             return false;
         }
 
@@ -415,127 +535,43 @@ public class SshConfigController implements Initializable
         }
     }
 
-    private void RestoreSshConfigChanges()
-    {
-        _sshConfig.Restore();
-    }
-
-    private void CopyChangesToSshConfigInSaveMode()
-    {
-        if(IsSelectedPasswordAuthMethod())
-        {
-            try
-            {
-                String encryptedPassword = Encrypter.GetInstance().Encrypt(passwordPasswordField.getText());
-                _sshConfig  = new SshConfig(
-                        displayedNameTextField.getText(),
-                        SshConfigScope.GLOBAL,
-                        Integer.valueOf(portTextField.getText()),
-                        SshAuthMethod.PASSWORD,
-                        usernameTextField.getText(),
-                        encryptedPassword
-                );
-            }
-            catch (EncrypterException e)
-            {
-                // This block will be never entered
-            }
-        }
-        else
-        {
-            _sshConfig  = new SshConfig(
-                    displayedNameTextField.getText(),
-                    SshConfigScope.GLOBAL,
-                    Integer.valueOf(portTextField.getText()),
-                    SshAuthMethod.KEY,
-                    usernameTextField.getText(),
-                    keyPathTextField.getText()
-            );
-        }
-        _sshConfig.SetComputersAndSshConfigsManager(_computersAndSshConfigsManager);
-    }
-
-    private void CopyChangesToSshConfigInEditMode()
-    {
-        _sshConfig.SetGlobalScope(displayedNameTextField.getText());
-        _sshConfig.SetUsername(usernameTextField.getText());
-        if(IsSelectedPasswordAuthMethod())
-        {
-            try
-            {
-                String encryptedPassword = Encrypter.GetInstance().Encrypt(passwordPasswordField.getText());
-                _sshConfig.SetPasswordAuthMethod(encryptedPassword);
-            }
-            catch (EncrypterException e)
-            {
-                // This block will be never entered
-            }
-        }
-        else
-        {
-            _sshConfig.SetSshKeyAuthMethod(keyPathTextField.getText());
-        }
-        _sshConfig.SetPort(Integer.valueOf(portTextField.getText()));
-    }
-
-    private List<String> GetValidationErrorListBeforeSaveOrUpdate()
-    {
-        List<String> errors = new ArrayList<>();
-
-        if(Utilities.EmptyOrNull(displayedNameTextField.getText()))
-        {
-            errors.add("Displayed name cannot be empty.");
-        }
-
-        if(Utilities.EmptyOrNull(usernameTextField.getText()))
-        {
-            errors.add("Username cannot be empty.");
-        }
-
-        if(IsSelectedPasswordAuthMethod() && Utilities.EmptyOrNull(passwordPasswordField.getText()))
-        {
-            errors.add("Password cannot be empty.");
-        }
-        else if(IsSelectedPrivateKeyAuthMethod() && Utilities.EmptyOrNull(keyPathTextField.getText()))
-        {
-            errors.add("Private key path cannot be empty.");
-        }
-
-        if(IsParsableToInteger(portTextField.getText()) == false)
-        {
-            errors.add("Port must be integer.");
-        }
-
-        return errors;
-    }
-
-    private String ValidateOtherSshConfigHasSameDisplayedName()
-    {
-        if(IsInEditMode())
-        {
-            if(_sshConfig.GetName().equals(displayedNameTextField.getText()) == false
-                    && _computersAndSshConfigsManager.SshConfigWithNameExists(displayedNameTextField.getText()))
-            {
-                displayedNameTextField.getStyleClass().add("validation-error");
-                return "Other ssh config has same displayed name.";
-            }
-        }
-        else
-        {
-            if(_computersAndSshConfigsManager.SshConfigWithNameExists(displayedNameTextField.getText()))
-            {
-                displayedNameTextField.getStyleClass().add("validation-error");
-                return "Other ssh config has same displayed name.";
-            }
-        }
-
-        return null;
-    }
-
     @FXML
     void Remove(ActionEvent event)
     {
+        boolean removeResponse = Utilities.ShowYesNoDialog("Remove ssh config?",
+                "Do your want to remove ssh config?");
+        if(removeResponse == false)
+        {
+            return;
+        }
 
+        try
+        {
+            _sshConfig.RemoveGlobalFromDb();
+
+            ChangedEvent changedEvent = new ChangedEvent();
+            changedEvent.ChangeType = ChangedEventType.REMOVED;
+            changedEvent.SshConfig = _sshConfig;
+
+            new Thread(() -> _parent.NotifyChanged(changedEvent)).start();
+
+            Utilities.ShowInfoDialog("Removing ssh config succeed.");
+
+            ((Stage) removeButton.getScene().getWindow()).close();
+        }
+        catch(DatabaseException e)
+        {
+            Utilities.ShowErrorDialog("Removing ssh config from db has failed - database error.");
+        }
+        catch(SshConfigException e)
+        {
+            Utilities.ShowErrorDialog("Removing ssh config from db has failed.\n" + e.getMessage());
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+            Utilities.ShowErrorDialog("Removing ssh config from db has failed - unknown error.");
+        }
     }
 
     @FXML
@@ -584,25 +620,23 @@ public class SshConfigController implements Initializable
                 privateKeyAuthMethodRadioButton.setSelected(true);
             }
 
-            keyPathTextField.setText(null);
             portTextField.setText(String.valueOf(_sshConfig.GetPort()));
-
-            passwordAuthMethodRadioButton.setSelected(true);
         }
 
         ClearValidationErrorsFromAllFields();
         AddValidationErrorsToAllFieldsIfIncorrect();
     }
 
-    private boolean IsInSaveMode()
+    public void OnCloseAction(WindowEvent event)
     {
-        return _sshConfig == null;
+        if(SomethingChanged()
+                && Utilities.ShowYesNoDialog("Discard changes?", "Do you want to discard changes?") == false)
+        {
+            event.consume();
+        }
     }
 
-    private boolean IsInEditMode()
-    {
-        return _sshConfig != null;
-    }
+    // --- CHOOSING AUTH METHOD  ---------------------------------------------------------------------------------------
 
     private void ChoosePasswordAuthMethod()
     {
@@ -622,24 +656,16 @@ public class SshConfigController implements Initializable
         ValidateIfEmpty(keyPathTextField);
     }
 
+    // ---  PREDICATES  ------------------------------------------------------------------------------------------------
 
-    private boolean IsSelectedPasswordAuthMethod()
+    private boolean IsInSaveMode()
     {
-        return passwordAuthMethodRadioButton.isSelected();
+        return _sshConfig == null;
     }
 
-    private boolean IsSelectedPrivateKeyAuthMethod()
+    private boolean IsInEditMode()
     {
-        return privateKeyAuthMethodRadioButton.isSelected();
-    }
-
-    public void OnCloseAction(WindowEvent event)
-    {
-        if(SomethingChanged()
-                && Utilities.ShowYesNoDialog("Discard changes?", "Do you want to discard changes?") == false)
-        {
-            event.consume();
-        }
+        return _sshConfig != null;
     }
 
     public boolean SomethingChanged()
@@ -677,5 +703,22 @@ public class SshConfigController implements Initializable
         }
 
         return somethingChanged;
+    }
+
+    private boolean IsSelectedPasswordAuthMethod()
+    {
+        return passwordAuthMethodRadioButton.isSelected();
+    }
+
+    private boolean IsSelectedPrivateKeyAuthMethod()
+    {
+        return privateKeyAuthMethodRadioButton.isSelected();
+    }
+
+    // ---  MISC  ------------------------------------------------------------------------------------------------------
+
+    private void RestoreSshConfigChanges()
+    {
+        _sshConfig.Restore();
     }
 }
