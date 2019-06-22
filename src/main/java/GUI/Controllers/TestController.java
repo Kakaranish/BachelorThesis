@@ -2,181 +2,236 @@ package GUI.Controllers;
 
 import Healthcheck.ComputersAndSshConfigsManager;
 import Healthcheck.Entities.Computer;
-import Healthcheck.FakeDataFactory;
+import Healthcheck.Entities.SshConfig;
+import Healthcheck.Utilities;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TabPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Callback;
-
 import java.net.URL;
 import java.util.ResourceBundle;
 
-class CustomThing {
-    private String _displayedName;
-    private String _host;
-    public String getDisplayedName() {
-        return _displayedName;
-    }
-    public String GetHost() {
-        return _host;
-    }
-    public CustomThing(String name, String host) {
-        super();
-        this._displayedName = name;
-        this._host = host;
-    }
-}
-
-class CustomListCell extends ListCell<CustomThing> {
-    private HBox content;
-    private Text name;
-    private Text price;
-
-    private static Image image;
-    static
-    {
-        image = new Image(CustomListCell.class.getResource("/pics/computer.png").toString());
-    }
-
-    public CustomListCell() {
-        super();
-        name = new Text();
-        name.setFont(new Font(20));
-        price = new Text();
-        VBox vBox = new VBox(name, price);;
-        Label label = new Label("[Graphic]");
-        Image image = new Image(CustomListCell.class.getResource("/pics/pc.png").toString());
-
-        ImageView imageView = new ImageView(image);
-        imageView.setFitHeight(24);
-        imageView.setFitWidth(24);
-        imageView.setSmooth(true);
-        content = new HBox(imageView, vBox);
-        content.setSpacing(10);
-        content.setAlignment(Pos.CENTER_LEFT);
-    }
-
-    @Override
-    protected void updateItem(CustomThing item, boolean empty) {
-        super.updateItem(item, empty);
-        if (item != null && !empty) { // <== test for null item and empty parameter
-            name.setText(item.getDisplayedName());
-            price.setText(item.GetHost());
-            setGraphic(content);
-        } else {
-            setGraphic(null);
-        }
-    }
-}
-
 public class TestController implements Initializable
 {
-    ObservableList data = FXCollections.observableArrayList();
-    @FXML
-    private ListView<CustomThing> listView;
+    public static Image editIcon = new Image(ComputerListCell.class.getResource("/pics/edit.png").toString());
+    private static Image addIcon = new Image(ComputerListCell.class.getResource("/pics/add.png").toString());
+
+    public ObservableList<ComputerItem> computerItemsObservableList = FXCollections.observableArrayList();
 
     @FXML
-    private Button btn;
+    private ListView<ComputerItem> computerItemsListView;
+
+    public ObservableList<SshConfigItem> sshConfigItemsObservableList = FXCollections.observableArrayList();
 
     @FXML
-    void dodajCheese(ActionEvent event) {
-        data.add(new CustomThing("Cheese spierdala", "XD"));
-    }
+    private ListView<SshConfigItem> sshConfigItemsListView;
 
-    public void NotifyChanged(ChangedEvent changeEvent)
+    @FXML
+    private TabPane tabPane;
+
+    @FXML
+    private Button addComputerOrSshConfigButton;
+
+    private TestController thisController = this;
+    private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
+
+    // ---  INITIALIZATION  --------------------------------------------------------------------------------------------
+
+    @Override
+    public void initialize(URL location, ResourceBundle resources)
     {
-        // TODO: Implement
+        _computersAndSshConfigsManager = new ComputersAndSshConfigsManager();
 
+        InitializeAddComputerOrSshConfigButton();
+        InitializeTabPaneSelectionListener();
+
+        LoadComputersToListView();
+        LoadSshConfigsToListView();
     }
 
-    @FXML
-    void editComputer(ActionEvent event) {
-        FXMLLoader fxmlLoader = null;
+    private void InitializeAddComputerOrSshConfigButton()
+    {
+        ImageView imageView = new ImageView(addIcon);
+        imageView.setFitHeight(16);
+        imageView.setFitWidth(16);
+        imageView.setSmooth(true);
+        addComputerOrSshConfigButton.setGraphic(imageView);
+        addComputerOrSshConfigButton.getStyleClass().add("edit-button");
+        addComputerOrSshConfigButton.setCursor(Cursor.HAND);
+        addComputerOrSshConfigButton.setOnAction(event -> AddComputer(this, _computersAndSshConfigsManager));
+    }
+
+    private void InitializeTabPaneSelectionListener()
+    {
+        tabPane.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) ->
+        {
+            if(IsInAddComputerMode(newValue.intValue()))
+            {
+                addComputerOrSshConfigButton.setOnAction(event -> AddComputer(this, _computersAndSshConfigsManager));
+            }
+            else if(IsInAddSshConfigMode(newValue.intValue()))
+            {
+                addComputerOrSshConfigButton.setOnAction(event -> AddSshConfig(this, _computersAndSshConfigsManager));
+            }
+            else
+            {
+                addComputerOrSshConfigButton.setOnAction(event -> {});
+            }
+        });
+    }
+
+    private void LoadComputersToListView()
+    {
+        for (Computer computer : _computersAndSshConfigsManager.GetComputers())
+        {
+            computerItemsObservableList.add(new ComputerItem()
+            {{
+                IsSelected = computer.IsSelected();
+                DisplayedName = computer.GetDisplayedName();
+                Host = computer.GetHost();
+            }});
+        }
+
+        computerItemsListView.setItems(computerItemsObservableList);
+        computerItemsListView.setCellFactory(new Callback<ListView<ComputerItem>, ListCell<ComputerItem>>()
+        {
+            @Override
+            public ListCell<ComputerItem> call(ListView<ComputerItem> listView)
+            {
+                return new ComputerListCell(_computersAndSshConfigsManager, thisController);
+            }
+        });
+    }
+
+    private void LoadSshConfigsToListView()
+    {
+        for (SshConfig sshConfig: _computersAndSshConfigsManager.GetGlobalSshConfigs())
+        {
+            sshConfigItemsObservableList.add(new SshConfigItem()
+            {{
+                DisplayedName = sshConfig.GetName();
+                Username = sshConfig.GetUsername();
+            }});
+        }
+
+        sshConfigItemsListView.setItems(sshConfigItemsObservableList);
+        sshConfigItemsListView.setCellFactory(new Callback<ListView<SshConfigItem>, ListCell<SshConfigItem>>()
+        {
+            @Override
+            public ListCell<SshConfigItem> call(ListView<SshConfigItem> listView)
+            {
+                return new SshConfigListCell(_computersAndSshConfigsManager, thisController);
+            }
+        });
+    }
+
+    // ---  ADD ACTIONS  -----------------------------------------------------------------------------------------------
+
+    private void AddComputer(TestController parentController, ComputersAndSshConfigsManager computersAndSshConfigsManager)
+    {
         try
         {
-            fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/ComputerInfo.fxml"));
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-        Computer computer = _computersAndSshConfigsManager.GetComputerByDisplayedName("test-comp-to-remove");
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/ComputerInfo.fxml"));
 
-        ComputerInfoController computerInfoController =
-                new ComputerInfoController(this, computer, _computersAndSshConfigsManager);
-        fxmlLoader.setController(computerInfoController);
+            ComputerInfoController computerInfoController =
+                    new ComputerInfoController(parentController, null, _computersAndSshConfigsManager);
+            fxmlLoader.setController(computerInfoController);
 
-        try
-        {
-            final Parent root = fxmlLoader.load();
-            final Scene scene = new Scene(root);
-
-            Stage stage = new Stage();
-            stage.setOnCloseRequest(computerInfoController::OnCloseAction);
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.initStyle(StageStyle.DECORATED);
-            stage.setResizable(false);
-
+            final Scene scene = new Scene(fxmlLoader.load());
             scene.getStylesheets().add(getClass().getResource("/css/computer-info.css").toExternalForm());
 
+            Stage stage = new Stage(StageStyle.DECORATED);
+            stage.setOnCloseRequest(computerInfoController::OnCloseAction);
+            stage.setResizable(false);
+            stage.initModality(Modality.APPLICATION_MODAL);
             stage.setScene(scene);
+
             stage.show();
         }
         catch (Exception e)
         {
             e.printStackTrace();
+            Utilities.ShowErrorDialog("Unable to edit computer.");
         }
     }
 
-    private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
-
-    private void LoadData()
+    private void AddSshConfig(TestController parentController, ComputersAndSshConfigsManager computersAndSshConfigsManager)
     {
-        _computersAndSshConfigsManager = new ComputersAndSshConfigsManager();
-//        Computer comp = _computersAndSshConfigsManager.GetComputerByDisplayedName("L-G2");
-//        FakeDataFactory.CreateCpuLogsForComputer(comp, 10);
-//        FakeDataFactory.CreateSwapLogsForComputer(comp, 10);
-//
-//        Computer comp = FakeDataFactory.AddComputerWithLocalSshConfig("test-comp-to-remove", "test-comp-to-remove");
-//        FakeDataFactory.CreateSwapLogsForComputer(comp, 10);
-//        FakeDataFactory.CreateCpuLogsForComputer(comp, 10);
-
-        for (Computer computer : _computersAndSshConfigsManager.GetComputers())
+        try
         {
-            data.add(new CustomThing(computer.GetDisplayedName(), computer.GetHost()));
-        }
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/SshConfig.fxml"));
 
-        listView.setItems(data);
-        listView.setCellFactory(new Callback<ListView<CustomThing>, ListCell<CustomThing>>() {
-            @Override
-            public ListCell<CustomThing> call(ListView<CustomThing> listView) {
-                return new CustomListCell();
-            }
-        });
+            SshConfigController sshConfigController =
+                    new SshConfigController(parentController, null, _computersAndSshConfigsManager);
+            fxmlLoader.setController(sshConfigController);
+
+            final Scene scene = new Scene(fxmlLoader.load());
+            scene.getStylesheets().add(getClass().getResource("/css/computer-info.css").toExternalForm());
+
+            Stage stage = new Stage(StageStyle.DECORATED);
+            stage.setOnCloseRequest(sshConfigController::OnCloseAction);
+            stage.setResizable(false);
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setScene(scene);
+
+            stage.show();
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            Utilities.ShowErrorDialog("Unable to edit computer.");
+        }
     }
 
-    @Override
-    public void initialize(URL location, ResourceBundle resources)
+    // ---  MISC  ------------------------------------------------------------------------------------------------------
+
+    public void NotifyChanged(ChangeEvent changeEvent)
     {
-        LoadData();
+        if(changeEvent.Computer != null && changeEvent.ChangeType == ChangedEventType.ADDED)
+        {
+            ComputerItem computerItemToAdd = new ComputerItem()
+            {{
+                IsSelected = changeEvent.Computer.IsSelected();
+                DisplayedName = changeEvent.Computer.GetDisplayedName();
+                Host = changeEvent.Computer.GetHost();
+            }};
+
+            computerItemsObservableList.add(computerItemToAdd);
+        }
+        else if(changeEvent.SshConfig != null && changeEvent.ChangeType == ChangedEventType.ADDED)
+        {
+            SshConfigItem sshConfigItemToAdd = new SshConfigItem()
+            {{
+                DisplayedName = changeEvent.SshConfig.GetName();
+                Username = changeEvent.SshConfig.GetUsername();
+            }};
+
+            sshConfigItemsObservableList.add(sshConfigItemToAdd);
+        }
+    }
+
+    private boolean IsInAddComputerMode(int tabNum)
+    {
+        return tabNum == 0;
+    }
+
+    private boolean IsInAddSshConfigMode(int tabNum)
+    {
+        return tabNum == 1;
     }
 }

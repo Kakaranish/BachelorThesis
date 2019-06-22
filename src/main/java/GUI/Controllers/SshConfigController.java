@@ -21,7 +21,6 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
@@ -69,14 +68,23 @@ public class SshConfigController implements Initializable
 
     // -----------------------------------------------------------------------------------------------------------------
 
-    private TestController _parent;
+    private TestController _parentController;
+    private SshConfigListCell _cellCaller;
     private SshConfig _sshConfig;
     private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
 
-    public SshConfigController(
-            TestController parent, SshConfig sshConfig, ComputersAndSshConfigsManager computersAndSshConfigsManager)
+    public SshConfigController(TestController parent, SshConfig sshConfig,
+                               ComputersAndSshConfigsManager computersAndSshConfigsManager)
     {
-        _parent = parent;
+        _parentController = parent;
+        _sshConfig = sshConfig;
+        _computersAndSshConfigsManager = computersAndSshConfigsManager;
+    }
+
+    public SshConfigController(SshConfigListCell cellCaller, SshConfig sshConfig,
+                               ComputersAndSshConfigsManager computersAndSshConfigsManager)
+    {
+        _cellCaller = cellCaller;
         _sshConfig = sshConfig;
         _computersAndSshConfigsManager = computersAndSshConfigsManager;
     }
@@ -444,12 +452,6 @@ public class SshConfigController implements Initializable
             {
                 saveOrUpdateButton.setText("Update");
                 removeButton.setDisable(false);
-
-                ChangedEvent changedEvent = new ChangedEvent();
-                changedEvent.ChangeType = ChangedEventType.ADDED;
-                changedEvent.SshConfig = _sshConfig;
-
-                new Thread(() -> _parent.NotifyChanged(changedEvent)).start();
             }
         }
         else
@@ -457,11 +459,14 @@ public class SshConfigController implements Initializable
             boolean updateSucceed = Update();
             if(updateSucceed)
             {
-                ChangedEvent changedEvent = new ChangedEvent();
-                changedEvent.ChangeType = ChangedEventType.UPDATED;
-                changedEvent.SshConfig = _sshConfig;
+                if(StartedInSaveMode() == false)
+                {
+                    ChangeEvent changeEvent = new ChangeEvent();
+                    changeEvent.ChangeType = ChangedEventType.UPDATED;
+                    changeEvent.SshConfig = _sshConfig;
 
-                new Thread(() -> _parent.NotifyChanged(changedEvent)).start();
+                    _cellCaller.NotifyChanged(changeEvent);
+                }
             }
         }
     }
@@ -549,11 +554,14 @@ public class SshConfigController implements Initializable
         {
             _sshConfig.RemoveGlobalFromDb();
 
-            ChangedEvent changedEvent = new ChangedEvent();
-            changedEvent.ChangeType = ChangedEventType.REMOVED;
-            changedEvent.SshConfig = _sshConfig;
+            if(StartedInSaveMode() == false)
+            {
+                ChangeEvent changeEvent = new ChangeEvent();
+                changeEvent.ChangeType = ChangedEventType.REMOVED;
+                changeEvent.SshConfig = _sshConfig;
 
-            new Thread(() -> _parent.NotifyChanged(changedEvent)).start();
+                _cellCaller.NotifyChanged(changeEvent);
+            }
 
             Utilities.ShowInfoDialog("Removing ssh config succeed.");
 
@@ -634,6 +642,15 @@ public class SshConfigController implements Initializable
         {
             event.consume();
         }
+
+        if(StartedInSaveMode())
+        {
+            ChangeEvent changeEvent = new ChangeEvent();
+            changeEvent.ChangeType = ChangedEventType.ADDED;
+            changeEvent.SshConfig = _sshConfig;
+
+            _parentController.NotifyChanged(changeEvent);
+        }
     }
 
     // --- CHOOSING AUTH METHOD  ---------------------------------------------------------------------------------------
@@ -657,6 +674,11 @@ public class SshConfigController implements Initializable
     }
 
     // ---  PREDICATES  ------------------------------------------------------------------------------------------------
+
+    private boolean StartedInSaveMode()
+    {
+        return _cellCaller == null;
+    }
 
     private boolean IsInSaveMode()
     {

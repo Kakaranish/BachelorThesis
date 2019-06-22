@@ -1,0 +1,133 @@
+package GUI.Controllers;
+
+import Healthcheck.ComputersAndSshConfigsManager;
+import Healthcheck.Entities.SshConfig;
+import Healthcheck.Utilities;
+import javafx.fxml.FXMLLoader;
+import javafx.geometry.Pos;
+import javafx.scene.Cursor;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ListCell;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+
+public class SshConfigListCell extends ListCell<SshConfigItem>
+{
+    private static Image configIcon = new Image(ComputerListCell.class.getResource("/pics/config.png").toString());
+
+    private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
+    private TestController _controller;
+
+    private HBox content;
+    private Text DisplayedName;
+    private Text Username;
+
+    public SshConfigListCell(ComputersAndSshConfigsManager computersAndSshConfigsManager, TestController controller)
+    {
+        _computersAndSshConfigsManager = computersAndSshConfigsManager;
+        _controller = controller;
+
+        DisplayedName = new Text();
+        DisplayedName.setFont(new Font(17.5));
+        Username = new Text();
+
+        VBox vBox = new VBox(DisplayedName, Username);
+
+        ImageView editIconImageView = new ImageView(TestController.editIcon);
+        editIconImageView.setFitHeight(16);
+        editIconImageView.setFitWidth(16);
+        editIconImageView.setSmooth(true);
+
+        Button editButton = new Button();
+        editButton.setGraphic(editIconImageView);
+        editButton.getStyleClass().add("edit-button");
+        editButton.setCursor(Cursor.HAND);
+
+        ImageView configIconImageView = new ImageView(configIcon);
+        configIconImageView.setFitHeight(16);
+        configIconImageView.setFitWidth(16);
+        configIconImageView.setSmooth(true);
+
+        final Pane spacer = new Pane();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        spacer.setMinSize(10, 1);
+
+        content = new HBox(configIconImageView, vBox, spacer, editButton);
+        content.setSpacing(10);
+        content.setAlignment(Pos.CENTER_LEFT);
+
+        editButton.setOnAction(event ->
+        {
+            try
+            {
+                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/SshConfig.fxml"));
+
+                SshConfig sshConfig = _computersAndSshConfigsManager.GetGlobalSshConfigByName(DisplayedName.getText());
+                SshConfigController sshConfigController =
+                        new SshConfigController(this, sshConfig, _computersAndSshConfigsManager);
+
+                fxmlLoader.setController(sshConfigController);
+
+                final Scene scene = new Scene(fxmlLoader.load());
+                scene.getStylesheets().add(getClass().getResource("/css/computer-info.css").toExternalForm());
+
+                Stage stage = new Stage(StageStyle.DECORATED);
+                stage.setOnCloseRequest(sshConfigController::OnCloseAction);
+                stage.setResizable(false);
+                stage.initModality(Modality.APPLICATION_MODAL);
+                stage.setScene(scene);
+
+                stage.show();
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+                Utilities.ShowErrorDialog("Unable to edit computer.");
+            }
+        });
+    }
+
+    public void NotifyChanged(ChangeEvent changeEvent)
+    {
+        if(changeEvent.ChangeType == ChangedEventType.UPDATED)
+        {
+            SshConfigItem ssgConfigItemToUpdate = new SshConfigItem()
+            {{
+                DisplayedName = changeEvent.SshConfig.GetName();
+                Username = changeEvent.SshConfig.GetUsername();
+            }};
+
+            _controller.sshConfigItemsObservableList.set(getIndex(), ssgConfigItemToUpdate);
+        }
+        else if(changeEvent.ChangeType == ChangedEventType.REMOVED)
+        {
+            _controller.sshConfigItemsObservableList.remove(getIndex());
+        }
+    }
+
+    @Override
+    protected void updateItem(SshConfigItem item, boolean empty)
+    {
+        super.updateItem(item, empty);
+        if (item != null && !empty)
+        {
+            DisplayedName.setText(item.DisplayedName);
+            Username.setText(item.Username);
+            setGraphic(content);
+        }
+        else
+        {
+            setGraphic(null);
+        }
+    }
+}

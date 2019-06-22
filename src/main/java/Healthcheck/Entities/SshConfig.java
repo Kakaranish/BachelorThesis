@@ -608,7 +608,7 @@ public class SshConfig
 
         TryToSetPrevStateIfNotExisting();
 
-        Scope = SshConfigScope.LOCAL;
+        Scope = SshConfigScope.GLOBAL;
         Name = null;
     }
 
@@ -629,7 +629,7 @@ public class SshConfig
 
     private boolean GlobalSshConfigWithNameExists(Session session, String name)
     {
-        Query query = session.createQuery("select 1 from SshConfig t where t.Name = :name");
+        Query query = session.createQuery("select 1 from SshConfig t where t.DisplayedName = :name");
         query.setParameter("name", name);
         return (((org.hibernate.query.Query) query).uniqueResult() != null);
     }

@@ -97,14 +97,14 @@ public class ComputerInfoController implements Initializable
 
     private final static int preferencesGridColsNum = 2;
 
-    private TestController _parent;
+    private TestController _parentController;
+    private ComputerListCell _cellCaller;
     private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
     private Computer _computer;
 
     private List<CheckBox> preferenceCheckboxes = new ArrayList<>();
     private List<CheckBox> selectedCheckboxesBeforeChanges = new ArrayList<>();
 
-    // Flags
     private boolean _isDiscardingChanges = false;
 
     private SshConfig _localLocalConfig;
@@ -233,10 +233,18 @@ public class ComputerInfoController implements Initializable
         }
     }
 
-    public ComputerInfoController(
-            TestController parent, Computer computer, ComputersAndSshConfigsManager computersAndSshConfigsManager)
+    public ComputerInfoController(TestController parentController, Computer computer,
+                                  ComputersAndSshConfigsManager computersAndSshConfigsManager)
     {
-        _parent = parent;
+        _parentController = parentController;
+        _computersAndSshConfigsManager = computersAndSshConfigsManager;
+        _computer = computer;
+    }
+
+    public ComputerInfoController(ComputerListCell cellCaller, Computer computer,
+                                  ComputersAndSshConfigsManager computersAndSshConfigsManager)
+    {
+        _cellCaller = cellCaller;
         _computersAndSshConfigsManager = computersAndSshConfigsManager;
         _computer = computer;
     }
@@ -830,12 +838,6 @@ public class ComputerInfoController implements Initializable
             {
                 saveOrUpdateButton.setText("Update");
                 removeButton.setDisable(false);
-
-                ChangedEvent changedEvent = new ChangedEvent();
-                changedEvent.ChangeType = ChangedEventType.ADDED;
-                changedEvent.Computer = _computer;
-
-                new Thread(() -> _parent.NotifyChanged(changedEvent)).start();
             }
         }
         else
@@ -843,11 +845,14 @@ public class ComputerInfoController implements Initializable
             boolean updateSucceed = UpdateComputer();
             if(updateSucceed)
             {
-                ChangedEvent changedEvent = new ChangedEvent();
-                changedEvent.ChangeType = ChangedEventType.UPDATED;
-                changedEvent.Computer = _computer;
+                ChangeEvent changeEvent = new ChangeEvent();
+                changeEvent.ChangeType = ChangedEventType.UPDATED;
+                changeEvent.Computer = _computer;
 
-                new Thread(() -> _parent.NotifyChanged(changedEvent)).start();
+                if(StartedInSaveMode() == false)
+                {
+                    _cellCaller.NotifyChanged(changeEvent);
+                }
             }
         }
     }
@@ -986,15 +991,16 @@ public class ComputerInfoController implements Initializable
 
            _computer.RemoveFromDb();
 
-           ChangedEvent changedEvent = new ChangedEvent();
-           changedEvent.ChangeType = ChangedEventType.REMOVED;
-           changedEvent.Computer = _computer;
+           ChangeEvent changeEvent = new ChangeEvent();
+           changeEvent.ChangeType = ChangedEventType.REMOVED;
+           changeEvent.Computer = _computer;
 
-           new Thread(() -> _parent.NotifyChanged(changedEvent)).start();
-
-            Utilities.ShowInfoDialog("Removing computer succeed.");
-
-            ((Stage) removeButton.getScene().getWindow()).close();
+           Utilities.ShowInfoDialog("Removing computer succeed.");
+           if(StartedInSaveMode() == false)
+           {
+               _cellCaller.NotifyChanged(changeEvent);
+           }
+           ((Stage) removeButton.getScene().getWindow()).close();
         }
         catch (DatabaseException e)
         {
@@ -1158,6 +1164,15 @@ public class ComputerInfoController implements Initializable
                 && Utilities.ShowYesNoDialog("Discard changes?", "Do you want to discard changes?") == false)
         {
             event.consume();
+        }
+
+        if(StartedInSaveMode())
+        {
+            ChangeEvent changeEvent = new ChangeEvent();
+            changeEvent.ChangeType = ChangedEventType.ADDED;
+            changeEvent.Computer = _computer;
+
+            _parentController.NotifyChanged(changeEvent);
         }
     }
 
@@ -1409,6 +1424,11 @@ public class ComputerInfoController implements Initializable
 
     // ---  PREDICATES  ------------------------------------------------------------------------------------------------
 
+    private boolean StartedInSaveMode()
+    {
+        return _cellCaller == null;
+    }
+
     private boolean IsInSaveMode()
     {
         return _computer == null;
@@ -1494,7 +1514,8 @@ public class ComputerInfoController implements Initializable
         return  !Utilities.AreEqual(_computer.GetSshConfig().GetUsername(), currentSshFieldsState.Username) ||
                 !Utilities.AreEqual(_computer.GetSshConfig().GetPort(), currentSshFieldsState.Port) ||
                 !Utilities.AreEqual(_computer.GetSshConfig().GetAuthMethod(), currentSshFieldsState.AuthMethod) ||
-                !Utilities.AreEqual(GetDecryptedPasswordFromLocalSshConfig(), currentSshFieldsState.Password) ||
+                !Utilities.AreEqual(_computer.GetSshConfig().GetEncryptedPassword() == null ?
+                        null : GetDecryptedPasswordFromLocalSshConfig(), currentSshFieldsState.Password) ||
                 !Utilities.AreEqual(_computer.GetSshConfig().GetPrivateKeyPath(), currentSshFieldsState.PrivateKeyPath);
     }
 

@@ -7,34 +7,28 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.Controllers.TestController">
-   <center>
-      <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
+
+<AnchorPane prefHeight="440.0" prefWidth="645.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.Controllers.TestController">
+   <children>
+      <TabPane fx:id="tabPane" prefHeight="440.0" prefWidth="645.0" tabClosingPolicy="UNAVAILABLE">
         <tabs>
-            <Tab text="Komputery">
+            <Tab text="Computers">
                <content>
-                  <ListView fx:id="listView" prefHeight="200.0" prefWidth="200.0" />
+                  <ListView fx:id="computerItemsListView" prefHeight="213.0" prefWidth="6.0" />
                </content>
             </Tab>
-          <Tab text="Użytkownicy">
-            <content>
-              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
-            </content>
+          <Tab text="Ssh Configs">
+               <content>
+                  <ListView fx:id="sshConfigItemsListView" prefHeight="200.0" prefWidth="200.0" />
+               </content>
           </Tab>
-          <Tab text="Statystyki" />
-            <Tab text="Logi Aplikacji">
-              <content>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
-              </content>
-            </Tab>
+          <Tab text="Stats" />
         </tabs>
       </TabPane>
-   </center>
-   <right>
-      <Pane prefHeight="400.0" prefWidth="140.0" BorderPane.alignment="CENTER">
+      <HBox layoutX="605.0" layoutY="2.0" prefHeight="16.0" prefWidth="16.0">
          <children>
-            <Button fx:id="btn" layoutY="-1.0" mnemonicParsing="false" onAction="#dodajCheese" prefHeight="37.0" prefWidth="141.0" text="Dodaj cheese" />
-            <Button fx:id="btn2" layoutY="36.0" mnemonicParsing="false" onAction="#editComputer" prefHeight="37.0" prefWidth="141.0" text="Edit computer" />
-         </children></Pane>
-   </right>
-</BorderPane>
+            <Button fx:id="addComputerOrSshConfigButton" mnemonicParsing="false" prefHeight="30.0" prefWidth="30.0" />
+         </children>
+      </HBox>
+   </children>
+</AnchorPane>

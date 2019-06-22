@@ -12,7 +12,7 @@ enum ChangedEventType
     REMOVED
 }
 
-public class ChangedEvent
+public class ChangeEvent
 {
     public ChangedEventType ChangeType;
 
