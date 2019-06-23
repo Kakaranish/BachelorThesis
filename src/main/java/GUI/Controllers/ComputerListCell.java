@@ -134,4 +134,9 @@ public class ComputerListCell extends ListCell<ComputerItem>
             setGraphic(null);
         }
     }
+
+    public TestController GetController()
+    {
+        return _controller;
+    }
 }

@@ -430,6 +430,12 @@ public class SshConfigController implements Initializable
     @FXML
     void SaveOrUpdate(ActionEvent event)
     {
+        if(IsInEditMode() && GetParentController().IsEditionAllowed() == false)
+        {
+            Utilities.ShowErrorDialog("LogsManager is running. Stop it to edit ssh config.");
+            return;
+        }
+
         List<String> emptinessOrIntegerErrors = GetValidationErrorListBeforeSaveOrUpdate();
         if (emptinessOrIntegerErrors.size() > 0)
         {
@@ -543,6 +549,12 @@ public class SshConfigController implements Initializable
     @FXML
     void Remove(ActionEvent event)
     {
+        if(GetParentController().IsRemovingAllowed() == false)
+        {
+            Utilities.ShowErrorDialog("LogsManager is running. Stop it to remove ssh config.");
+            return;
+        }
+
         boolean removeResponse = Utilities.ShowYesNoDialog("Remove ssh config?",
                 "Do your want to remove ssh config?");
         if(removeResponse == false)
@@ -742,5 +754,17 @@ public class SshConfigController implements Initializable
     private void RestoreSshConfigChanges()
     {
         _sshConfig.Restore();
+    }
+
+    private TestController GetParentController()
+    {
+        if(_parentController != null)
+        {
+            return _parentController;
+        }
+        else
+        {
+            return _cellCaller.GetController();
+        }
     }
 }

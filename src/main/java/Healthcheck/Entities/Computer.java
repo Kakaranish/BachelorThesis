@@ -19,6 +19,8 @@ import java.util.stream.Collectors;
 @Table(name = "Computers")
 public class Computer
 {
+    public final static String ModuleName = "Computer";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer Id;
@@ -170,14 +172,16 @@ public class Computer
             }
         }
 
-        String attemptErrorMessage = "[ERROR] Computer: Attempt of adding computer to db failed.";
-        boolean addSucceed = DatabaseManager.PersistWithRetryPolicy(session, this, attemptErrorMessage);
+        String attemptErrorMessage = "Attempt of adding computer to db failed.";
+        boolean addSucceed =
+                DatabaseManager.PersistWithRetryPolicy(session, this, ModuleName, attemptErrorMessage);
         if(addSucceed == false)
         {
             if(SshConfig.HasLocalScope())
             {
-                String attemptErrorMessage2 = "[ERROR] Computer: Attempt of removing local ssh config to db failed.";
-                boolean removeSucceed = DatabaseManager.PersistWithRetryPolicy(session, SshConfig, attemptErrorMessage);
+                String attemptErrorMessage2 = "Attempt of removing local ssh config to db failed.";
+                boolean removeSucceed =
+                        DatabaseManager.PersistWithRetryPolicy(session, SshConfig, ModuleName, attemptErrorMessage);
                 if(removeSucceed == false)
                 {
                     throw new FatalErrorException("Removing local ssh config after computer adding failed!");
@@ -256,7 +260,7 @@ public class Computer
     {
         Validate_UpdateInDb(session);
 
-        if(SshConfigChanged() == true)
+        if(SshConfigChanged())
         {
             SshConfig sshConfigBackup;
 
@@ -287,9 +291,9 @@ public class Computer
 
                 UpdateComputerWithRetryAndRestorePolicy(session, sshConfigBackup, sshConfigBackupParam ->
                 {
-                    String attemptErrorMessage = "[ERROR] Computer: Attempt of restore computer's ssh config in db failed.";
+                    String attemptErrorMessage = "Attempt of restore computer's ssh config in db failed.";
                     boolean restoreSucceed
-                            = DatabaseManager.MergeWithRetryPolicy(session, sshConfigBackupParam, attemptErrorMessage);
+                            = DatabaseManager.MergeWithRetryPolicy(session, sshConfigBackupParam, ModuleName, attemptErrorMessage);
                     if(restoreSucceed == false)
                     {
                         throw new FatalErrorException("Restoring computer's ssh config after retries failed!");
@@ -348,9 +352,9 @@ public class Computer
         }
         else
         {
-            String attemptErrorMessage = "[ERROR] Computer: " +
-                    "Attempt of updating computer without ssh config changes in db failed.";
-            boolean updateSucceed = DatabaseManager.UpdateWithRetryPolicy(session, this, attemptErrorMessage);
+            String attemptErrorMessage = "Attempt of updating computer without ssh config changes in db failed.";
+            boolean updateSucceed =
+                    DatabaseManager.UpdateWithRetryPolicy(session, this, ModuleName, attemptErrorMessage);
             if(updateSucceed == false)
             {
                 throw new DatabaseException("Unable to update computer without ssh config changes in db.");
@@ -364,8 +368,9 @@ public class Computer
             Session session, SshConfig sshConfigBackup, Consumer<SshConfig> restoreCallback)
             throws DatabaseException
     {
-        String attemptErrorMessage = "[ERROR] Computer: Attempt of update computer in db failed.";
-        boolean updateSucceed = DatabaseManager.UpdateWithRetryPolicy(session, this, attemptErrorMessage);
+        String attemptErrorMessage = "Attempt of update computer in db failed.";
+        boolean updateSucceed =
+                DatabaseManager.UpdateWithRetryPolicy(session, this, ModuleName, attemptErrorMessage);
         if(updateSucceed == false)
         {
             restoreCallback.accept(sshConfigBackup);
@@ -459,8 +464,9 @@ public class Computer
         SshConfig.RemoveComputer(this);
         SshConfig = null;
 
-        String attemptErrorMessage = "[ERROR] Computer: Attempt of removing computer from db failed.";
-        boolean removeSucceed = DatabaseManager.RemoveWithRetryPolicy(session, this, attemptErrorMessage);
+        String attemptErrorMessage = "Attempt of removing computer from db failed.";
+        boolean removeSucceed =
+                DatabaseManager.RemoveWithRetryPolicy(session, this, ModuleName, attemptErrorMessage);
         if(removeSucceed == false)
         {
             try

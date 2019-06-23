@@ -132,4 +132,9 @@ public class SshConfigListCell extends ListCell<SshConfigItem>
             setGraphic(null);
         }
     }
+
+    public TestController GetController()
+    {
+        return _controller;
+    }
 }

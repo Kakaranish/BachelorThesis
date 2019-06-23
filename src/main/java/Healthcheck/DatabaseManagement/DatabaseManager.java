@@ -1,10 +1,12 @@
 package Healthcheck.DatabaseManagement;
 
+import Healthcheck.App;
+import Healthcheck.AppLogger;
+import Healthcheck.LogType;
 import Healthcheck.Utilities;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
-
 import javax.persistence.Query;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +37,7 @@ public class DatabaseManager
     public static boolean PersistWithRetryPolicy(
             Session session,
             Object objectToPersist,
+            String moduleName,
             String attemptErrorMessage)
     {
         try
@@ -50,7 +53,7 @@ public class DatabaseManager
         {
             session.getTransaction().rollback();
 
-            System.out.println(attemptErrorMessage);
+            AppLogger.Log(LogType.ERROR, moduleName, attemptErrorMessage);
 
             // Retries
             int retryNum = 1;
@@ -75,7 +78,8 @@ public class DatabaseManager
                 {
                     session.getTransaction().rollback();
                     ++retryNum;
-                    System.out.println(attemptErrorMessage);
+
+                    AppLogger.Log(LogType.ERROR, moduleName, attemptErrorMessage);
                 }
             }
 
@@ -86,6 +90,7 @@ public class DatabaseManager
     public static boolean MergeWithRetryPolicy(
             Session session,
             Object objectToMerge,
+            String moduleName,
             String attemptErrorMessage)
     {
         try
@@ -101,7 +106,7 @@ public class DatabaseManager
         {
             session.getTransaction().rollback();
 
-            System.out.println(attemptErrorMessage);
+            AppLogger.Log(LogType.ERROR, moduleName, attemptErrorMessage);
 
             // Retries
             int retryNum = 1;
@@ -126,7 +131,8 @@ public class DatabaseManager
                 {
                     session.getTransaction().rollback();
                     ++retryNum;
-                    System.out.println(attemptErrorMessage);
+
+                    AppLogger.Log(LogType.ERROR, moduleName, attemptErrorMessage);
                 }
             }
 
@@ -137,6 +143,7 @@ public class DatabaseManager
     public static boolean UpdateWithRetryPolicy(
             Session session,
             Object objectToUpdate,
+            String moduleName,
             String attemptErrorMessage)
     {
         try
@@ -152,7 +159,7 @@ public class DatabaseManager
         {
             session.getTransaction().rollback();
 
-            System.out.println(attemptErrorMessage);
+            AppLogger.Log(LogType.ERROR, moduleName, attemptErrorMessage);
 
             // Retries
             int retryNum = 1;
@@ -177,7 +184,8 @@ public class DatabaseManager
                 {
                     session.getTransaction().rollback();
                     ++retryNum;
-                    System.out.println(attemptErrorMessage);
+
+                    AppLogger.Log(LogType.ERROR, moduleName, attemptErrorMessage);
                 }
             }
 
@@ -188,6 +196,7 @@ public class DatabaseManager
     public static boolean RemoveWithRetryPolicy(
             Session session,
             Object objectToRemove,
+            String moduleName,
             String attemptErrorMessage)
     {
         try
@@ -203,7 +212,7 @@ public class DatabaseManager
         {
             session.getTransaction().rollback();
 
-            System.out.println(attemptErrorMessage);
+            AppLogger.Log(LogType.ERROR, moduleName, attemptErrorMessage);
 
             // Retries
             int retryNum = 1;
@@ -228,7 +237,8 @@ public class DatabaseManager
                 {
                     session.getTransaction().rollback();
                     ++retryNum;
-                    System.out.println(attemptErrorMessage);
+
+                    AppLogger.Log(LogType.ERROR, moduleName, attemptErrorMessage);
                 }
             }
 
@@ -239,6 +249,7 @@ public class DatabaseManager
     public static List ExecuteSelectQueryWithRetryPolicy(
             Session session,
             Query query,
+            String moduleName,
             String attemptErrorMessage)
     {
         try
@@ -261,7 +272,7 @@ public class DatabaseManager
         {
             session.getTransaction().rollback();
 
-            System.out.println(attemptErrorMessage);
+            AppLogger.Log(LogType.ERROR, moduleName, attemptErrorMessage);
 
             // Retries
             int retryNum = 1;
@@ -293,7 +304,8 @@ public class DatabaseManager
                 {
                     session.getTransaction().rollback();
                     ++retryNum;
-                    System.out.println(attemptErrorMessage);
+
+                    AppLogger.Log(LogType.ERROR, moduleName, attemptErrorMessage);
                 }
             }
 
@@ -304,6 +316,7 @@ public class DatabaseManager
     public static boolean ExecuteDeleteQueryWithRetryPolicy(
             Session session,
             Query query,
+            String moduleName,
             String attemptErrorMessage)
     {
         try
@@ -319,7 +332,7 @@ public class DatabaseManager
         {
             session.getTransaction().rollback();
 
-            System.out.println(attemptErrorMessage);
+            AppLogger.Log(LogType.ERROR, moduleName, attemptErrorMessage);
 
             // Retries
             int retryNum = 1;
@@ -344,7 +357,8 @@ public class DatabaseManager
                 {
                     session.getTransaction().rollback();
                     ++retryNum;
-                    System.out.println(attemptErrorMessage);
+
+                    AppLogger.Log(LogType.ERROR, moduleName, attemptErrorMessage);
                 }
             }
 

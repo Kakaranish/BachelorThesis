@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 
 public class ComputersAndSshConfigsManager
 {
+    public final static String ModuleName = "ComputersAndSshConfigsManager";
+
     private List<Computer> _computers;
     private List<SshConfig> _sshConfigs;
 
@@ -27,14 +29,13 @@ public class ComputersAndSshConfigsManager
 
     private List<SshConfig> GetSshConfigsFromDb()
     {
-        String attemptErrorMessage = "[ERROR] ComputersAndSshConfigsManager: " +
-                "Attempt of getting ssh configs from db failed.";
+        String attemptErrorMessage = "Attempt of getting ssh configs from db failed.";
 
         Session session = DatabaseManager.GetInstance().GetSession();
         String hql = "from SshConfig c";
         Query query = session.createQuery(hql);
         List<SshConfig> sshConfigs
-                = DatabaseManager.ExecuteSelectQueryWithRetryPolicy(session, query, attemptErrorMessage);
+                = DatabaseManager.ExecuteSelectQueryWithRetryPolicy(session, query, ModuleName, attemptErrorMessage);
         session.close();
 
         if(sshConfigs != null)

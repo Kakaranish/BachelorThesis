@@ -18,6 +18,7 @@ import javafx.scene.image.ImageView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.stage.WindowEvent;
 import javafx.util.Callback;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -60,9 +61,14 @@ public class TestController implements Initializable
     @FXML
     private Button startOrStopGatheringLogsButton;
 
+    @FXML
+    private Button clearAppLogsButton;
+
     private TestController thisController = this;
     private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
     private LogsManager _logsManager;
+
+    private boolean _isEditionAndRemovingAllowed = true;
 
     // ---  INITIALIZATION  --------------------------------------------------------------------------------------------
 
@@ -70,15 +76,18 @@ public class TestController implements Initializable
     public void initialize(URL location, ResourceBundle resources)
     {
         AppLogger.SetTargetObservableList(appLoggerEntries);
+        AppLogger.SetTargetTableView(appLoggerTableView);
+        AppLogger.SetEnabledOutputToConsole(true);
 
         _computersAndSshConfigsManager = new ComputersAndSshConfigsManager();
-        _logsManager = new LogsManager(_computersAndSshConfigsManager);
+        _logsManager = new LogsManager(_computersAndSshConfigsManager, this);
 
         InitializeTableColumns();
         appLoggerTableView.setItems(appLoggerEntries);
 
         InitializeStartOrStopGatheringLogsButton();
         InitializeAddComputerOrSshConfigButton();
+        InitializeClearAppLogsButton();
         InitializeTabPaneSelectionListener();
 
         LoadComputersToListView();
@@ -94,7 +103,30 @@ public class TestController implements Initializable
 
     private void InitializeStartOrStopGatheringLogsButton()
     {
-        startOrStopGatheringLogsButton.setOnAction(event -> _logsManager.StartWork());
+        startOrStopGatheringLogsButton.setOnAction(event ->
+        {
+            if(_logsManager.IsWorking() == false)
+            {
+                _logsManager.StartWork();
+                startOrStopGatheringLogsButton.setText("Stop Gathering Logs");
+                _isEditionAndRemovingAllowed = false;
+            }
+            else
+            {
+                _logsManager.StopWork();
+                startOrStopGatheringLogsButton.setText("Start Gathering Logs");
+                _isEditionAndRemovingAllowed = true;
+            }
+        });
+    }
+
+    private void InitializeClearAppLogsButton()
+    {
+        clearAppLogsButton.setOnAction(event ->
+        {
+            appLoggerTableView.getItems().clear();
+            appLoggerTableView.refresh();
+        });
     }
 
     private void InitializeAddComputerOrSshConfigButton()
@@ -237,6 +269,14 @@ public class TestController implements Initializable
 
     // ---  MISC  ------------------------------------------------------------------------------------------------------
 
+    public void OnCloseAction(WindowEvent event)
+    {
+        if(_logsManager.IsWorking())
+        {
+            _logsManager.StopWork();
+        }
+    }
+
     public void NotifyChanged(ChangeEvent changeEvent)
     {
         if(changeEvent.Computer != null && changeEvent.ChangeType == ChangedEventType.ADDED)
@@ -270,5 +310,47 @@ public class TestController implements Initializable
     private boolean IsInAddSshConfigMode(int tabNum)
     {
         return tabNum == 3;
+    }
+
+    // ---  LogsManager CALLBACKS  -------------------------------------------------------------------------------------
+
+    public void ClearInitListViewOfGatheredComputers()
+    {
+
+    }
+
+    public void Callback_LogsManager_StoppedWork()
+    {
+
+    }
+
+    public void Callback_LogsManager_StoppedWork_FatalError()
+    {
+
+    }
+
+    public void Callback_LogsManager_StoppedWork_NothingToDo()
+    {
+
+    }
+
+    public void Callback_LogsManager_WorkForComputerStopped(Computer computer)
+    {
+
+    }
+
+    public boolean IsLogsManagerWorking()
+    {
+        return _logsManager.IsWorking();
+    }
+
+    public boolean IsEditionAllowed()
+    {
+        return _isEditionAndRemovingAllowed;
+    }
+
+    public boolean IsRemovingAllowed()
+    {
+        return _isEditionAndRemovingAllowed;
     }
 }

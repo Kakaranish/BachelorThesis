@@ -1,8 +1,10 @@
 package Healthcheck.LogsManagement;
 
+import Healthcheck.AppLogger;
 import Healthcheck.DatabaseManagement.DatabaseException;
 import Healthcheck.DatabaseManagement.DatabaseManager;
 import Healthcheck.Entities.Computer;
+import Healthcheck.LogType;
 import Healthcheck.Preferences.IPreference;
 import Healthcheck.Preferences.Preferences;
 import org.hibernate.Session;
@@ -10,11 +12,12 @@ import javax.persistence.Query;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.ArrayDeque;
-import java.util.Collection;
 import java.util.List;
 
 public class LogsMaintainer
 {
+    public final static String ModuleName = "LogsMaintainer";
+
     private class ComputerAndTimeToMaintainPair
     {
         public Computer Computer;
@@ -33,13 +36,6 @@ public class LogsMaintainer
     private boolean _interruptionIntended = false;
     private boolean _interruptionForRestart = false;
 
-    private Thread GetMaintainingThread()
-    {
-        Thread maintainingThread = new Thread(this::run);
-
-        return maintainingThread;
-    }
-
     public LogsMaintainer(LogsManager logsManager)
     {
         _logsManager = logsManager;
@@ -49,11 +45,10 @@ public class LogsMaintainer
     {
         if(_isMaintaining == true)
         {
-            throw new LogsException(
-                    "[FATAL ERROR] Unable to start maintaining logs. Other maintainer currently is working.");
+            throw new LogsException("Unable to start maintaining logs - other maintainer currently is working.");
         }
 
-        Callback_InfoMessage("Started work.");
+        AppLogger.Log(LogType.INFO, ModuleName, "Started work.");
 
         _isMaintaining = true;
         _maintainingThread = GetMaintainingThread();
@@ -64,27 +59,28 @@ public class LogsMaintainer
     {
         if(_isMaintaining == false)
         {
-            throw new LogsException("[FATAL ERROR] LogsMaintainer: Unable to stop maintaining logs. No maintainer is working.");
+            throw new LogsException("Unable to stop maintaining logs. No maintainer is working.");
         }
 
         _interruptionIntended = true;
 
         _maintainingThread.interrupt();
         _maintainingThread = null;
+        _isMaintaining = false;
 
         _interruptionIntended = false;
 
-        _isMaintaining = false;
-        Callback_InfoMessage("Stopped work.");
+        AppLogger.Log(LogType.INFO, ModuleName, "Stopped work.");
     }
 
     public void RestartMaintainingLogs() throws LogsException
     {
         if(_isMaintaining == false)
         {
-            throw new LogsException("[FATAL ERROR] LogsMaintainer: Unable to restart maintaining logs. No maintainer is working.");
+            throw new LogsException("Unable to restart maintaining logs. No maintainer is working.");
         }
-        Callback_InfoMessage("Restarting.");
+
+        AppLogger.Log(LogType.INFO, ModuleName, "Restarting.");
 
         _interruptionIntended = true;
         _interruptionForRestart = true;
@@ -105,7 +101,8 @@ public class LogsMaintainer
             {
                 long computerTimeToMaintenance = GetComputerTimeToMaintenance(computer);
 
-                if (computerWithLowestTimeToMaintain == null || computerTimeToMaintenance < computerWithLowestTimeToMaintain.TimeToMaintain)
+                if (computerWithLowestTimeToMaintain == null
+                        || computerTimeToMaintenance < computerWithLowestTimeToMaintain.TimeToMaintain)
                 {
                     computerWithLowestTimeToMaintain = new ComputerAndTimeToMaintainPair(computer, computerTimeToMaintenance);
                 }
@@ -125,13 +122,14 @@ public class LogsMaintainer
                     MaintainComputer(computerToMaintain);
 
                     String host = computerToMaintain.GetHost();
-                    Callback_InfoMessage("'" + host + "' was maintained.");
+                    String username = computerToMaintain.GetSshConfig().GetUsername();
+                    AppLogger.Log(LogType.INFO, ModuleName, "'" + username + "@" + host + "' was maintained.");
                 }
             }
             else
             {
                 long timeToNextMaintain = Duration.ofMillis(computerWithLowestTimeToMaintain.TimeToMaintain).toSeconds();
-                Callback_InfoMessage("Next maintenance will be taken in " + timeToNextMaintain + "s.");
+                AppLogger.Log(LogType.INFO, ModuleName, "Next maintenance in " + timeToNextMaintain + "s.");
 
                 try
                 {
@@ -141,7 +139,6 @@ public class LogsMaintainer
                 {
                     if (_interruptionIntended == false)
                     {
-                        Callback_InfoMessage("Stopped work");
                         _isMaintaining = false;
                         _logsManager.Callback_Maintainer_InterruptionNotIntended_StopWorkForAllComputerLoggers();
                     }
@@ -163,7 +160,8 @@ public class LogsMaintainer
                 MaintainComputer(computerWithLowestTimeToMaintain.Computer);
 
                 String host = computerWithLowestTimeToMaintain.Computer.GetHost();
-                Callback_InfoMessage("'" + host + "' was maintained.");
+                String username = computerWithLowestTimeToMaintain.Computer.GetSshConfig().GetUsername();
+                AppLogger.Log(LogType.INFO, ModuleName, "'" + username + "@" + host + "' was maintained.");
             }
         }
     }
@@ -173,13 +171,12 @@ public class LogsMaintainer
         String host = computer.GetHost();
         long logExpiration = computer.GetLogExpiration().toMillis();
 
-        String attemptErrorMessage =
-                "[ERROR] LogsMaintainer: Attempt of deleting logs for '" + host+ "' failed.";
+        String attemptErrorMessage = "Attempt of deleting logs for '" + host+ "' failed.";
 
         List<IPreference> iPreferences = computer.GetIPreferences();
         for (IPreference computerPreference : iPreferences)
         {
-            Long now = System.currentTimeMillis();
+            long now = System.currentTimeMillis();
 
             String hql = "delete from " + computerPreference.GetClassName() + " t "+
                     "where t.Computer = :computer " +
@@ -190,11 +187,13 @@ public class LogsMaintainer
             query.setParameter("computer", computer);
 
             boolean removingLogsSucceed =
-                    DatabaseManager.ExecuteDeleteQueryWithRetryPolicy(session, query, attemptErrorMessage);
+                    DatabaseManager.ExecuteDeleteQueryWithRetryPolicy(session, query, ModuleName, attemptErrorMessage);
             if (removingLogsSucceed == false)
             {
-                Callback_FatalError(_logsManager.GetComputerLoggerForComputer(computer),
-                        "Deleting logs for '" + host + "' failed.");
+                AppLogger.Log(LogType.FATAL_ERROR, ModuleName, "Deleting logs for '" + host + "' failed.");
+
+                ComputerLogger computerLogger = _logsManager.GetComputerLoggerForComputer(computer);
+                _logsManager.Callback_Maintainer_StopWorkForComputerLogger(computerLogger);
 
                 session.close();
                 return false;
@@ -211,8 +210,9 @@ public class LogsMaintainer
         }
         catch (DatabaseException e)
         {
-            Callback_FatalError(_logsManager.GetComputerLoggerForComputer(computer),
-                    "Setting last maintenance time for '" + host + "' failed.");
+            ComputerLogger computerLogger = _logsManager.GetComputerLoggerForComputer(computer);
+            _logsManager.Callback_Maintainer_StopWorkForComputerLogger(computerLogger);
+            AppLogger.Log(LogType.FATAL_ERROR, ModuleName, "Setting last maintenance time for '" + host + "' failed.");
 
             return false;
         }
@@ -232,16 +232,22 @@ public class LogsMaintainer
             Query query = session.createQuery(hql);
             query.setParameter("computer", computer);
 
-            String attemptErrorMessage =
-                    "[ERROR] LogsMaintainer: Attempt of removing logs associated with '" + computer + "' failed.";
+            String attemptErrorMessage = "Attempt of removing logs associated with '" + computer + "' failed.";
             boolean removeSucceed =
-                    DatabaseManager.ExecuteDeleteQueryWithRetryPolicy(session, query, attemptErrorMessage);
+                    DatabaseManager.ExecuteDeleteQueryWithRetryPolicy(session, query, ModuleName, attemptErrorMessage);
             session.close();
             if(removeSucceed == false)
             {
                 throw new DatabaseException("Unable to remove logs associated with '" + computer + "'.");
             }
         }
+    }
+
+    private Thread GetMaintainingThread()
+    {
+        Thread maintainingThread = new Thread(this::run);
+
+        return maintainingThread;
     }
 
     private long GetComputerTimeToMaintenance(Computer computer)
@@ -258,18 +264,8 @@ public class LogsMaintainer
         return computerTimeToMaintenance <= 0;
     }
 
-    // -----------------------------------------------------------------------------------------------------------------
-    // ---------------------------------------------- CALLBACKS --------------------------------------------------------
-
-    public void Callback_InfoMessage(String message)
+    public boolean IsMaintaining()
     {
-        System.out.println("[INFO] LogsMaintainer: " + message);
-    }
-
-    public void Callback_FatalError(ComputerLogger computerLogger, String message)
-    {
-        System.out.println("[FATAL ERROR] LogsMaintainer: " + message);
-
-        _logsManager.Callback_Maintainer_StopWorkForComputerLogger(computerLogger);
+        return _isMaintaining;
     }
 }

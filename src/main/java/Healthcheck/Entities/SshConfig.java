@@ -16,6 +16,8 @@ import java.util.List;
 @Table(name = "SSH_Configurations", uniqueConstraints = {@UniqueConstraint(columnNames = {"Name"})})
 public class SshConfig
 {
+    public final static String ModuleName = "SshConfig";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer Id;
@@ -207,8 +209,9 @@ public class SshConfig
     {
         Validate_AddToDb(session);
 
-        String attemptErrorMessage = "[ERROR] SshConfig: Attempt of adding ssh config to db failed.";
-        boolean addSucceed = DatabaseManager.PersistWithRetryPolicy(session, this, attemptErrorMessage);
+        String attemptErrorMessage = "Attempt of adding ssh config to db failed.";
+        boolean addSucceed =
+                DatabaseManager.PersistWithRetryPolicy(session, this, ModuleName, attemptErrorMessage);
         if(addSucceed == false)
         {
             throw new DatabaseException("Unable to save ssh config in db.");
@@ -263,8 +266,9 @@ public class SshConfig
     {
         Validate_UpdateInDb();
 
-        String attemptErrorMessage = "[ERROR] SshConfig: Attempt of update ssh config in db failed.";
-        boolean updateSucceed = DatabaseManager.UpdateWithRetryPolicy(session, this, attemptErrorMessage);
+        String attemptErrorMessage = "Attempt of update ssh config in db failed.";
+        boolean updateSucceed =
+                DatabaseManager.UpdateWithRetryPolicy(session, this, ModuleName, attemptErrorMessage);
         if(updateSucceed == false)
         {
             throw new DatabaseException("Unable to update ssh config in db.");
@@ -302,9 +306,9 @@ public class SshConfig
     {
         Validate_RemoveLocalFromDb();
 
-        String removeAttemptErrorMessage = "[ERROR] SshConfig: Attempt of removing local ssh config from db failed.";
+        String removeAttemptErrorMessage = "Attempt of removing local ssh config from db failed.";
         boolean removeSucceed =
-                DatabaseManager.RemoveWithRetryPolicy(session, this, removeAttemptErrorMessage);
+                DatabaseManager.RemoveWithRetryPolicy(session, this, ModuleName, removeAttemptErrorMessage);
 
         if(removeSucceed == false)
         {
@@ -363,9 +367,9 @@ public class SshConfig
             computer.UpdateInDb(session);
         }
 
-        String removeAttemptErrorMessage = "[ERROR] SshConfig: Attempt of removing global ssh config from db failed.";
+        String removeAttemptErrorMessage = "Attempt of removing global ssh config from db failed.";
         boolean removeSucceed =
-                DatabaseManager.RemoveWithRetryPolicy(session, this, removeAttemptErrorMessage);
+                DatabaseManager.RemoveWithRetryPolicy(session, this, ModuleName, removeAttemptErrorMessage);
         if(removeSucceed == false)
         {
             throw new DatabaseException("Unable to remove global ssh config in db.");
@@ -408,9 +412,9 @@ public class SshConfig
             _computersAndSshConfigsManager.RemovedSshConfig(persistedSshConfig);
 
             String restoreAttemptErrorMessage =
-                    "[ERROR] SshConfig: Attempt of removing new local ssh config in db failed.";
+                    "Attempt of removing new local ssh config in db failed.";
             boolean restoreSucceed = DatabaseManager
-                    .RemoveWithRetryPolicy(session, persistedSshConfig, restoreAttemptErrorMessage);
+                    .RemoveWithRetryPolicy(session, persistedSshConfig, ModuleName, restoreAttemptErrorMessage);
             if(restoreSucceed == false)
             {
                 throw new FatalErrorException("Restoring ssh configs after computer adding failed!");

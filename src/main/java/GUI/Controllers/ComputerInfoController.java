@@ -806,6 +806,12 @@ public class ComputerInfoController implements Initializable
     @FXML
     void SaveOrUpdateComputer(ActionEvent event)
     {
+        if(GetParentController().IsEditionAllowed() == false)
+        {
+            Utilities.ShowErrorDialog("LogsManager is running. Stop it to edit computer.");
+            return;
+        }
+
         List<String> emptinessOrIntegerErrors = GetValidationErrorListBeforeSaveOrUpdate();
         if (emptinessOrIntegerErrors.size() > 0)
         {
@@ -972,6 +978,12 @@ public class ComputerInfoController implements Initializable
     @FXML
     void RemoveComputer(ActionEvent event)
     {
+        if(GetParentController().IsRemovingAllowed() == false)
+        {
+            Utilities.ShowErrorDialog("LogsManager is running. Stop it to remove computer.");
+            return;
+        }
+
         boolean removeResponse = Utilities.ShowYesNoDialog("Remove computer?",
                 "Do your want to remove computer?");
         if(removeResponse == false)
@@ -1520,6 +1532,18 @@ public class ComputerInfoController implements Initializable
     }
 
     // ---  GETTERS  ---------------------------------------------------------------------------------------------------
+
+    private TestController GetParentController()
+    {
+        if(_parentController != null)
+        {
+            return _parentController;
+        }
+        else
+        {
+            return _cellCaller.GetController();
+        }
+    }
 
     private List<Preference> GetSelectedPreferences()
     {

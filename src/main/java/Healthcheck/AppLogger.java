@@ -2,6 +2,7 @@ package Healthcheck;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
+import javafx.scene.control.TableView;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -12,6 +13,7 @@ public class AppLogger
     private final static int _maxLogsNum = 100;
 
     private ObservableList<AppLoggerEntry> _targetObservableList;
+    private TableView<AppLoggerEntry> _targetTableView;
     private boolean _enabledOutputToConsole;
 
     private AppLogger()
@@ -21,6 +23,11 @@ public class AppLogger
     public static void SetTargetObservableList(ObservableList<AppLoggerEntry> targetObservableList)
     {
         _appLogger._targetObservableList = targetObservableList;
+    }
+
+    public static void SetTargetTableView(TableView<AppLoggerEntry> targetTableView)
+    {
+        _appLogger._targetTableView= targetTableView;
     }
 
     public static void SetEnabledOutputToConsole(boolean enabled)
@@ -49,6 +56,11 @@ public class AppLogger
             Content = new SimpleStringProperty(content);
         }});
 
+        if(_appLogger._targetTableView != null)
+        {
+            _appLogger._targetTableView.refresh();
+        }
+
         if(_appLogger._enabledOutputToConsole)
         {
             System.out.println(_formatter.format(now) + "\t[" + logType.name() + "] " + content);
@@ -65,7 +77,7 @@ public class AppLogger
 
         if(_appLogger._targetObservableList.size() == _maxLogsNum)
         {
-            _appLogger._targetObservableList.remove(_maxLogsNum-1);
+            _appLogger._targetObservableList.remove(0);
         }
 
         Date now = new Date();
@@ -75,6 +87,11 @@ public class AppLogger
             LogType = new SimpleStringProperty(logType.name());
             Content = new SimpleStringProperty(moduleName + ": " + content);
         }});
+
+        if(_appLogger._targetTableView != null)
+        {
+            _appLogger._targetTableView.refresh();
+        }
 
         if(_appLogger._enabledOutputToConsole)
         {

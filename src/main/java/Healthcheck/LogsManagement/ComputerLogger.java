@@ -18,17 +18,20 @@ public class ComputerLogger extends Thread
 {
     private Computer _computer;
     private String _host;
+    private String _username;
     private List<IPreference> _iPreferences;
 
     private LogsGatherer _logsGatherer;
     private SSHConnection _sshConnection;
     private boolean _isGathering = false;
+    private boolean _notifyMaintainerIfInterrupted = true;
 
     public ComputerLogger(LogsGatherer logsGatherer, Computer computer)
     {
         _logsGatherer = logsGatherer;
         _computer = computer;
         _host = _computer.GetHost();
+        _username = computer.GetSshConfig().GetUsername();
         _iPreferences = _computer.GetIPreferences();
     }
 
@@ -47,7 +50,7 @@ public class ComputerLogger extends Thread
     }
 
     // Once Stopped ComputerLogger cannot be started again
-    public boolean StopGatheringLogs()
+    public boolean StopGatheringLogsWithNotifyingMaintainer()
     {
         if(_isGathering == false)
         {
@@ -62,57 +65,65 @@ public class ComputerLogger extends Thread
         return true;
     }
 
+    public boolean StopGatheringLogsWithoutNotifyingMaintainer()
+    {
+        if(_isGathering == false)
+        {
+            return false;
+        }
+
+        _notifyMaintainerIfInterrupted = false;
+        this.interrupt();
+
+        _isGathering = false;
+
+        return true;
+    }
+
     public void run()
     {
-        while(true)
+        while(_isGathering)
         {
-            Timestamp timestamp = new Timestamp (System.currentTimeMillis());
-
-            for (IPreference computerPreference : _iPreferences)
+            boolean gatheringLogsSucceed = GatherAndSaveLogsForAllPreferenceTypes();
+            if(gatheringLogsSucceed == false)
             {
-                List<BaseEntity> logsToSave =
-                        GetLogsForGivenPreferenceTypeWithRetryPolicy(computerPreference, timestamp);
-                if(logsToSave == null)
-                {
-                    _sshConnection.CloseConnection();
-                    return;
-                }
-
-                for (BaseEntity log : logsToSave)
-                {
-                    Session session = DatabaseManager.GetInstance().GetSession();
-
-                    boolean logSaved = SaveLogToSessionWithRetryPolicy(session, log);
-                    if (logSaved == false)
-                    {
-                        _sshConnection.CloseConnection();
-                        session.close();
-
-                        return;
-                    }
-
-                    session.close();
-                }
+                return; // Getting data through ssh connection or saving to db failed - end of thread
             }
 
-            _logsGatherer.Callback_InfoMessage("Logs for '" + _host + "' were gathered.");
+            _logsGatherer.Callback_InfoMessage("Logs for '" + _username + "@" + _host + "' gathered. Next gathering in "
+                    + _computer.GetRequestInterval().toSeconds() + "s.");
 
             try
             {
+                if(_isGathering == false)
+                {
+                    AppLogger.Log(LogType.INFO, "LogsGatherer",
+                            "Stopped gathering logs for '" + _username + "@" + _host + "'.");
+                    return;
+                }
+//                System.out.println(_host + "\t" + _computer.GetRequestInterval().toMillis());
+
                 Thread.sleep(_computer.GetRequestInterval().toMillis());
             }
             catch (InterruptedException e)
             {
+                _sshConnection.CloseConnection();
+
                 if(_logsGatherer.IsInterruptionIntended())
                 {
-                    _sshConnection.CloseConnection();
-                    _logsGatherer.Callback_StoppedGathering(this);
+                    if(_notifyMaintainerIfInterrupted)
+                    {
+                        _logsGatherer.Callback_IntentionallyStoppedGathering_WithNotifyingMaintainer(this);
+                    }
+                    else
+                    {
+                        // Do nothing
+                    }
                 }
                 else
                 {
-                    _logsGatherer.Callback_FatalError(this,
-                            "Sleep was interrupted for '" + _host + "' in main loop.");
-                    _sshConnection.CloseConnection();
+                    _logsGatherer.Callback_FatalError_StopWorkForComputerLogger(this,
+                            "Sleep was interrupted for '" + _username + "@" + _host + "' in main loop.");
                 }
 
                 return;
@@ -120,7 +131,41 @@ public class ComputerLogger extends Thread
         }
     }
 
-    private List<BaseEntity> GetLogsForGivenPreferenceTypeWithRetryPolicy(IPreference computerIPreference, Timestamp timestamp)
+    private boolean GatherAndSaveLogsForAllPreferenceTypes()
+    {
+        Timestamp timestamp = new Timestamp (System.currentTimeMillis());
+
+        for (IPreference computerPreference : _iPreferences)
+        {
+            List<BaseEntity> logsToSave =
+                    GatherLogsForGivenPreferenceTypeWithRetryPolicy(computerPreference, timestamp);
+            if(logsToSave == null)
+            {
+                _sshConnection.CloseConnection();
+                return false;
+            }
+
+            for (BaseEntity log : logsToSave)
+            {
+                Session session = DatabaseManager.GetInstance().GetSession();
+
+                boolean logSaved = SaveLogToSessionWithRetryPolicy(session, log);
+                if (logSaved == false)
+                {
+                    _sshConnection.CloseConnection();
+                    session.close();
+
+                    return false;
+                }
+
+                session.close();
+            }
+        }
+
+        return true;
+    }
+
+    private List<BaseEntity> GatherLogsForGivenPreferenceTypeWithRetryPolicy(IPreference computerIPreference, Timestamp timestamp)
     {
         try
         {
@@ -133,7 +178,8 @@ public class ComputerLogger extends Thread
         }
         catch (SSHConnectionException e)
         {
-            _logsGatherer.Callback_ErrorMessage("Attempt of getting logs for '" + _host + "' failed. SSH connection failed");
+            _logsGatherer.Callback_ErrorMessage(
+                    "Attempt of getting logs for '" + _username + "@" + _host + "' failed. SSH connection failed");
 
             // Retries
             int retryNum = 1;
@@ -141,6 +187,13 @@ public class ComputerLogger extends Thread
             {
                 try
                 {
+                    if(_isGathering == false)
+                    {
+                        AppLogger.Log(LogType.INFO, "LogsGatherer",
+                                "Stopped gathering logs for '" + _username + "@" + _host + "'.");
+                        return null;
+                    }
+
                     Thread.sleep(Utilities.SelectCooldown);
 
                     String sshResultNotProcessed = _sshConnection.ExecuteCommand(computerIPreference.GetCommandToExecute());
@@ -151,30 +204,31 @@ public class ComputerLogger extends Thread
                 }
                 catch (InterruptedException ex)
                 {
-                    if(_logsGatherer.IsInterruptionIntended())
+                    if(_logsGatherer.IsInterruptionIntended() && _notifyMaintainerIfInterrupted)
                     {
-                        _sshConnection.CloseConnection();
-                        _logsGatherer.Callback_StoppedGathering(this);
+                        _logsGatherer.Callback_IntentionallyStoppedGathering_WithNotifyingMaintainer(this);
                     }
-                    else
+                    else if(_logsGatherer.IsInterruptionIntended() && _notifyMaintainerIfInterrupted == false)
                     {
-                        _sshConnection.CloseConnection();
-                        _logsGatherer.Callback_FatalError(this,
-                                "Sleep was interrupted for '" + _host + "' in getting logs method.");
+                        _logsGatherer.Callback_FatalError_StopWorkForComputerLogger(this,
+                                "Sleep was interrupted for '" + _username + "@" + _host
+                                        + "' in getting logs method.");
                     }
 
                     return null;
                 }
                 catch (Exception ex)
                 {
-                    _logsGatherer.Callback_ErrorMessage("Attempt of getting logs for '" + _host + "' failed. SSH connection failed.");
+                    _logsGatherer.Callback_ErrorMessage(
+                            "Attempt of getting logs for '" + _username + "@" + _host
+                                    + "' failed. SSH connection failed.");
 
                     ++retryNum;
                 }
             }
 
-            _logsGatherer.Callback_FatalError(this,
-                    "Getting logs for '" + _host + "' failed after retries.");
+            _logsGatherer.Callback_FatalError_StopWorkForComputerLogger(this,
+                    "Getting logs for '" + _username + "@" + _host + "' failed after retries.");
             return null;
         }
     }
@@ -194,7 +248,8 @@ public class ComputerLogger extends Thread
         {
             session.getTransaction().rollback();
 
-            _logsGatherer.Callback_ErrorMessage("Attempt of saving logs for '" + _host + "' failed. Database is locked.");
+            _logsGatherer.Callback_ErrorMessage("Attempt of saving logs for '" + _username + "@" + _host
+                    + "' failed. Database is locked.");
 
             // Retries
             int retryNum = 1;
@@ -202,6 +257,14 @@ public class ComputerLogger extends Thread
             {
                 try
                 {
+                    if(_isGathering == false)
+                    {
+                        AppLogger.Log(LogType.INFO, "LogsGatherer",
+                                "Stopped gathering logs for '" + _username + "@" + _host + "'.");
+
+                        return false;
+                    }
+
                     Thread.sleep(Utilities.PersistCooldown
                             + new Random().ints(0,100).findFirst().getAsInt());
 
@@ -213,20 +276,14 @@ public class ComputerLogger extends Thread
                 }
                 catch (InterruptedException ex)
                 {
-                    if(session.isOpen())
-                    {
-                        session.close();
-                    }
-                    _sshConnection.CloseConnection();
-
                     if(_logsGatherer.IsInterruptionIntended())
                     {
-                        _logsGatherer.Callback_StoppedGathering(this);
+                        _logsGatherer.Callback_IntentionallyStoppedGathering_WithNotifyingMaintainer(this);
                     }
                     else
                     {
-                        _logsGatherer.Callback_FatalError(this,
-                                "'" + _host + "' sleep was interrupted in saving logs method.");
+                        _logsGatherer.Callback_FatalError_StopWorkForComputerLogger(this,
+                                "'" + _username + "@" + _host + "' sleep was interrupted in saving logs method.");
                     }
 
                     return false;
@@ -237,12 +294,12 @@ public class ComputerLogger extends Thread
                     ++retryNum;
 
                     _logsGatherer.Callback_ErrorMessage(
-                            "Attempt of saving logs for '" + _host + "' failed. Database is locked.");
+                            "Attempt of saving logs for '" + _username + "@" + _host + "' failed. Database is locked.");
                 }
             }
 
-            _logsGatherer.Callback_FatalError(this,
-                    "Saving logs for '" + _host + "' failed after retries.");
+            _logsGatherer.Callback_FatalError_StopWorkForComputerLogger(this,
+                    "Saving logs for '" + _username + "@" + _host + "' failed after retries.");
             return false;
         }
     }
@@ -251,14 +308,12 @@ public class ComputerLogger extends Thread
     {
         if(_iPreferences.isEmpty())
         {
-            _logsGatherer.Callback_InfoMessage(
-                    "'" + _host + "' has no preferences. No need to establish SSH connection with computer.");
+            _logsGatherer.Callback_InfoMessage("'" + _username + "@" + _host + "' has no preferences. " +
+                    "No need to establish SSH connection with computer.");
             return;
         }
 
-        new Thread(() -> {
-            _sshConnection = GetSSHConnectionWithComputer();
-        }).start();
+        new Thread(() -> _sshConnection = GetSSHConnectionWithComputer()).start();
     }
 
     private SSHConnection GetSSHConnectionWithComputer()
@@ -268,13 +323,13 @@ public class ComputerLogger extends Thread
             SSHConnection sshConnection = new SSHConnection();
             sshConnection.OpenConnection(_host, _computer.GetSshConfig());
 
-            _logsGatherer.Callback_InfoMessage("SSH connection with '" + _host + "' established.");
+            _logsGatherer.Callback_InfoMessage("SSH connection with '" + _username + "@" + _host + "' established.");
             return sshConnection;
         }
         catch (EncrypterException e)
         {
             _logsGatherer.Callback_FatalErrorWithoutAction(
-                    "SSH connection with '" + _host + "' failed. Unable to decrypt password.");
+                    "SSH connection with '" + _username + "@" + _host + "' failed. Unable to decrypt password.");
         }
         catch (SSHConnectionException e)
         {
