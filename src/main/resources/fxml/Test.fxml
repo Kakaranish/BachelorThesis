@@ -7,11 +7,16 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-
 <AnchorPane prefHeight="440.0" prefWidth="645.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.Controllers.TestController">
    <children>
       <TabPane fx:id="tabPane" prefHeight="440.0" prefWidth="645.0" tabClosingPolicy="UNAVAILABLE">
         <tabs>
+            <Tab text="Gathering Logs">
+              <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+              </content>
+            </Tab>
+          <Tab text="Stats" />
             <Tab text="Computers">
                <content>
                   <ListView fx:id="computerItemsListView" prefHeight="213.0" prefWidth="6.0" />
@@ -22,7 +27,6 @@
                   <ListView fx:id="sshConfigItemsListView" prefHeight="200.0" prefWidth="200.0" />
                </content>
           </Tab>
-          <Tab text="Stats" />
         </tabs>
       </TabPane>
       <HBox layoutX="605.0" layoutY="2.0" prefHeight="16.0" prefWidth="16.0">

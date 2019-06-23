@@ -74,6 +74,7 @@ public class TestController implements Initializable
         addComputerOrSshConfigButton.getStyleClass().add("edit-button");
         addComputerOrSshConfigButton.setCursor(Cursor.HAND);
         addComputerOrSshConfigButton.setOnAction(event -> AddComputer(this, _computersAndSshConfigsManager));
+        addComputerOrSshConfigButton.setVisible(false);
     }
 
     private void InitializeTabPaneSelectionListener()
@@ -83,14 +84,17 @@ public class TestController implements Initializable
             if(IsInAddComputerMode(newValue.intValue()))
             {
                 addComputerOrSshConfigButton.setOnAction(event -> AddComputer(this, _computersAndSshConfigsManager));
+                addComputerOrSshConfigButton.setVisible(true);
             }
             else if(IsInAddSshConfigMode(newValue.intValue()))
             {
                 addComputerOrSshConfigButton.setOnAction(event -> AddSshConfig(this, _computersAndSshConfigsManager));
+                addComputerOrSshConfigButton.setVisible(true);
             }
             else
             {
                 addComputerOrSshConfigButton.setOnAction(event -> {});
+                addComputerOrSshConfigButton.setVisible(false);
             }
         });
     }
@@ -227,11 +231,11 @@ public class TestController implements Initializable
 
     private boolean IsInAddComputerMode(int tabNum)
     {
-        return tabNum == 0;
+        return tabNum == 2;
     }
 
     private boolean IsInAddSshConfigMode(int tabNum)
     {
-        return tabNum == 1;
+        return tabNum == 3;
     }
 }
