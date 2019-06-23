@@ -4,6 +4,7 @@ import Healthcheck.ComputersAndSshConfigsManager;
 import Healthcheck.Entities.SshConfig;
 import Healthcheck.Utilities;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
@@ -63,6 +64,7 @@ public class SshConfigListCell extends ListCell<SshConfigItem>
         spacer.setMinSize(10, 1);
 
         content = new HBox(configIconImageView, vBox, spacer, editButton);
+        content.setPadding(new Insets(0,0,0,7));
         content.setSpacing(10);
         content.setAlignment(Pos.CENTER_LEFT);
 

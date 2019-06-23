@@ -12,9 +12,26 @@
       <TabPane fx:id="tabPane" prefHeight="440.0" prefWidth="645.0" tabClosingPolicy="UNAVAILABLE">
         <tabs>
             <Tab text="Gathering Logs">
-              <content>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
-              </content>
+               <content>
+                  <BorderPane prefHeight="200.0" prefWidth="200.0">
+                     <bottom>
+                        <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                          <items>
+                            <Button fx:id="startOrStopGatheringLogsButton" mnemonicParsing="false" text="Start Gathering logs" />
+                          </items>
+                        </ToolBar>
+                     </bottom>
+                     <center>
+                        <TableView fx:id="appLoggerTableView" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                          <columns>
+                            <TableColumn fx:id="dateTimeColumn" prefWidth="132.0" text="Datetime" />
+                            <TableColumn fx:id="logTypeColumn" prefWidth="57.0" text="Log Type" />
+                              <TableColumn fx:id="contentColumn" prefWidth="455.0" text="Content" />
+                          </columns>
+                        </TableView>
+                     </center>
+                  </BorderPane>
+               </content>
             </Tab>
           <Tab text="Stats" />
             <Tab text="Computers">

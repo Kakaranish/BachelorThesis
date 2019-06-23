@@ -1,5 +1,6 @@
 package Healthcheck;
 
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -10,18 +11,24 @@ public class AppLogger
     private static AppLogger _appLogger = new AppLogger();
     private final static int _maxLogsNum = 100;
 
-    private ObservableList<AppLogEntry> _targetObservableList;
+    private ObservableList<AppLoggerEntry> _targetObservableList;
+    private boolean _enabledOutputToConsole;
 
     private AppLogger()
     {
     }
 
-    public static void SetTargetObservableList(ObservableList<AppLogEntry> targetObservableList)
+    public static void SetTargetObservableList(ObservableList<AppLoggerEntry> targetObservableList)
     {
         _appLogger._targetObservableList = targetObservableList;
     }
 
-    public static void Log(String message)
+    public static void SetEnabledOutputToConsole(boolean enabled)
+    {
+        _appLogger._enabledOutputToConsole = enabled;
+    }
+
+    public static void Log(LogType logType, String content)
     {
         if(_appLogger._targetObservableList == null)
         {
@@ -34,10 +41,44 @@ public class AppLogger
             _appLogger._targetObservableList.remove(_maxLogsNum-1);
         }
 
-        _appLogger._targetObservableList.add(new AppLogEntry()
+        Date now = new Date();
+        _appLogger._targetObservableList.add(new AppLoggerEntry()
         {{
-            DateTime = _formatter.format(new Date());
-            Message = message;
+            DateTime = new SimpleStringProperty(_formatter.format(now));
+            LogType = new SimpleStringProperty(logType.name());
+            Content = new SimpleStringProperty(content);
         }});
+
+        if(_appLogger._enabledOutputToConsole)
+        {
+            System.out.println(_formatter.format(now) + "\t[" + logType.name() + "] " + content);
+        }
+    }
+
+    public static void Log(LogType logType, String moduleName, String content)
+    {
+        if(_appLogger._targetObservableList == null)
+        {
+            System.out.println("[ERROR] AppLogger: Target ObservableList is not set.");
+            return;
+        }
+
+        if(_appLogger._targetObservableList.size() == _maxLogsNum)
+        {
+            _appLogger._targetObservableList.remove(_maxLogsNum-1);
+        }
+
+        Date now = new Date();
+        _appLogger._targetObservableList.add(new AppLoggerEntry()
+        {{
+            DateTime = new SimpleStringProperty(_formatter.format(now));
+            LogType = new SimpleStringProperty(logType.name());
+            Content = new SimpleStringProperty(moduleName + ": " + content);
+        }});
+
+        if(_appLogger._enabledOutputToConsole)
+        {
+            System.out.println(_formatter.format(now) + "\t[" + logType.name() + "] " + moduleName + ": " + content);
+        }
     }
 }

@@ -1,22 +1,18 @@
 package GUI.Controllers;
 
-import Healthcheck.ComputersAndSshConfigsManager;
+import Healthcheck.*;
 import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.SshConfig;
-import Healthcheck.Utilities;
+import Healthcheck.LogsManagement.LogsManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Cursor;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TabPane;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.Modality;
@@ -30,6 +26,8 @@ public class TestController implements Initializable
 {
     public static Image editIcon = new Image(ComputerListCell.class.getResource("/pics/edit.png").toString());
     private static Image addIcon = new Image(ComputerListCell.class.getResource("/pics/add.png").toString());
+
+    private ObservableList<AppLoggerEntry> appLoggerEntries = FXCollections.observableArrayList();
 
     public ObservableList<ComputerItem> computerItemsObservableList = FXCollections.observableArrayList();
 
@@ -47,21 +45,56 @@ public class TestController implements Initializable
     @FXML
     private Button addComputerOrSshConfigButton;
 
+    @FXML
+    private TableView<AppLoggerEntry> appLoggerTableView;
+
+    @FXML
+    private TableColumn<AppLoggerEntry, String> dateTimeColumn;
+
+    @FXML
+    private TableColumn<AppLoggerEntry, String> logTypeColumn;
+
+    @FXML
+    private TableColumn<AppLoggerEntry, String> contentColumn;
+
+    @FXML
+    private Button startOrStopGatheringLogsButton;
+
     private TestController thisController = this;
     private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
+    private LogsManager _logsManager;
 
     // ---  INITIALIZATION  --------------------------------------------------------------------------------------------
 
     @Override
     public void initialize(URL location, ResourceBundle resources)
     {
-        _computersAndSshConfigsManager = new ComputersAndSshConfigsManager();
+        AppLogger.SetTargetObservableList(appLoggerEntries);
 
+        _computersAndSshConfigsManager = new ComputersAndSshConfigsManager();
+        _logsManager = new LogsManager(_computersAndSshConfigsManager);
+
+        InitializeTableColumns();
+        appLoggerTableView.setItems(appLoggerEntries);
+
+        InitializeStartOrStopGatheringLogsButton();
         InitializeAddComputerOrSshConfigButton();
         InitializeTabPaneSelectionListener();
 
         LoadComputersToListView();
         LoadSshConfigsToListView();
+    }
+
+    private void InitializeTableColumns()
+    {
+        dateTimeColumn.setCellValueFactory(new PropertyValueFactory<AppLoggerEntry, String>("DateTime"));
+        logTypeColumn.setCellValueFactory(new PropertyValueFactory<AppLoggerEntry, String>("LogType"));
+        contentColumn.setCellValueFactory(new PropertyValueFactory<AppLoggerEntry, String>("Content"));
+    }
+
+    private void InitializeStartOrStopGatheringLogsButton()
+    {
+        startOrStopGatheringLogsButton.setOnAction(event -> _logsManager.StartWork());
     }
 
     private void InitializeAddComputerOrSshConfigButton()
