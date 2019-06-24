@@ -12,7 +12,7 @@ public class CpuInfoPreference implements IPreference
 
     public String GetCommandToExecute()
     {
-        return "grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage}'";
+        return "cat /proc/loadavg";
     }
 
     public IInfo GetInformationModel(String commandExecutionResult)

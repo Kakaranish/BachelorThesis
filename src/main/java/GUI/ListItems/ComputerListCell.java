@@ -115,10 +115,12 @@ public class ComputerListCell extends ListCell<ComputerItem>
             }};
 
             _controller.computerItemsObservableList.set(getIndex(), computerItemToUpdate);
+            _controller.RefreshComputersListView();
         }
         else if(changeEvent.ChangeType == ChangeEventType.REMOVED)
         {
             _controller.computerItemsObservableList.remove(getIndex());
+            _controller.RefreshComputersListView();
         }
     }
 

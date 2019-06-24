@@ -114,10 +114,12 @@ public class SshConfigListCell extends ListCell<SshConfigItem>
             }};
 
             _controller.sshConfigItemsObservableList.set(getIndex(), ssgConfigItemToUpdate);
+            _controller.RefreshSshConfigsListView();
         }
         else if(changeEvent.ChangeType == ChangeEventType.REMOVED)
         {
             _controller.sshConfigItemsObservableList.remove(getIndex());
+            _controller.RefreshSshConfigsListView();
         }
     }
 

@@ -131,6 +131,8 @@ public class MainWindowController implements Initializable
     {
         startOrStopGatheringLogsButton.setOnAction(event ->
         {
+            connectedComputers.clear();
+
             if(_logsManager.IsWorking() == false)
             {
                 _logsManager.StartWork();
@@ -315,6 +317,7 @@ public class MainWindowController implements Initializable
             }};
 
             computerItemsObservableList.add(computerItemToAdd);
+            computerItemsListView.refresh();
         }
         else if(changeEvent.SshConfig != null && changeEvent.ChangeType == ChangeEventType.ADDED)
         {
@@ -325,6 +328,7 @@ public class MainWindowController implements Initializable
             }};
 
             sshConfigItemsObservableList.add(sshConfigItemToAdd);
+            sshConfigItemsListView.refresh();
         }
     }
 
@@ -393,5 +397,15 @@ public class MainWindowController implements Initializable
     public boolean IsRemovingAllowed()
     {
         return _isEditionAndRemovingAllowed;
+    }
+
+    public void RefreshComputersListView()
+    {
+        computerItemsListView.refresh();
+    }
+
+    public void RefreshSshConfigsListView()
+    {
+        sshConfigItemsListView.refresh();
     }
 }
