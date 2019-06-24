@@ -12,7 +12,7 @@ public class RamInfoPreference implements IPreference
 
     public String GetCommandToExecute()
     {
-        return "free --kilo | grep Mem";
+        return "free --kilo";
     }
 
     public IInfo GetInformationModel(String commandExecutionResult)

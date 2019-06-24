@@ -12,7 +12,7 @@ public class SwapInfoPreference implements IPreference
 
     public String GetCommandToExecute()
     {
-        return "free --kilo | grep Swap";
+        return "free --kilo";
     }
 
     public IInfo GetInformationModel(String commandExecutionResult)

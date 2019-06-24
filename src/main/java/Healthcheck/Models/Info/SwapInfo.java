@@ -17,7 +17,16 @@ public class SwapInfo implements IInfo
 
     /*
         commandExecutionResult looks like:
+        total       used       free     shared    buffers     cached
+        Mem:       2011984     311532    1700452          0     156348      90716
+        -/+ buffers/cache:      64468    1947516
         Swap:            0          0          0
+
+        OR
+
+        razem       użyte       wolne    dzielone   buf/cache    dostępne
+        Pamięć:     6139256      164544     5059690        1052      915021     5706805
+        Wymiana:      998240           0      998240
     */
 
     private SwapInfo()
@@ -26,6 +35,9 @@ public class SwapInfo implements IInfo
 
     public SwapInfo(String commandExecutionResult)
     {
+        int numOfLinesInResult = commandExecutionResult.split("\n").length;
+        commandExecutionResult = commandExecutionResult.split("\n")[numOfLinesInResult-1];
+        System.out.println(commandExecutionResult);
         commandExecutionResult = commandExecutionResult.trim();
         commandExecutionResult = commandExecutionResult.replaceAll("\\s+", "\t");
         String[] commandExecutionResultSplit = commandExecutionResult.split("\t");

@@ -20,7 +20,18 @@ public class RamInfo implements IInfo
 
     /*
         commandExecutionResult looks like:
-        Mem:       2011984     215400    1796584          0      88300      69316
+        razem       użyte       wolne    dzielone   buf/cache    dostępne
+        Pamięć:     6139256      168259     5049176        1073      921821     5703008
+        Wymiana:      998240           0      998240
+
+        OR
+
+        total       used       free     shared    buffers     cached
+        Mem:       2011984     100832    1911152          0      11012      43928
+        -/+ buffers/cache:      45892    1966092
+        Swap:            0          0          0
+
+
     */
 
     private RamInfo()
@@ -29,6 +40,8 @@ public class RamInfo implements IInfo
 
     public RamInfo(String commandExecutionResult)
     {
+        int numOfLinesInResult = commandExecutionResult.split("\n").length;
+        commandExecutionResult = commandExecutionResult.split("\n")[1];
         commandExecutionResult = commandExecutionResult.trim();
         commandExecutionResult = commandExecutionResult.replaceAll("\\s+", "\t");
         String[] commandExecutionResultSplit = commandExecutionResult.split("\t");
