@@ -1,5 +1,9 @@
-package GUI.Controllers;
+package GUI.ListItems;
 
+import GUI.Controllers.AddOrUpdateSshConfigController;
+import GUI.ChangeEvent.ChangeEvent;
+import GUI.ChangeEvent.ChangeEventType;
+import GUI.Controllers.MainWindowController;
 import Healthcheck.ComputersAndSshConfigsManager;
 import Healthcheck.Entities.SshConfig;
 import Healthcheck.Utilities;
@@ -27,13 +31,13 @@ public class SshConfigListCell extends ListCell<SshConfigItem>
     private static Image configIcon = new Image(ComputerListCell.class.getResource("/pics/config.png").toString());
 
     private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
-    private TestController _controller;
+    private MainWindowController _controller;
 
     private HBox content;
     private Text DisplayedName;
     private Text Username;
 
-    public SshConfigListCell(ComputersAndSshConfigsManager computersAndSshConfigsManager, TestController controller)
+    public SshConfigListCell(ComputersAndSshConfigsManager computersAndSshConfigsManager, MainWindowController controller)
     {
         _computersAndSshConfigsManager = computersAndSshConfigsManager;
         _controller = controller;
@@ -44,7 +48,7 @@ public class SshConfigListCell extends ListCell<SshConfigItem>
 
         VBox vBox = new VBox(DisplayedName, Username);
 
-        ImageView editIconImageView = new ImageView(TestController.editIcon);
+        ImageView editIconImageView = new ImageView(MainWindowController.editIcon);
         editIconImageView.setFitHeight(16);
         editIconImageView.setFitWidth(16);
         editIconImageView.setSmooth(true);
@@ -72,19 +76,19 @@ public class SshConfigListCell extends ListCell<SshConfigItem>
         {
             try
             {
-                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/SshConfig.fxml"));
+                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/AddOrUpdateSshConfig.fxml"));
 
                 SshConfig sshConfig = _computersAndSshConfigsManager.GetGlobalSshConfigByName(DisplayedName.getText());
-                SshConfigController sshConfigController =
-                        new SshConfigController(this, sshConfig, _computersAndSshConfigsManager);
+                AddOrUpdateSshConfigController addOrUpdateSshConfigController =
+                        new AddOrUpdateSshConfigController(this, sshConfig, _computersAndSshConfigsManager);
 
-                fxmlLoader.setController(sshConfigController);
+                fxmlLoader.setController(addOrUpdateSshConfigController);
 
                 final Scene scene = new Scene(fxmlLoader.load());
-                scene.getStylesheets().add(getClass().getResource("/css/computer-info.css").toExternalForm());
+                scene.getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());
 
                 Stage stage = new Stage(StageStyle.DECORATED);
-                stage.setOnCloseRequest(sshConfigController::OnCloseAction);
+                stage.setOnCloseRequest(addOrUpdateSshConfigController::OnCloseAction);
                 stage.setResizable(false);
                 stage.initModality(Modality.APPLICATION_MODAL);
                 stage.setScene(scene);
@@ -101,7 +105,7 @@ public class SshConfigListCell extends ListCell<SshConfigItem>
 
     public void NotifyChanged(ChangeEvent changeEvent)
     {
-        if(changeEvent.ChangeType == ChangedEventType.UPDATED)
+        if(changeEvent.ChangeType == ChangeEventType.UPDATED)
         {
             SshConfigItem ssgConfigItemToUpdate = new SshConfigItem()
             {{
@@ -111,7 +115,7 @@ public class SshConfigListCell extends ListCell<SshConfigItem>
 
             _controller.sshConfigItemsObservableList.set(getIndex(), ssgConfigItemToUpdate);
         }
-        else if(changeEvent.ChangeType == ChangedEventType.REMOVED)
+        else if(changeEvent.ChangeType == ChangeEventType.REMOVED)
         {
             _controller.sshConfigItemsObservableList.remove(getIndex());
         }
@@ -133,7 +137,7 @@ public class SshConfigListCell extends ListCell<SshConfigItem>
         }
     }
 
-    public TestController GetController()
+    public MainWindowController GetController()
     {
         return _controller;
     }

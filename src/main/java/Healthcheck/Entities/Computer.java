@@ -861,4 +861,9 @@ public class Computer
     {
         return DisplayedName + " (" + Host + ")";
     }
+
+    public String GetUsernameAndHost()
+    {
+        return SshConfig.GetUsername() + "@" + GetHost();
+    }
 }

@@ -1,4 +1,4 @@
-package GUI.Controllers;
+package GUI.ListItems;
 
 public class ComputerItem
 {

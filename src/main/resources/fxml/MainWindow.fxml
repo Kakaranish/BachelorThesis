@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.text.*?>
 <?import java.lang.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
@@ -24,19 +25,22 @@
                         </VBox>
                      </bottom>
                      <right>
-                        <TableView prefHeight="543.0" prefWidth="237.0" BorderPane.alignment="CENTER">
-                          <columns>
-                            <TableColumn prefWidth="101.0" text="Username" />
-                            <TableColumn prefWidth="135.0" text="Host" />
-                          </columns>
-                        </TableView>
+                        <VBox>
+                           <children>
+                              <TableView fx:id="connectedComputersTableView" prefHeight="549.0" prefWidth="200.0">
+                                <columns>
+                                  <TableColumn fx:id="connectedComputerColumn" prefWidth="199.0" resizable="false" text="Connected computers" />
+                                </columns>
+                              </TableView>
+                           </children>
+                        </VBox>
                      </right>
                      <center>
                         <TableView fx:id="appLoggerTableView" prefHeight="481.0" prefWidth="515.0" BorderPane.alignment="CENTER">
                           <columns>
                             <TableColumn fx:id="dateTimeColumn" prefWidth="132.0" text="Datetime" />
                             <TableColumn fx:id="logTypeColumn" prefWidth="89.0" text="Log Type" />
-                              <TableColumn fx:id="contentColumn" prefWidth="621.0" text="Content" />
+                              <TableColumn fx:id="contentColumn" prefWidth="658.0" text="Content" />
                           </columns>
                         </TableView>
                      </center>

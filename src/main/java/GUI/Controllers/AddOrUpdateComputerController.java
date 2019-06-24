@@ -1,5 +1,8 @@
 package GUI.Controllers;
 
+import GUI.ChangeEvent.ChangeEvent;
+import GUI.ChangeEvent.ChangeEventType;
+import GUI.ListItems.ComputerListCell;
 import Healthcheck.ComputersAndSshConfigsManager;
 import Healthcheck.DatabaseManagement.DatabaseException;
 import Healthcheck.Encryption.Encrypter;
@@ -32,7 +35,7 @@ import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ComputerInfoController implements Initializable
+public class AddOrUpdateComputerController implements Initializable
 {
     @FXML
     private CheckBox isSelectedCheckBox;
@@ -97,7 +100,7 @@ public class ComputerInfoController implements Initializable
 
     private final static int preferencesGridColsNum = 2;
 
-    private TestController _parentController;
+    private MainWindowController _parentController;
     private ComputerListCell _cellCaller;
     private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
     private Computer _computer;
@@ -109,7 +112,7 @@ public class ComputerInfoController implements Initializable
 
     private SshConfig _localLocalConfig;
     private SshFieldsState _prevLocalSshFieldsState = new SshFieldsState();
-    private ComputerInfoController _computerInfoController = this;
+    private AddOrUpdateComputerController _addOrUpdate_computerController = this;
 
     private class SshConfigConverter extends StringConverter<SshConfig>
     {
@@ -233,16 +236,16 @@ public class ComputerInfoController implements Initializable
         }
     }
 
-    public ComputerInfoController(TestController parentController, Computer computer,
-                                  ComputersAndSshConfigsManager computersAndSshConfigsManager)
+    public AddOrUpdateComputerController(MainWindowController parentController, Computer computer,
+                                         ComputersAndSshConfigsManager computersAndSshConfigsManager)
     {
         _parentController = parentController;
         _computersAndSshConfigsManager = computersAndSshConfigsManager;
         _computer = computer;
     }
 
-    public ComputerInfoController(ComputerListCell cellCaller, Computer computer,
-                                  ComputersAndSshConfigsManager computersAndSshConfigsManager)
+    public AddOrUpdateComputerController(ComputerListCell cellCaller, Computer computer,
+                                         ComputersAndSshConfigsManager computersAndSshConfigsManager)
     {
         _cellCaller = cellCaller;
         _computersAndSshConfigsManager = computersAndSshConfigsManager;
@@ -852,7 +855,7 @@ public class ComputerInfoController implements Initializable
             if(updateSucceed)
             {
                 ChangeEvent changeEvent = new ChangeEvent();
-                changeEvent.ChangeType = ChangedEventType.UPDATED;
+                changeEvent.ChangeType = ChangeEventType.UPDATED;
                 changeEvent.Computer = _computer;
 
                 if(StartedInSaveMode() == false)
@@ -1004,7 +1007,7 @@ public class ComputerInfoController implements Initializable
            _computer.RemoveFromDb();
 
            ChangeEvent changeEvent = new ChangeEvent();
-           changeEvent.ChangeType = ChangedEventType.REMOVED;
+           changeEvent.ChangeType = ChangeEventType.REMOVED;
            changeEvent.Computer = _computer;
 
            Utilities.ShowInfoDialog("Removing computer succeed.");
@@ -1181,7 +1184,7 @@ public class ComputerInfoController implements Initializable
         if(StartedInSaveMode())
         {
             ChangeEvent changeEvent = new ChangeEvent();
-            changeEvent.ChangeType = ChangedEventType.ADDED;
+            changeEvent.ChangeType = ChangeEventType.ADDED;
             changeEvent.Computer = _computer;
 
             _parentController.NotifyChanged(changeEvent);
@@ -1533,7 +1536,7 @@ public class ComputerInfoController implements Initializable
 
     // ---  GETTERS  ---------------------------------------------------------------------------------------------------
 
-    private TestController GetParentController()
+    private MainWindowController GetParentController()
     {
         if(_parentController != null)
         {

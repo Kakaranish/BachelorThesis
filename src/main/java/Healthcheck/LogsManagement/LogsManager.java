@@ -1,11 +1,11 @@
 package Healthcheck.LogsManagement;
 
-import GUI.Controllers.TestController;
-import Healthcheck.AppLogger;
+import GUI.Controllers.MainWindowController;
+import Healthcheck.AppLogging.AppLogger;
 import Healthcheck.ComputersAndSshConfigsManager;
 import Healthcheck.DatabaseManagement.DatabaseException;
 import Healthcheck.Entities.Computer;
-import Healthcheck.LogType;
+import Healthcheck.AppLogging.LogType;
 import Healthcheck.Utilities;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -16,18 +16,20 @@ public class LogsManager
 {
     public final static String ModuleName = "LogsManager";
 
-    private TestController _parentController;
+    private MainWindowController _parentController;
     private LogsGatherer _logsGatherer;
     private LogsMaintainer _logsMaintainer;
     private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
     private List<ComputerLogger> _connectedComputerLoggers;
     private boolean _isWorking = false;
 
-    public LogsManager(ComputersAndSshConfigsManager computersAndSshConfigsManager, TestController parentController)
+    public LogsManager(ComputersAndSshConfigsManager computersAndSshConfigsManager, MainWindowController parentController)
     {
         _computersAndSshConfigsManager = computersAndSshConfigsManager;
         _parentController = parentController;
     }
+
+    // ---  START AND STOP WORK  ---------------------------------------------------------------------------------------
 
     public void StartWork() throws LogsException, NothingToDoException
     {
@@ -71,6 +73,8 @@ public class LogsManager
             AppLogger.Log(LogType.ERROR, ModuleName, e.getMessage());
             Utilities.ShowErrorDialog(e.getMessage());
         }
+
+        _parentController.Callback_LogsManager_StartedWork(GetConnectedComputers());
     }
 
     public void StopWork() throws LogsException
@@ -86,16 +90,18 @@ public class LogsManager
         StopGatheringLogsSafely();
         StopMaintainingLogsSafely();
 
-        CleanUp();
+        EndWorkCleanup();
 
         AppLogger.Log(LogType.INFO, ModuleName, "Stopped work.");
+
+        _parentController.Callback_LogsManager_StoppedWork();
     }
 
     private void StopGatheringLogsSafely()
     {
         try
         {
-            _logsGatherer.StopGatheringLogsWithoutNotifyingMaintainer();
+            _logsGatherer.StopGatheringLogs();
         }
         catch(LogsException e)
         {
@@ -115,34 +121,20 @@ public class LogsManager
         }
     }
 
-    private void StopGatheringAndMaintainingSafelyWithoutLoggingIt()
-    {
-        if(_logsMaintainer.IsMaintaining())
-        {
-            _logsMaintainer.StopMaintainingLogs();
-        }
-
-        if(_logsGatherer.IsGathering())
-        {
-            _logsGatherer.StopGatheringLogsWithNotifyingMaintainer();
-        }
-    }
-
-    // -----------------------------------------------------------------------------------------------------------------
     // ---  GENERAL CALLBACKS  -----------------------------------------------------------------------------------------
 
-    public void Callback_FatalError(String message) throws LogsException
+    public void Callback_FatalError(String message)
     {
         AppLogger.Log(LogType.FATAL_ERROR, ModuleName, message);
 
-        CleanUp();
+        EndWorkCleanup();
 
         _parentController.Callback_LogsManager_StoppedWork_FatalError();
     }
 
     public void Callback_NothingToDo_StopWork()
     {
-        AppLogger.Log(LogType.INFO, ModuleName, "Nothing to do.");
+        AppLogger.Log(LogType.INFO, ModuleName, "Nothing to do. There is no connected computer.");
 
         StopGatheringLogsSafely();
         StopMaintainingLogsSafely();
@@ -150,15 +142,22 @@ public class LogsManager
         _parentController.Callback_LogsManager_StoppedWork_NothingToDo();
     }
 
-    // ---  GATHERER - AT RUNTIME  -------------------------------------------------------------------------------------
+    // ---  GATHERER CALLBACKS  -----------------------------------------------------------------------------------------
 
-    public void Callback_Gatherer_StopWorkForComputerLogger_WithNotifyingMaintainer(ComputerLogger computerLogger) throws LogsException
+    public void Callback_Gatherer_StartGatheringLogsFailed()
     {
-        String host = computerLogger.GetComputer().GetHost();
+        StopMaintainingLogsSafely();
+
+        Callback_FatalError("Failed with starting gathering logs.");
+    }
+
+    public void Callback_Gatherer_StoppedComputerLogger_NotIntendedInterruption(ComputerLogger computerLogger)
+    {
+        String usernameAndHost = computerLogger.GetComputer().GetUsernameAndHost();
         if(_connectedComputerLoggers.contains(computerLogger))
         {
             _connectedComputerLoggers.remove(computerLogger);
-            AppLogger.Log(LogType.INFO, ModuleName,"Stopped maintaining logs for '" + host + "'.");
+            AppLogger.Log(LogType.INFO, ModuleName,"Stopped maintaining logs for '" + usernameAndHost + "'.");
 
             if(HasConnectedComputersLoggers() == false)
             {
@@ -178,34 +177,18 @@ public class LogsManager
                 return;
             }
 
-            _parentController.Callback_LogsManager_WorkForComputerStopped(computerLogger.GetComputer());
+            _parentController.Callback_LogsManager_ComputerDisconnected(computerLogger.GetComputer());
         }
         else
         {
-            AppLogger.Log(LogType.FATAL_ERROR, ModuleName, "Unable to stop gathering logs for '" + host + "'.");
+            AppLogger.Log(LogType.FATAL_ERROR, ModuleName,
+                    "Unable to stop gathering logs for '" + usernameAndHost + "'.");
         }
     }
 
-    // ---  GATHERER - WHILE STARTING GATHERING LOGS  ------------------------------------------------------------------
+    // ---  MAINTAINER CALLBACKS  --------------------------------------------------------------------------------------
 
-    public void Callback_Gatherer_StartGatheringLogsFailed()
-    {
-        StopMaintainingLogsSafely();
-
-        Callback_FatalError("Failed with starting gathering logs.");
-    }
-
-    public void Callback_Gatherer_StartGatheringLogsForBatchOfComputerLoggersFailed()
-    {
-        StopMaintainingLogsSafely();
-        StopGatheringLogsSafely();
-
-        Callback_FatalError("Failed with starting gathering logs.");
-    }
-
-    // ---  MAINTAINER - AT RUNTIME  -----------------------------------------------------------------------------------
-
-    public void Callback_Maintainer_StopWorkForComputerLogger(ComputerLogger computerLogger) throws LogsException
+    public void Callback_Maintainer_StopWorkForComputerLogger(ComputerLogger computerLogger)
     {
         try
         {
@@ -233,36 +216,21 @@ public class LogsManager
         }
     }
 
-    public void Callback_Maintainer_InterruptionIntended_StopWorkForAllComputerLoggers()
+    public void Callback_Maintainer_StopWork_InterruptionIntended()
     {
-        CleanUp();
+        AppLogger.Log(LogType.INFO, ModuleName, "LogsMaintainer intentionally interrupted.");
+
+        EndWorkCleanup();
     }
 
     public void Callback_Maintainer_InterruptionNotIntended_StopWorkForAllComputerLoggers()
     {
+        Callback_FatalError("LogsMaintainer unintentionally interrupted.");
+
         StopGatheringLogsSafely();
-
-        Callback_FatalError("LogsMaintainer sleep interrupted.");
     }
 
-    // -----------------------------------------------------------------------------------------------------------------
-    // -----------------------------------------------------------------------------------------------------------------
-
-
-    public void SetComputerLastMaintenance(Computer computerToUpdate, Timestamp lastMaintenance)
-            throws DatabaseException
-    {
-        computerToUpdate.SetLastMaintenance(lastMaintenance);
-        computerToUpdate.UpdateInDb();
-    }
-
-    private void CleanUp()
-    {
-        _logsGatherer = null;
-        _logsMaintainer = null;
-        _connectedComputerLoggers = null;
-        _isWorking = false;
-    }
+    // ---  GETTERS  ---------------------------------------------------------------------------------------------------
 
     private List<ComputerLogger> GetReachableComputerLoggers(List<Computer> selectedComputerEntities) throws LogsException
     {
@@ -282,7 +250,7 @@ public class LogsManager
         }
         catch (InterruptedException e)
         {
-            CleanUp();
+            EndWorkCleanup();
             throw new LogsException("[FATAL ERROR] Thread sleep was interrupted in LogsManager.");
         }
 
@@ -315,6 +283,8 @@ public class LogsManager
         return results.isEmpty()? null : results.get(0);
     }
 
+    // ---  PREDICATES  ------------------------------------------------------------------------------------------------
+
     public final boolean HasConnectedComputersLoggers()
     {
         return !_connectedComputerLoggers.isEmpty();
@@ -323,5 +293,22 @@ public class LogsManager
     public boolean IsWorking()
     {
         return _isWorking;
+    }
+
+    // ---  MISC  ------------------------------------------------------------------------------------------------------
+
+    public void SetComputerLastMaintenance(Computer computerToUpdate, Timestamp lastMaintenance)
+            throws DatabaseException
+    {
+        computerToUpdate.SetLastMaintenance(lastMaintenance);
+        computerToUpdate.UpdateInDb();
+    }
+
+    private void EndWorkCleanup()
+    {
+        _logsGatherer = null;
+        _logsMaintainer = null;
+        _connectedComputerLoggers = null;
+        _isWorking = false;
     }
 }

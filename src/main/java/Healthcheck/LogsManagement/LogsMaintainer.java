@@ -1,10 +1,10 @@
 package Healthcheck.LogsManagement;
 
-import Healthcheck.AppLogger;
+import Healthcheck.AppLogging.AppLogger;
 import Healthcheck.DatabaseManagement.DatabaseException;
 import Healthcheck.DatabaseManagement.DatabaseManager;
 import Healthcheck.Entities.Computer;
-import Healthcheck.LogType;
+import Healthcheck.AppLogging.LogType;
 import Healthcheck.Preferences.IPreference;
 import Healthcheck.Preferences.Preferences;
 import org.hibernate.Session;
@@ -68,8 +68,6 @@ public class LogsMaintainer
         _maintainingThread = null;
         _isMaintaining = false;
 
-        _interruptionIntended = false;
-
         AppLogger.Log(LogType.INFO, ModuleName, "Stopped work.");
     }
 
@@ -97,6 +95,11 @@ public class LogsMaintainer
             ArrayDeque<Computer> computersToMaintain = new ArrayDeque<>();
             ComputerAndTimeToMaintainPair computerWithLowestTimeToMaintain = null;
 
+            /*
+                Get:
+                a) computers that are ready for maintain
+                b) computer with lowest time to maintain
+             */
             for (Computer computer : _logsManager.GetConnectedComputers())
             {
                 long computerTimeToMaintenance = GetComputerTimeToMaintenance(computer);
@@ -113,19 +116,30 @@ public class LogsMaintainer
                 }
             }
 
+            /*
+                If queue with computers to maintain is not empty then take every of them and maintain.
+                When finished try again get computers are ready for maintenance.
+             */
             if (computersToMaintain.isEmpty() == false)
             {
                 while (computersToMaintain.isEmpty() == false)
                 {
                     Computer computerToMaintain = computersToMaintain.remove();
 
-                    MaintainComputer(computerToMaintain);
+                    boolean maintainSucceed = MaintainComputer(computerToMaintain);
+                    if(maintainSucceed == false)
+                    {
+                        return;
+                    }
 
-                    String host = computerToMaintain.GetHost();
-                    String username = computerToMaintain.GetSshConfig().GetUsername();
-                    AppLogger.Log(LogType.INFO, ModuleName, "'" + username + "@" + host + "' was maintained.");
+                    String usernameAndHost = computerToMaintain.GetUsernameAndHost();
+                    AppLogger.Log(LogType.INFO, ModuleName, "'" + usernameAndHost + "' was maintained.");
                 }
             }
+            /*
+                If queue with computers to maintain is empty then wait time T.
+                T = computerWithLowestTimeToMaintain.TimeToMaintain - time after which closest maintenance will be taken
+             */
             else
             {
                 long timeToNextMaintain = Duration.ofMillis(computerWithLowestTimeToMaintain.TimeToMaintain).toSeconds();
@@ -137,41 +151,42 @@ public class LogsMaintainer
                 }
                 catch (InterruptedException | IllegalArgumentException e)
                 {
-                    if (_interruptionIntended == false)
+                    if (InterruptionIntended() == false)
                     {
                         _isMaintaining = false;
                         _logsManager.Callback_Maintainer_InterruptionNotIntended_StopWorkForAllComputerLoggers();
                     }
-                    else if (_interruptionIntended && _interruptionForRestart == false)
-                    {
-                        _logsManager.Callback_Maintainer_InterruptionIntended_StopWorkForAllComputerLoggers();
-                        _interruptionIntended = false;
-                        _isMaintaining = false;
-                    }
-                    else if (_interruptionIntended && _interruptionForRestart)
+                    else if (InterruptionIntended() && RestartDesired())
                     {
                         _interruptionIntended = false;
                         _interruptionForRestart = false;
+                    }
+                    else if (InterruptionIntended() && RestartDesired() == false)
+                    {
+                        _interruptionIntended = false;
+                        _isMaintaining = false;
+                        _logsManager.Callback_Maintainer_StopWork_InterruptionIntended();
                     }
 
                     return;
                 }
 
-                MaintainComputer(computerWithLowestTimeToMaintain.Computer);
+                boolean maintainSucceed = MaintainComputer(computerWithLowestTimeToMaintain.Computer);
+                if(maintainSucceed == false)
+                {
+                    return;
+                }
 
-                String host = computerWithLowestTimeToMaintain.Computer.GetHost();
-                String username = computerWithLowestTimeToMaintain.Computer.GetSshConfig().GetUsername();
-                AppLogger.Log(LogType.INFO, ModuleName, "'" + username + "@" + host + "' was maintained.");
+                String usernameAndHost = computerWithLowestTimeToMaintain.Computer.GetUsernameAndHost();
+                AppLogger.Log(LogType.INFO, ModuleName, "'" + usernameAndHost + "' was maintained.");
             }
         }
     }
 
     public boolean MaintainComputer(Computer computer)
     {
-        String host = computer.GetHost();
+        String usernameAndHost = computer.GetUsernameAndHost();
         long logExpiration = computer.GetLogExpiration().toMillis();
-
-        String attemptErrorMessage = "Attempt of deleting logs for '" + host+ "' failed.";
 
         List<IPreference> iPreferences = computer.GetIPreferences();
         for (IPreference computerPreference : iPreferences)
@@ -186,16 +201,17 @@ public class LogsMaintainer
             Query query = session.createQuery(hql);
             query.setParameter("computer", computer);
 
+            String attemptErrorMessage = "Attempt of deleting logs for '" + usernameAndHost + "' failed.";
             boolean removingLogsSucceed =
                     DatabaseManager.ExecuteDeleteQueryWithRetryPolicy(session, query, ModuleName, attemptErrorMessage);
             if (removingLogsSucceed == false)
             {
-                AppLogger.Log(LogType.FATAL_ERROR, ModuleName, "Deleting logs for '" + host + "' failed.");
-
                 ComputerLogger computerLogger = _logsManager.GetComputerLoggerForComputer(computer);
                 _logsManager.Callback_Maintainer_StopWorkForComputerLogger(computerLogger);
-
                 session.close();
+
+                AppLogger.Log(LogType.FATAL_ERROR, ModuleName, "Deleting logs for '" + usernameAndHost + "' failed.");
+
                 return false;
             }
 
@@ -212,7 +228,9 @@ public class LogsMaintainer
         {
             ComputerLogger computerLogger = _logsManager.GetComputerLoggerForComputer(computer);
             _logsManager.Callback_Maintainer_StopWorkForComputerLogger(computerLogger);
-            AppLogger.Log(LogType.FATAL_ERROR, ModuleName, "Setting last maintenance time for '" + host + "' failed.");
+
+            AppLogger.Log(LogType.FATAL_ERROR, ModuleName,
+                    "Setting last maintenance time for '" + usernameAndHost + "' failed.");
 
             return false;
         }
@@ -224,11 +242,9 @@ public class LogsMaintainer
     {
         for (IPreference computerPreference : Preferences.AllPreferencesList)
         {
-            String hql = "delete from " +
-                    computerPreference.GetClassName() +
-                    " t where t.Computer = :computer";
-
             Session session = DatabaseManager.GetInstance().GetSession();
+
+            String hql = "delete from " + computerPreference.GetClassName() + " t where t.Computer = :computer";
             Query query = session.createQuery(hql);
             query.setParameter("computer", computer);
 
@@ -267,5 +283,15 @@ public class LogsMaintainer
     public boolean IsMaintaining()
     {
         return _isMaintaining;
+    }
+
+    private boolean InterruptionIntended()
+    {
+        return _interruptionIntended;
+    }
+
+    private boolean RestartDesired()
+    {
+        return _interruptionForRestart;
     }
 }

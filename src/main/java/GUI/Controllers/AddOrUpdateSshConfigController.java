@@ -1,5 +1,8 @@
 package GUI.Controllers;
 
+import GUI.ChangeEvent.ChangeEvent;
+import GUI.ChangeEvent.ChangeEventType;
+import GUI.ListItems.SshConfigListCell;
 import Healthcheck.ComputersAndSshConfigsManager;
 import Healthcheck.DatabaseManagement.DatabaseException;
 import Healthcheck.Encryption.Encrypter;
@@ -28,7 +31,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ResourceBundle;
 
-public class SshConfigController implements Initializable
+public class AddOrUpdateSshConfigController implements Initializable
 {
     @FXML
     private TextField displayedNameTextField;
@@ -68,21 +71,21 @@ public class SshConfigController implements Initializable
 
     // -----------------------------------------------------------------------------------------------------------------
 
-    private TestController _parentController;
+    private MainWindowController _parentController;
     private SshConfigListCell _cellCaller;
     private SshConfig _sshConfig;
     private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
 
-    public SshConfigController(TestController parent, SshConfig sshConfig,
-                               ComputersAndSshConfigsManager computersAndSshConfigsManager)
+    public AddOrUpdateSshConfigController(MainWindowController parent, SshConfig sshConfig,
+                                          ComputersAndSshConfigsManager computersAndSshConfigsManager)
     {
         _parentController = parent;
         _sshConfig = sshConfig;
         _computersAndSshConfigsManager = computersAndSshConfigsManager;
     }
 
-    public SshConfigController(SshConfigListCell cellCaller, SshConfig sshConfig,
-                               ComputersAndSshConfigsManager computersAndSshConfigsManager)
+    public AddOrUpdateSshConfigController(SshConfigListCell cellCaller, SshConfig sshConfig,
+                                          ComputersAndSshConfigsManager computersAndSshConfigsManager)
     {
         _cellCaller = cellCaller;
         _sshConfig = sshConfig;
@@ -468,7 +471,7 @@ public class SshConfigController implements Initializable
                 if(StartedInSaveMode() == false)
                 {
                     ChangeEvent changeEvent = new ChangeEvent();
-                    changeEvent.ChangeType = ChangedEventType.UPDATED;
+                    changeEvent.ChangeType = ChangeEventType.UPDATED;
                     changeEvent.SshConfig = _sshConfig;
 
                     _cellCaller.NotifyChanged(changeEvent);
@@ -569,7 +572,7 @@ public class SshConfigController implements Initializable
             if(StartedInSaveMode() == false)
             {
                 ChangeEvent changeEvent = new ChangeEvent();
-                changeEvent.ChangeType = ChangedEventType.REMOVED;
+                changeEvent.ChangeType = ChangeEventType.REMOVED;
                 changeEvent.SshConfig = _sshConfig;
 
                 _cellCaller.NotifyChanged(changeEvent);
@@ -658,7 +661,7 @@ public class SshConfigController implements Initializable
         if(StartedInSaveMode())
         {
             ChangeEvent changeEvent = new ChangeEvent();
-            changeEvent.ChangeType = ChangedEventType.ADDED;
+            changeEvent.ChangeType = ChangeEventType.ADDED;
             changeEvent.SshConfig = _sshConfig;
 
             _parentController.NotifyChanged(changeEvent);
@@ -756,7 +759,7 @@ public class SshConfigController implements Initializable
         _sshConfig.Restore();
     }
 
-    private TestController GetParentController()
+    private MainWindowController GetParentController()
     {
         if(_parentController != null)
         {

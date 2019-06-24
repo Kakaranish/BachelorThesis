@@ -1,9 +1,15 @@
 package GUI.Controllers;
 
+import GUI.ChangeEvent.ChangeEvent;
+import GUI.ChangeEvent.ChangeEventType;
+import GUI.ListItems.*;
 import Healthcheck.*;
+import Healthcheck.AppLogging.AppLogger;
+import Healthcheck.AppLogging.AppLoggerEntry;
 import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.SshConfig;
 import Healthcheck.LogsManagement.LogsManager;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -21,21 +27,25 @@ import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 import javafx.util.Callback;
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 
-public class TestController implements Initializable
+public class MainWindowController implements Initializable
 {
     public static Image editIcon = new Image(ComputerListCell.class.getResource("/pics/edit.png").toString());
     private static Image addIcon = new Image(ComputerListCell.class.getResource("/pics/add.png").toString());
 
     private ObservableList<AppLoggerEntry> appLoggerEntries = FXCollections.observableArrayList();
 
+    private ObservableList<ConnectedComputerEntry> connectedComputers = FXCollections.observableArrayList();
+
     public ObservableList<ComputerItem> computerItemsObservableList = FXCollections.observableArrayList();
+
+    public ObservableList<SshConfigItem> sshConfigItemsObservableList = FXCollections.observableArrayList();
+
 
     @FXML
     private ListView<ComputerItem> computerItemsListView;
-
-    public ObservableList<SshConfigItem> sshConfigItemsObservableList = FXCollections.observableArrayList();
 
     @FXML
     private ListView<SshConfigItem> sshConfigItemsListView;
@@ -59,12 +69,18 @@ public class TestController implements Initializable
     private TableColumn<AppLoggerEntry, String> contentColumn;
 
     @FXML
+    private TableView<ConnectedComputerEntry> connectedComputersTableView;
+
+    @FXML
+    private TableColumn<ConnectedComputerEntry, String> connectedComputerColumn;
+
+    @FXML
     private Button startOrStopGatheringLogsButton;
 
     @FXML
     private Button clearAppLogsButton;
 
-    private TestController thisController = this;
+    private MainWindowController thisController = this;
     private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
     private LogsManager _logsManager;
 
@@ -82,8 +98,8 @@ public class TestController implements Initializable
         _computersAndSshConfigsManager = new ComputersAndSshConfigsManager();
         _logsManager = new LogsManager(_computersAndSshConfigsManager, this);
 
-        InitializeTableColumns();
-        appLoggerTableView.setItems(appLoggerEntries);
+        InitializeAppLogsTableView();
+        InitializeConnectedComputersTableView();
 
         InitializeStartOrStopGatheringLogsButton();
         InitializeAddComputerOrSshConfigButton();
@@ -94,11 +110,21 @@ public class TestController implements Initializable
         LoadSshConfigsToListView();
     }
 
-    private void InitializeTableColumns()
+    private void InitializeAppLogsTableView()
     {
         dateTimeColumn.setCellValueFactory(new PropertyValueFactory<AppLoggerEntry, String>("DateTime"));
         logTypeColumn.setCellValueFactory(new PropertyValueFactory<AppLoggerEntry, String>("LogType"));
         contentColumn.setCellValueFactory(new PropertyValueFactory<AppLoggerEntry, String>("Content"));
+
+        appLoggerTableView.setItems(appLoggerEntries);
+    }
+
+    private void InitializeConnectedComputersTableView()
+    {
+        connectedComputerColumn.setCellValueFactory(
+                new PropertyValueFactory<ConnectedComputerEntry, String>("UsernameAndHost"));
+
+        connectedComputersTableView.setItems(connectedComputers);
     }
 
     private void InitializeStartOrStopGatheringLogsButton()
@@ -211,21 +237,21 @@ public class TestController implements Initializable
 
     // ---  ADD ACTIONS  -----------------------------------------------------------------------------------------------
 
-    private void AddComputer(TestController parentController, ComputersAndSshConfigsManager computersAndSshConfigsManager)
+    private void AddComputer(MainWindowController parentController, ComputersAndSshConfigsManager computersAndSshConfigsManager)
     {
         try
         {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/ComputerInfo.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/AddOrUpdateComputer.fxml"));
 
-            ComputerInfoController computerInfoController =
-                    new ComputerInfoController(parentController, null, _computersAndSshConfigsManager);
-            fxmlLoader.setController(computerInfoController);
+            AddOrUpdateComputerController addOrUpdateComputerController =
+                    new AddOrUpdateComputerController(parentController, null, _computersAndSshConfigsManager);
+            fxmlLoader.setController(addOrUpdateComputerController);
 
             final Scene scene = new Scene(fxmlLoader.load());
-            scene.getStylesheets().add(getClass().getResource("/css/computer-info.css").toExternalForm());
+            scene.getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());
 
             Stage stage = new Stage(StageStyle.DECORATED);
-            stage.setOnCloseRequest(computerInfoController::OnCloseAction);
+            stage.setOnCloseRequest(addOrUpdateComputerController::OnCloseAction);
             stage.setResizable(false);
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.setScene(scene);
@@ -239,21 +265,21 @@ public class TestController implements Initializable
         }
     }
 
-    private void AddSshConfig(TestController parentController, ComputersAndSshConfigsManager computersAndSshConfigsManager)
+    private void AddSshConfig(MainWindowController parentController, ComputersAndSshConfigsManager computersAndSshConfigsManager)
     {
         try
         {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/SshConfig.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/AddOrUpdateSshConfig.fxml"));
 
-            SshConfigController sshConfigController =
-                    new SshConfigController(parentController, null, _computersAndSshConfigsManager);
-            fxmlLoader.setController(sshConfigController);
+            AddOrUpdateSshConfigController addOrUpdateSshConfigController =
+                    new AddOrUpdateSshConfigController(parentController, null, _computersAndSshConfigsManager);
+            fxmlLoader.setController(addOrUpdateSshConfigController);
 
             final Scene scene = new Scene(fxmlLoader.load());
-            scene.getStylesheets().add(getClass().getResource("/css/computer-info.css").toExternalForm());
+            scene.getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());
 
             Stage stage = new Stage(StageStyle.DECORATED);
-            stage.setOnCloseRequest(sshConfigController::OnCloseAction);
+            stage.setOnCloseRequest(addOrUpdateSshConfigController::OnCloseAction);
             stage.setResizable(false);
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.setScene(scene);
@@ -279,7 +305,7 @@ public class TestController implements Initializable
 
     public void NotifyChanged(ChangeEvent changeEvent)
     {
-        if(changeEvent.Computer != null && changeEvent.ChangeType == ChangedEventType.ADDED)
+        if(changeEvent.Computer != null && changeEvent.ChangeType == ChangeEventType.ADDED)
         {
             ComputerItem computerItemToAdd = new ComputerItem()
             {{
@@ -290,7 +316,7 @@ public class TestController implements Initializable
 
             computerItemsObservableList.add(computerItemToAdd);
         }
-        else if(changeEvent.SshConfig != null && changeEvent.ChangeType == ChangedEventType.ADDED)
+        else if(changeEvent.SshConfig != null && changeEvent.ChangeType == ChangeEventType.ADDED)
         {
             SshConfigItem sshConfigItemToAdd = new SshConfigItem()
             {{
@@ -314,29 +340,44 @@ public class TestController implements Initializable
 
     // ---  LogsManager CALLBACKS  -------------------------------------------------------------------------------------
 
-    public void ClearInitListViewOfGatheredComputers()
+    public void Callback_LogsManager_StartedWork(List<Computer> selectedComputers)
     {
-
+        for (Computer selectedComputer : selectedComputers)
+        {
+            connectedComputers.add(new ConnectedComputerEntry()
+            {{
+                UsernameAndHost = new SimpleStringProperty(
+                        selectedComputer.GetSshConfig().GetUsername() + "@" + selectedComputer.GetHost());
+            }});
+        }
     }
 
     public void Callback_LogsManager_StoppedWork()
     {
+        connectedComputers.clear();
+    }
 
+    public void Callback_LogsManager_ComputerDisconnected(Computer computer)
+    {
+        String usernameAndHostToRemove = computer.GetSshConfig().GetUsername() + "@" + computer.GetHost();
+        connectedComputers.removeIf(c -> c.UsernameAndHost.get().equals(usernameAndHostToRemove));
+    }
+
+    public void ClearInitListViewOfGatheredComputers()
+    {
+        connectedComputers.clear();
     }
 
     public void Callback_LogsManager_StoppedWork_FatalError()
     {
-
+        Utilities.ShowErrorDialog("LogsManager stopped work. Fatal error occurred.");
+        connectedComputers.clear();
     }
 
     public void Callback_LogsManager_StoppedWork_NothingToDo()
     {
-
-    }
-
-    public void Callback_LogsManager_WorkForComputerStopped(Computer computer)
-    {
-
+        Utilities.ShowInfoDialog("LogsManager stopped work. No connected computers.");
+        connectedComputers.clear();
     }
 
     public boolean IsLogsManagerWorking()

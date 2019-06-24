@@ -1,4 +1,4 @@
-package Healthcheck;
+package Healthcheck.AppLogging;
 
 import javafx.beans.property.SimpleStringProperty;
 

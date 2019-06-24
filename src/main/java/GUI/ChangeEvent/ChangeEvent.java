@@ -1,20 +1,11 @@
-package GUI.Controllers;
+package GUI.ChangeEvent;
 
 import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.SshConfig;
 
-enum ChangedEventType
-{
-    ADDED,
-
-    UPDATED,
-
-    REMOVED
-}
-
 public class ChangeEvent
 {
-    public ChangedEventType ChangeType;
+    public ChangeEventType ChangeType;
 
     public Computer Computer;
 

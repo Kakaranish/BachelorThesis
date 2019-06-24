@@ -1,5 +1,9 @@
-package GUI.Controllers;
+package GUI.ListItems;
 
+import GUI.Controllers.AddOrUpdateComputerController;
+import GUI.ChangeEvent.ChangeEvent;
+import GUI.ChangeEvent.ChangeEventType;
+import GUI.Controllers.MainWindowController;
 import Healthcheck.ComputersAndSshConfigsManager;
 import Healthcheck.Entities.Computer;
 import Healthcheck.Utilities;
@@ -26,14 +30,14 @@ public class ComputerListCell extends ListCell<ComputerItem>
 {
 
     private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
-    private TestController _controller;
+    private MainWindowController _controller;
 
     private HBox content;
     private CheckBox IsSelected;
     private Text DisplayedName;
     private Text Host;
 
-    public ComputerListCell(ComputersAndSshConfigsManager computersAndSshConfigsManager, TestController controller)
+    public ComputerListCell(ComputersAndSshConfigsManager computersAndSshConfigsManager, MainWindowController controller)
     {
         super();
 
@@ -50,7 +54,7 @@ public class ComputerListCell extends ListCell<ComputerItem>
 
         VBox vBox = new VBox(DisplayedName, Host);
 
-        ImageView editIconImageView = new ImageView(TestController.editIcon);
+        ImageView editIconImageView = new ImageView(MainWindowController.editIcon);
         editIconImageView.setFitHeight(16);
         editIconImageView.setFitWidth(16);
         editIconImageView.setSmooth(true);
@@ -72,19 +76,19 @@ public class ComputerListCell extends ListCell<ComputerItem>
         {
             try
             {
-                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/ComputerInfo.fxml"));
+                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/AddOrUpdateComputer.fxml"));
 
                 Computer computer = _computersAndSshConfigsManager.GetComputerByDisplayedName(DisplayedName.getText());
-                ComputerInfoController computerInfoController =
-                        new ComputerInfoController(this, computer, _computersAndSshConfigsManager);
+                AddOrUpdateComputerController addOrUpdateComputerController =
+                        new AddOrUpdateComputerController(this, computer, _computersAndSshConfigsManager);
 
-                fxmlLoader.setController(computerInfoController);
+                fxmlLoader.setController(addOrUpdateComputerController);
 
                 final Scene scene = new Scene(fxmlLoader.load());
-                scene.getStylesheets().add(getClass().getResource("/css/computer-info.css").toExternalForm());
+                scene.getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());
 
                 Stage stage = new Stage(StageStyle.DECORATED);
-                stage.setOnCloseRequest(computerInfoController::OnCloseAction);
+                stage.setOnCloseRequest(addOrUpdateComputerController::OnCloseAction);
                 stage.setResizable(false);
                 stage.initModality(Modality.APPLICATION_MODAL);
                 stage.setScene(scene);
@@ -101,7 +105,7 @@ public class ComputerListCell extends ListCell<ComputerItem>
 
     public void NotifyChanged(ChangeEvent changeEvent)
     {
-        if(changeEvent.ChangeType == ChangedEventType.UPDATED)
+        if(changeEvent.ChangeType == ChangeEventType.UPDATED)
         {
             ComputerItem computerItemToUpdate = new ComputerItem()
             {{
@@ -112,7 +116,7 @@ public class ComputerListCell extends ListCell<ComputerItem>
 
             _controller.computerItemsObservableList.set(getIndex(), computerItemToUpdate);
         }
-        else if(changeEvent.ChangeType == ChangedEventType.REMOVED)
+        else if(changeEvent.ChangeType == ChangeEventType.REMOVED)
         {
             _controller.computerItemsObservableList.remove(getIndex());
         }
@@ -135,7 +139,7 @@ public class ComputerListCell extends ListCell<ComputerItem>
         }
     }
 
-    public TestController GetController()
+    public MainWindowController GetController()
     {
         return _controller;
     }

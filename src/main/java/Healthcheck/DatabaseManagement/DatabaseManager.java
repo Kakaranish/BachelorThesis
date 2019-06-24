@@ -1,8 +1,7 @@
 package Healthcheck.DatabaseManagement;
 
-import Healthcheck.App;
-import Healthcheck.AppLogger;
-import Healthcheck.LogType;
+import Healthcheck.AppLogging.AppLogger;
+import Healthcheck.AppLogging.LogType;
 import Healthcheck.Utilities;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
