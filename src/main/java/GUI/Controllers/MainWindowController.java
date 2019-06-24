@@ -101,7 +101,7 @@ public class MainWindowController implements Initializable
         InitializeAppLogsTableView();
         InitializeConnectedComputersTableView();
 
-        InitializeStartOrStopGatheringLogsButton();
+        startOrStopGatheringLogsButton.setOnAction(event -> _logsManager.StartWork());
         InitializeAddComputerOrSshConfigButton();
         InitializeClearAppLogsButton();
         InitializeTabPaneSelectionListener();
@@ -125,27 +125,6 @@ public class MainWindowController implements Initializable
                 new PropertyValueFactory<ConnectedComputerEntry, String>("UsernameAndHost"));
 
         connectedComputersTableView.setItems(connectedComputers);
-    }
-
-    private void InitializeStartOrStopGatheringLogsButton()
-    {
-        startOrStopGatheringLogsButton.setOnAction(event ->
-        {
-            connectedComputers.clear();
-
-            if(_logsManager.IsWorking() == false)
-            {
-                _logsManager.StartWork();
-                startOrStopGatheringLogsButton.setText("Stop Gathering Logs");
-                _isEditionAndRemovingAllowed = false;
-            }
-            else
-            {
-                _logsManager.StopWork();
-                startOrStopGatheringLogsButton.setText("Start Gathering Logs");
-                _isEditionAndRemovingAllowed = true;
-            }
-        });
     }
 
     private void InitializeClearAppLogsButton()
@@ -346,6 +325,12 @@ public class MainWindowController implements Initializable
 
     public void Callback_LogsManager_StartedWork(List<Computer> selectedComputers)
     {
+        connectedComputers.clear();
+
+        startOrStopGatheringLogsButton.setOnAction(event -> _logsManager.StopWork());
+        startOrStopGatheringLogsButton.setText("Stop Gathering Logs");
+        _isEditionAndRemovingAllowed = false;
+
         for (Computer selectedComputer : selectedComputers)
         {
             connectedComputers.add(new ConnectedComputerEntry()
@@ -359,6 +344,10 @@ public class MainWindowController implements Initializable
     public void Callback_LogsManager_StoppedWork()
     {
         connectedComputers.clear();
+
+        startOrStopGatheringLogsButton.setOnAction(event -> _logsManager.StartWork());
+        startOrStopGatheringLogsButton.setText("Start Gathering Logs");
+        _isEditionAndRemovingAllowed = true;
     }
 
     public void Callback_LogsManager_ComputerDisconnected(Computer computer)

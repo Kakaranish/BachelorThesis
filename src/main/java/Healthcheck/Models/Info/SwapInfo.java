@@ -37,7 +37,6 @@ public class SwapInfo implements IInfo
     {
         int numOfLinesInResult = commandExecutionResult.split("\n").length;
         commandExecutionResult = commandExecutionResult.split("\n")[numOfLinesInResult-1];
-        System.out.println(commandExecutionResult);
         commandExecutionResult = commandExecutionResult.trim();
         commandExecutionResult = commandExecutionResult.replaceAll("\\s+", "\t");
         String[] commandExecutionResultSplit = commandExecutionResult.split("\t");
