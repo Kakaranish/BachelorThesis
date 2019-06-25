@@ -1,12 +1,13 @@
 package Healthcheck.Entities.Logs;
 
+import GUI.TableViewEntries.IConvertableToEntry;
+import GUI.TableViewEntries.LogEntry;
 import Healthcheck.Entities.Computer;
-
 import javax.persistence.*;
 import java.sql.Timestamp;
 
 @MappedSuperclass
-public class BaseEntity
+public class BaseEntity implements IConvertableToEntry
 {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,5 +35,11 @@ public class BaseEntity
         Id = null;
         Computer = computer;
         Timestamp = timestamp;
+    }
+
+    @Override
+    public LogEntry ToEntry()
+    {
+        return null;
     }
 }

@@ -134,7 +134,9 @@ public class LogsManager
 
     public void Callback_NothingToDo_StopWork()
     {
-        AppLogger.Log(LogType.INFO, ModuleName, "Nothing to do. There is no connected computer.");
+        AppLogger.Log(LogType.INFO, ModuleName, "Stopped work. Nothing to do - no connected computer.");
+
+        _parentController.Callback_LogsManager_StoppedWork();
 
         StopGatheringLogsSafely();
         StopMaintainingLogsSafely();

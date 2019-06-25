@@ -36,4 +36,13 @@ public class Preferences
         put("Healthcheck.Preferences.SwapInfoPreference", SwapInfoPreference);
         put("Healthcheck.Preferences.UsersInfoPreference", UsersInfoPreference);
     }};
+
+    public static final Map<String, IPreference> PreferenceNameMap = new HashMap<String, IPreference>(){{
+        put("CpuInfoPreference", CpuInfoPreference);
+        put("DisksInfoPreference", DisksInfoPreference);
+        put("ProcessesInfoPreference", ProcessesInfoPreference);
+        put("RamInfoPreference", RamInfoPreference);
+        put("SwapInfoPreference", SwapInfoPreference);
+        put("UsersInfoPreference", UsersInfoPreference);
+    }};
 }

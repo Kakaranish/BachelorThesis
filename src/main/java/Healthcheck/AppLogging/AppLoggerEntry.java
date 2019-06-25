@@ -5,9 +5,7 @@ import javafx.beans.property.SimpleStringProperty;
 public class AppLoggerEntry
 {
     public SimpleStringProperty DateTime;
-
     public SimpleStringProperty LogType;
-
     public SimpleStringProperty Content;
 
     public String getDateTime()

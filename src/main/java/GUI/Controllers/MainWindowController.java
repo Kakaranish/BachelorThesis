@@ -370,7 +370,6 @@ public class MainWindowController implements Initializable
     public void Callback_LogsManager_StoppedWork_NothingToDo()
     {
         Utilities.ShowInfoDialog("LogsManager stopped work. No connected computers.");
-        connectedComputers.clear();
     }
 
     public boolean IsLogsManagerWorking()
