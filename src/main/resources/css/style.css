@@ -31,3 +31,12 @@
 .log-button:hover {
     -fx-opacity: 1;
 }
+
+.stats-button {
+    -fx-background-color: transparent;
+    -fx-opacity: 0.5;
+}
+
+.stats-button:hover {
+    -fx-opacity: 1;
+}

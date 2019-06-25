@@ -34,6 +34,7 @@ public class MainWindowController implements Initializable
 {
     public static Image editIcon = new Image(ComputerListCell.class.getResource("/pics/edit.png").toString());
     public static Image logIcon = new Image(ComputerListCell.class.getResource("/pics/log.png").toString());
+    public static Image statsIcon = new Image(ComputerListCell.class.getResource("/pics/stats.png").toString());
     private static Image addIcon = new Image(ComputerListCell.class.getResource("/pics/add.png").toString());
 
     private ObservableList<AppLoggerEntry> appLoggerEntries = FXCollections.observableArrayList();

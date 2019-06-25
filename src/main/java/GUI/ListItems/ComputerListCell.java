@@ -54,6 +54,16 @@ public class ComputerListCell extends ListCell<ComputerItem>
 
         VBox vBox = new VBox(DisplayedName, Host);
 
+        ImageView statsIconImageView = new ImageView(MainWindowController.statsIcon);
+        statsIconImageView.setFitHeight(16);
+        statsIconImageView.setFitWidth(16);
+        statsIconImageView.setSmooth(true);
+
+        Button statsButton = new Button();
+        statsButton.setGraphic(statsIconImageView);
+        statsButton.getStyleClass().add("stats-button");
+        statsButton.setCursor(Cursor.HAND);
+
         ImageView logIconImageView = new ImageView(MainWindowController.logIcon);
         logIconImageView.setFitHeight(16);
         logIconImageView.setFitWidth(16);
@@ -78,7 +88,7 @@ public class ComputerListCell extends ListCell<ComputerItem>
         HBox.setHgrow(spacer, Priority.ALWAYS);
         spacer.setMinSize(10, 1);
 
-        content = new HBox(IsSelected, vBox, spacer, logButton, editButton);
+        content = new HBox(IsSelected, vBox, spacer, statsButton, logButton, editButton);
         content.setSpacing(10);
         content.setAlignment(Pos.CENTER_LEFT);
 
