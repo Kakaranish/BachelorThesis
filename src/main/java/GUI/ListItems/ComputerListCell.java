@@ -3,6 +3,7 @@ package GUI.ListItems;
 import GUI.Controllers.AddOrUpdateComputerController;
 import GUI.ChangeEvent.ChangeEvent;
 import GUI.ChangeEvent.ChangeEventType;
+import GUI.Controllers.LogsForComputerController;
 import GUI.Controllers.MainWindowController;
 import Healthcheck.ComputersAndSshConfigsManager;
 import Healthcheck.Entities.Computer;
@@ -28,7 +29,6 @@ import javafx.stage.StageStyle;
 
 public class ComputerListCell extends ListCell<ComputerItem>
 {
-
     private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
     private MainWindowController _controller;
 
@@ -54,6 +54,16 @@ public class ComputerListCell extends ListCell<ComputerItem>
 
         VBox vBox = new VBox(DisplayedName, Host);
 
+        ImageView logIconImageView = new ImageView(MainWindowController.logIcon);
+        logIconImageView.setFitHeight(16);
+        logIconImageView.setFitWidth(16);
+        logIconImageView.setSmooth(true);
+
+        Button logButton = new Button();
+        logButton.setGraphic(logIconImageView);
+        logButton.getStyleClass().add("log-button");
+        logButton.setCursor(Cursor.HAND);
+
         ImageView editIconImageView = new ImageView(MainWindowController.editIcon);
         editIconImageView.setFitHeight(16);
         editIconImageView.setFitWidth(16);
@@ -68,10 +78,48 @@ public class ComputerListCell extends ListCell<ComputerItem>
         HBox.setHgrow(spacer, Priority.ALWAYS);
         spacer.setMinSize(10, 1);
 
-        content = new HBox(IsSelected, vBox, spacer, editButton);
+        content = new HBox(IsSelected, vBox, spacer, logButton, editButton);
         content.setSpacing(10);
         content.setAlignment(Pos.CENTER_LEFT);
 
+        InitLogButton(logButton);
+        InitEditButtonAction(editButton);
+    }
+
+    private void InitLogButton(Button logButton)
+    {
+        logButton.setOnAction(event ->
+        {
+            try
+            {
+                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/LogsForComputer.fxml"));
+
+                Computer computer = _computersAndSshConfigsManager.GetComputerByDisplayedName(DisplayedName.getText());
+                LogsForComputerController logsForComputerController = new LogsForComputerController(computer);
+
+                fxmlLoader.setController(logsForComputerController);
+
+                final Scene scene = new Scene(fxmlLoader.load());
+                scene.getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());
+
+                Stage stage = new Stage(StageStyle.DECORATED);
+                stage.setResizable(false);
+                stage.setTitle(computer.GetUsernameAndHost() + " - Logs");
+                stage.initModality(Modality.APPLICATION_MODAL);
+                stage.setScene(scene);
+
+                stage.show();
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+                Utilities.ShowErrorDialog("Unable to show logs for computer.");
+            }
+        });
+    }
+
+    private void InitEditButtonAction(Button editButton)
+    {
         editButton.setOnAction(event ->
         {
             try

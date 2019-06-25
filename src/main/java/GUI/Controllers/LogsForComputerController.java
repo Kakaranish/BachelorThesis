@@ -7,16 +7,18 @@ import Healthcheck.LogsManagement.LogsGetter;
 import Healthcheck.Preferences.Preferences;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.net.URL;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -71,25 +73,18 @@ public class LogsForComputerController implements Initializable
         usersTableView.setItems(usersEntries);
     }
 
-    private void GetUsersLogsAndPopulateTableView()
+    private void GetUsersLogsAndPopulateTableView(Timestamp from)
     {
-        try
-        {
-            Timestamp from = new Timestamp(new SimpleDateFormat("yyyy-MM-dd").parse("2014-02-14").getTime());
-            Timestamp now = new Timestamp(new Date().getTime());
+        Timestamp now = new Timestamp(new Date().getTime());
 
-            List<UserEntry> logEntries = LogsGetter.GetCertainTypeLogsForSingleComputer(
-                    _computer, Preferences.PreferenceNameMap.get("UsersInfoPreference"), from, now)
-                    .stream().map(BaseEntity::ToEntry).map(u -> (UserEntry) u).collect(Collectors.toList());
+        List<UserEntry> logEntries = LogsGetter.GetCertainTypeLogsForSingleComputer(
+                _computer, Preferences.PreferenceNameMap.get("UsersInfoPreference"), from, now)
+                .stream().map(BaseEntity::ToEntry).map(u -> (UserEntry) u).collect(Collectors.toList());
 
-            usersEntries.clear();
-            usersEntries.addAll(logEntries);
-            usersTableView.refresh();
-        }
-        catch (ParseException e)
-        {
-            e.printStackTrace();
-        }
+        usersEntries.clear();
+        usersEntries.addAll(logEntries);
+        usersTableView.refresh();
+
     }
 
     // ---  CPU TABLEVIEW  ---------------------------------------------------------------------------------------------
@@ -139,25 +134,17 @@ public class LogsForComputerController implements Initializable
         cpuTableView.setItems(cpuEntries);
     }
 
-    private void GetCpuLogsAndPopulateTableView()
+    private void GetCpuLogsAndPopulateTableView(Timestamp from)
     {
-        try
-        {
-            Timestamp from = new Timestamp(new SimpleDateFormat("yyyy-MM-dd").parse("2014-02-14").getTime());
-            Timestamp now = new Timestamp(new Date().getTime());
+        Timestamp now = new Timestamp(new Date().getTime());
 
-            List<CpuEntry> logEntries = LogsGetter.GetCertainTypeLogsForSingleComputer(
-                    _computer, Preferences.PreferenceNameMap.get("CpuInfoPreference"), from, now)
-                    .stream().map(BaseEntity::ToEntry).map(u -> (CpuEntry) u).collect(Collectors.toList());
+        List<CpuEntry> logEntries = LogsGetter.GetCertainTypeLogsForSingleComputer(
+                _computer, Preferences.PreferenceNameMap.get("CpuInfoPreference"), from, now)
+                .stream().map(BaseEntity::ToEntry).map(u -> (CpuEntry) u).collect(Collectors.toList());
 
-            cpuEntries.clear();
-            cpuEntries.addAll(logEntries);
-            cpuTableView.refresh();
-        }
-        catch (ParseException e)
-        {
-            e.printStackTrace();
-        }
+        cpuEntries.clear();
+        cpuEntries.addAll(logEntries);
+        cpuTableView.refresh();
     }
 
     // ---  RAM TABLEVIEW  ---------------------------------------------------------------------------------------------
@@ -201,25 +188,17 @@ public class LogsForComputerController implements Initializable
         ramTableView.setItems(ramEntries);
     }
 
-    private void GetRamLogsAndPopulateTableView()
+    private void GetRamLogsAndPopulateTableView(Timestamp from)
     {
-        try
-        {
-            Timestamp from = new Timestamp(new SimpleDateFormat("yyyy-MM-dd").parse("2014-02-14").getTime());
-            Timestamp now = new Timestamp(new Date().getTime());
+        Timestamp now = new Timestamp(new Date().getTime());
 
-            List<RamEntry> logEntries = LogsGetter.GetCertainTypeLogsForSingleComputer(
-                    _computer, Preferences.PreferenceNameMap.get("RamInfoPreference"), from, now)
-                    .stream().map(BaseEntity::ToEntry).map(u -> (RamEntry) u).collect(Collectors.toList());
+        List<RamEntry> logEntries = LogsGetter.GetCertainTypeLogsForSingleComputer(
+                _computer, Preferences.PreferenceNameMap.get("RamInfoPreference"), from, now)
+                .stream().map(BaseEntity::ToEntry).map(u -> (RamEntry) u).collect(Collectors.toList());
 
-            ramEntries.clear();
-            ramEntries.addAll(logEntries);
-            ramTableView.refresh();
-        }
-        catch (ParseException e)
-        {
-            e.printStackTrace();
-        }
+        ramEntries.clear();
+        ramEntries.addAll(logEntries);
+        ramTableView.refresh();
     }
 
     // ---  SWAP TABLEVIEW  --------------------------------------------------------------------------------------------
@@ -251,25 +230,17 @@ public class LogsForComputerController implements Initializable
         swapTableView.setItems(swapEntries);
     }
 
-    private void GetSwapLogsAndPopulateTableView()
+    private void GetSwapLogsAndPopulateTableView(Timestamp from)
     {
-        try
-        {
-            Timestamp from = new Timestamp(new SimpleDateFormat("yyyy-MM-dd").parse("2014-02-14").getTime());
-            Timestamp now = new Timestamp(new Date().getTime());
+        Timestamp now = new Timestamp(new Date().getTime());
 
-            List<SwapEntry> logEntries = LogsGetter.GetCertainTypeLogsForSingleComputer(
-                    _computer, Preferences.PreferenceNameMap.get("SwapInfoPreference"), from, now)
-                    .stream().map(BaseEntity::ToEntry).map(u -> (SwapEntry) u).collect(Collectors.toList());
+        List<SwapEntry> logEntries = LogsGetter.GetCertainTypeLogsForSingleComputer(
+                _computer, Preferences.PreferenceNameMap.get("SwapInfoPreference"), from, now)
+                .stream().map(BaseEntity::ToEntry).map(u -> (SwapEntry) u).collect(Collectors.toList());
 
-            swapEntries.clear();
-            swapEntries.addAll(logEntries);
-            swapTableView.refresh();
-        }
-        catch (ParseException e)
-        {
-            e.printStackTrace();
-        }
+        swapEntries.clear();
+        swapEntries.addAll(logEntries);
+        swapTableView.refresh();
     }
 
     // ---  DISKS TABLEVIEW  -------------------------------------------------------------------------------------------
@@ -313,25 +284,17 @@ public class LogsForComputerController implements Initializable
         disksTableView.setItems(disksEntries);
     }
 
-    private void GetDisksLogsAndPopulateTableView()
+    private void GetDisksLogsAndPopulateTableView(Timestamp from)
     {
-        try
-        {
-            Timestamp from = new Timestamp(new SimpleDateFormat("yyyy-MM-dd").parse("2014-02-14").getTime());
-            Timestamp now = new Timestamp(new Date().getTime());
+        Timestamp now = new Timestamp(new Date().getTime());
 
-            List<DiskEntry> logEntries = LogsGetter.GetCertainTypeLogsForSingleComputer(
-                    _computer, Preferences.PreferenceNameMap.get("DisksInfoPreference"), from, now)
-                    .stream().map(BaseEntity::ToEntry).map(u -> (DiskEntry) u).collect(Collectors.toList());
+        List<DiskEntry> logEntries = LogsGetter.GetCertainTypeLogsForSingleComputer(
+                _computer, Preferences.PreferenceNameMap.get("DisksInfoPreference"), from, now)
+                .stream().map(BaseEntity::ToEntry).map(u -> (DiskEntry) u).collect(Collectors.toList());
 
-            disksEntries.clear();
-            disksEntries.addAll(logEntries);
-            disksTableView.refresh();
-        }
-        catch (ParseException e)
-        {
-            e.printStackTrace();
-        }
+        disksEntries.clear();
+        disksEntries.addAll(logEntries);
+        disksTableView.refresh();
     }
 
     // ---  PROCESSES TABLEVIEW  ---------------------------------------------------------------------------------------
@@ -395,25 +358,98 @@ public class LogsForComputerController implements Initializable
         processesTableView.setItems(processesEntries);
     }
 
-    private void GetProcessesLogsAndPopulateTableView()
+    private void GetProcessesLogsAndPopulateTableView(Timestamp from)
     {
-        try
-        {
-            Timestamp from = new Timestamp(new SimpleDateFormat("yyyy-MM-dd").parse("2014-02-14").getTime());
-            Timestamp now = new Timestamp(new Date().getTime());
+        Timestamp now = new Timestamp(new Date().getTime());
 
-            List<ProcessEntry> logEntries = LogsGetter.GetCertainTypeLogsForSingleComputer(
-                    _computer, Preferences.PreferenceNameMap.get("ProcessesInfoPreference"), from, now)
-                    .stream().map(BaseEntity::ToEntry).map(u -> (ProcessEntry) u).collect(Collectors.toList());
+        List<ProcessEntry> logEntries = LogsGetter.GetCertainTypeLogsForSingleComputer(
+                _computer, Preferences.PreferenceNameMap.get("ProcessesInfoPreference"), from, now)
+                .stream().map(BaseEntity::ToEntry).map(u -> (ProcessEntry) u).collect(Collectors.toList());
 
-            processesEntries.clear();
-            processesEntries.addAll(logEntries);
-            processesTableView.refresh();
-        }
-        catch (ParseException e)
+        processesEntries.clear();
+        processesEntries.addAll(logEntries);
+        processesTableView.refresh();
+    }
+
+    // ---  TABS  ------------------------------------------------------------------------------------------------------
+
+    @FXML
+    private Tab usersTab;
+
+    @FXML
+    private Tab cpuTab;
+
+    @FXML
+    private Tab ramTab;
+
+    @FXML
+    private Tab swapTab;
+
+    @FXML
+    private Tab disksTab;
+
+    @FXML
+    private Tab processesTab;
+
+    // ---  OTHER FXML COMPONENTS  -------------------------------------------------------------------------------------
+
+    @FXML
+    private DatePicker datePicker;
+
+    @FXML
+    void GetLogs(ActionEvent event)
+    {
+        LocalDate from = datePicker.getValue();
+        if(from == null)
         {
-            e.printStackTrace();
+            return;
         }
+        Timestamp fromTimestamp = Timestamp.valueOf(from.atStartOfDay());
+
+        if(usersTab.isSelected())
+        {
+            GetUsersLogsAndPopulateTableView(fromTimestamp);
+        }
+        else if(cpuTab.isSelected())
+        {
+            GetCpuLogsAndPopulateTableView(fromTimestamp);
+        }
+        else if(ramTab.isSelected())
+        {
+            GetRamLogsAndPopulateTableView(fromTimestamp);
+        }
+        else if(swapTab.isSelected())
+        {
+            GetSwapLogsAndPopulateTableView(fromTimestamp);
+        }
+        else if(disksTab.isSelected())
+        {
+            GetDisksLogsAndPopulateTableView(fromTimestamp);
+        }
+        else if(processesTab.isSelected())
+        {
+            GetProcessesLogsAndPopulateTableView(fromTimestamp);
+        }
+    }
+
+    @FXML
+    void Clear(ActionEvent event)
+    {
+        datePicker.setValue(null);
+
+        usersEntries.clear();
+        cpuEntries.clear();
+        ramEntries.clear();
+        swapEntries.clear();
+        disksEntries.clear();
+        processesEntries.clear();
+
+        usersTableView.refresh();
+        cpuTableView.refresh();
+        ramTableView.refresh();
+        swapTableView.refresh();
+        disksTableView.refresh();
+        processesTableView.refresh();
     }
 
     // ---  FIELDS  ----------------------------------------------------------------------------------------------------

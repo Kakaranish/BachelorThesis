@@ -22,3 +22,12 @@
 .edit-button:hover {
     -fx-opacity: 1;
 }
+
+.log-button {
+    -fx-background-color: transparent;
+    -fx-opacity: 0.5;
+}
+
+.log-button:hover {
+    -fx-opacity: 1;
+}

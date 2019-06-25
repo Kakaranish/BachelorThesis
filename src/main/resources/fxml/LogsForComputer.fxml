@@ -9,7 +9,7 @@
    <center>
       <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
         <tabs>
-          <Tab text="Users">
+          <Tab fx:id="usersTab" text="Users">
             <content>
                   <TableView fx:id="usersTableView" prefHeight="633.0" prefWidth="1311.0">
                     <columns>
@@ -26,7 +26,7 @@
                   </TableView>
             </content>
           </Tab>
-          <Tab text="Cpu">
+          <Tab fx:id="cpuTab" text="Cpu">
             <content>
                   <TableView fx:id="cpuTableView" prefHeight="605.0" prefWidth="1223.0">
                     <columns>
@@ -41,7 +41,7 @@
                   </TableView>
             </content>
           </Tab>
-            <Tab text="Ram">
+            <Tab fx:id="ramTab" text="Ram">
               <content>
                   <TableView fx:id="ramTableView" prefHeight="632.0" prefWidth="1311.0">
                     <columns>
@@ -56,7 +56,7 @@
                   </TableView>
               </content>
             </Tab>
-            <Tab text="Swap">
+            <Tab fx:id="swapTab" text="Swap">
               <content>
                   <TableView fx:id="swapTableView" prefHeight="200.0" prefWidth="200.0">
                     <columns>
@@ -68,7 +68,7 @@
                   </TableView>
               </content>
             </Tab>
-            <Tab text="Disks">
+            <Tab fx:id="disksTab" text="Disks">
                <content>
                   <TableView fx:id="disksTableView" prefHeight="200.0" prefWidth="200.0">
                     <columns>
@@ -83,7 +83,7 @@
                   </TableView>
                </content>
             </Tab>
-            <Tab text="Processes">
+            <Tab fx:id="processesTab" text="Processes">
                <content>
                   <TableView fx:id="processesTableView" prefHeight="200.0" prefWidth="200.0">
                     <columns>
@@ -109,7 +109,9 @@
    <bottom>
       <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
         <items>
-          <Button mnemonicParsing="false" text="Button" />
+          <Button fx:id="getLogsButton" mnemonicParsing="false" onAction="#GetLogs" text="Get Logs" />
+            <Button fx:id="clearButton" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" onAction="#Clear" text="Clear" />
+            <DatePicker fx:id="datePicker" promptText="From Date" />
         </items>
       </ToolBar>
    </bottom>

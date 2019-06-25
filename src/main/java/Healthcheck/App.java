@@ -6,23 +6,22 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-
 import java.io.IOException;
 
 public class App extends Application
 {
     public static void main(String[] args)
     {
-//        Preference preference = Utilities.GetPreferenceFromClassName("Healthcheck.Preferences.UsersInfoPreference");
-////        System.out.println(Utilities.ExtractPreferenceName("Healthcheck.Preferences.CpuInfoPreference"));
-//        System.out.println(Utilities.GetClassNameForPreferenceName("Ram Info"));
-
         launch(args);
     }
 
-
     @Override
     public void start(Stage primaryStage)
+    {
+        StartMainWindow();
+    }
+
+    private void StartMainWindow()
     {
         try
         {
