@@ -43,7 +43,6 @@ public class MainWindowController implements Initializable
 
     public ObservableList<SshConfigItem> sshConfigItemsObservableList = FXCollections.observableArrayList();
 
-
     @FXML
     private ListView<ComputerItem> computerItemsListView;
 

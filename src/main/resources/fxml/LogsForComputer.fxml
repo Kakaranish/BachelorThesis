@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="709.0" prefWidth="1311.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+   <center>
+      <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
+        <tabs>
+          <Tab text="Users">
+            <content>
+                  <TableView fx:id="usersTableView" prefHeight="633.0" prefWidth="1311.0">
+                    <columns>
+                      <TableColumn fx:id="users_datetimeColumn" prefWidth="150.0" text="Datetime" />
+                      <TableColumn fx:id="users_fromWhereColumn" minWidth="0.0" prefWidth="200.0" text="From Where" />
+                        <TableColumn fx:id="users_idleColumn" minWidth="100.0" prefWidth="31.0" text="Idle" />
+                        <TableColumn fx:id="users_jcpuColumn" prefWidth="100.0" text="JCPU" />
+                        <TableColumn fx:id="users_pcpuColumn" prefWidth="100.0" text="PCPU" />
+                        <TableColumn fx:id="users_sat15Column" prefWidth="100.0" text="SAT15" />
+                        <TableColumn fx:id="users_ttyColumn" prefWidth="150.0" text="TTY" />
+                        <TableColumn fx:id="users_userColumn" prefWidth="200.0" text="User" />
+                        <TableColumn fx:id="users_whatColumn" prefWidth="210.0" text="What" />
+                    </columns>
+                  </TableView>
+            </content>
+          </Tab>
+          <Tab text="Cpu">
+            <content>
+                  <TableView fx:id="cpuTableView" prefHeight="605.0" prefWidth="1223.0">
+                    <columns>
+                      <TableColumn fx:id="cpu_datetimeColumn" prefWidth="147.0" text="Datetime" />
+                      <TableColumn fx:id="cpu_last1MinuteAvgCpuUtil" prefWidth="176.0" text="Last1MinuteAvgCpuUtil" />
+                        <TableColumn fx:id="cpu_last5MinutesAvgCpuUtilColumn" prefWidth="171.0" text="Last5MinutesAvgCpuUtil" />
+                        <TableColumn fx:id="cpu_last15MinutesAvgCpuUtilColumn" minWidth="2.0" prefWidth="204.0" text="Last15MinutesAvgCpuUtil" />
+                        <TableColumn fx:id="cpu_executingKernelSchedulingEntitiesNumColumn" prefWidth="273.0" text="ExecutingKernelSchedulingEntitiesNum" />
+                        <TableColumn fx:id="cpu_existingKernelSchedulingEntitiesNumColumn" prefWidth="241.0" text="ExistingKernelSchedulingEntitiesNum" />
+                        <TableColumn fx:id="cpu_recentlyCreatedProcessPIDColumn" prefWidth="98.0" text="RecentlyCreatedProcessPID" />
+                    </columns>
+                  </TableView>
+            </content>
+          </Tab>
+            <Tab text="Ram">
+              <content>
+                  <TableView fx:id="ramTableView" prefHeight="632.0" prefWidth="1311.0">
+                    <columns>
+                      <TableColumn fx:id="ram_datetimeColumn" prefWidth="178.0" text="Datetime" />
+                      <TableColumn fx:id="ram_totalColumn" prefWidth="184.0" text="Total" />
+                        <TableColumn fx:id="ram_usedColumn" prefWidth="179.0" text="Used" />
+                        <TableColumn fx:id="ram_freeColumn" prefWidth="187.0" text="Free" />
+                        <TableColumn fx:id="ram_sharedColumn" prefWidth="195.0" text="Shared" />
+                        <TableColumn fx:id="ram_buffersColumn" prefWidth="190.0" text="Buffers" />
+                        <TableColumn fx:id="ram_cachedColumn" prefWidth="197.0" text="Cached" />
+                    </columns>
+                  </TableView>
+              </content>
+            </Tab>
+            <Tab text="Swap">
+              <content>
+                  <TableView fx:id="swapTableView" prefHeight="200.0" prefWidth="200.0">
+                    <columns>
+                      <TableColumn fx:id="swap_datetimeColumn" prefWidth="174.0" text="Datetime" />
+                      <TableColumn fx:id="swap_totalColumn" prefWidth="258.0" text="Total" />
+                        <TableColumn fx:id="swap_usedColumn" prefWidth="189.0" text="Used" />
+                        <TableColumn fx:id="swap_freeColumn" prefWidth="245.0" text="Free" />
+                    </columns>
+                  </TableView>
+              </content>
+            </Tab>
+            <Tab text="Disks">
+               <content>
+                  <TableView fx:id="disksTableView" prefHeight="200.0" prefWidth="200.0">
+                    <columns>
+                      <TableColumn fx:id="disks_datetimeColumn" prefWidth="152.0" text="Datetime" />
+                      <TableColumn fx:id="disks_filesystemColumn" prefWidth="174.0" text="FileSystem" />
+                        <TableColumn fx:id="disk_blocksNumberColumn" prefWidth="176.0" text="BlocksNumber" />
+                        <TableColumn fx:id="disks_usedColumn" prefWidth="209.0" text="Used" />
+                        <TableColumn fx:id="disks_availableColumn" prefWidth="229.0" text="Available" />
+                        <TableColumn fx:id="disks_usePercentage" prefWidth="190.0" text="UsePercentage" />
+                        <TableColumn fx:id="disks_mountedOnColumn" prefWidth="181.0" text="MountedOn" />
+                    </columns>
+                  </TableView>
+               </content>
+            </Tab>
+            <Tab text="Processes">
+               <content>
+                  <TableView fx:id="processesTableView" prefHeight="200.0" prefWidth="200.0">
+                    <columns>
+                      <TableColumn fx:id="processes_datetimeColumn" prefWidth="121.0" text="Datetime" />
+                      <TableColumn fx:id="processes_userColumn" prefWidth="109.0" text="User" />
+                        <TableColumn fx:id="processes_pidColumn" prefWidth="109.0" text="PID" />
+                        <TableColumn fx:id="processes_cpuPercentageColumn" prefWidth="128.0" text="CPU_Percentage" />
+                        <TableColumn fx:id="processes_memoryPercentageColumn" prefWidth="121.0" text="Memory_Percentage" />
+                        <TableColumn fx:id="processes_vszColumn" prefWidth="95.0" text="VSZ" />
+                        <TableColumn fx:id="processes_rssColumn" prefWidth="105.0" text="RSS" />
+                        <TableColumn fx:id="processes_ttyColumn" prefWidth="93.0" text="TTY" />
+                        <TableColumn fx:id="processes_statColumn" prefWidth="101.0" text="Stat" />
+                        <TableColumn fx:id="processes_startColumn" prefWidth="117.0" text="Start" />
+                        <TableColumn fx:id="processes_timeColumn" prefWidth="108.0" text="Time" />
+                        <TableColumn fx:id="processes_commandColumn" prefWidth="104.0" text="Command" />
+                    </columns>
+                  </TableView>
+               </content>
+            </Tab>
+        </tabs>
+      </TabPane>
+   </center>
+   <bottom>
+      <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+        <items>
+          <Button mnemonicParsing="false" text="Button" />
+        </items>
+      </ToolBar>
+   </bottom>
+</BorderPane>
