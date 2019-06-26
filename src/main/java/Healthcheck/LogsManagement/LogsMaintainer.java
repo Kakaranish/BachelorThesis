@@ -202,8 +202,10 @@ public class LogsMaintainer
             query.setParameter("computer", computer);
 
             String attemptErrorMessage = "Attempt of deleting logs for '" + usernameAndHost + "' failed.";
+            // TODO: vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
             boolean removingLogsSucceed =
-                    DatabaseManager.ExecuteDeleteQueryWithRetryPolicy(session, query, ModuleName, attemptErrorMessage);
+                    DatabaseManager.ExecuteDeleteQueryWithRetryPolicy(session, query, ModuleName, attemptErrorMessage); //
+            // TODO: ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
             if (removingLogsSucceed == false)
             {
                 ComputerLogger computerLogger = _logsManager.GetComputerLoggerForComputer(computer);
@@ -227,7 +229,7 @@ public class LogsMaintainer
         catch (DatabaseException e)
         {
             ComputerLogger computerLogger = _logsManager.GetComputerLoggerForComputer(computer);
-            _logsManager.Callback_Maintainer_StopWorkForComputerLogger(computerLogger);
+            _logsManager.Callback_Maintainer_StopWorkForComputerLogger(computerLogger); // TODO: ??????????????????????
 
             AppLogger.Log(LogType.FATAL_ERROR, ModuleName,
                     "Setting last maintenance time for '" + usernameAndHost + "' failed.");

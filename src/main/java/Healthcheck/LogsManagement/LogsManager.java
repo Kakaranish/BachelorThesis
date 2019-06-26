@@ -35,7 +35,7 @@ public class LogsManager
     {
         if(_isWorking)
         {
-            AppLogger.Log(LogType.ERROR, ModuleName, "Unable to star work. LogsManager is currently working.");
+            AppLogger.Log(LogType.ERROR, ModuleName, "Unable to start work. LogsManager is currently working.");
             Utilities.ShowErrorDialog("LogsManager is currently working.");
 
             return;
@@ -54,7 +54,6 @@ public class LogsManager
         if(_connectedComputerLoggers.isEmpty())
         {
             _isWorking = false;
-            _parentController.ClearInitListViewOfGatheredComputers();
 
             AppLogger.Log(LogType.ERROR, ModuleName, "No computer is ready for maintenance & logs gathering.");
             AppLogger.Log(LogType.INFO, ModuleName, "Stopped work.");
@@ -105,6 +104,7 @@ public class LogsManager
         }
         catch(LogsException e)
         {
+            e.printStackTrace(System.out);
             AppLogger.Log(LogType.FATAL_ERROR, ModuleName, e.getMessage());
         }
     }
@@ -117,20 +117,12 @@ public class LogsManager
         }
         catch(LogsException e)
         {
+            e.printStackTrace(System.out);
             AppLogger.Log(LogType.FATAL_ERROR, ModuleName, e.getMessage());
         }
     }
 
     // ---  GENERAL CALLBACKS  -----------------------------------------------------------------------------------------
-
-    public void Callback_FatalError(String message)
-    {
-        AppLogger.Log(LogType.FATAL_ERROR, ModuleName, message);
-
-        EndWorkCleanup();
-
-        _parentController.Callback_LogsManager_StoppedWork_FatalError();
-    }
 
     public void Callback_NothingToDo_StopWork()
     {
@@ -138,8 +130,8 @@ public class LogsManager
 
         _parentController.Callback_LogsManager_StoppedWork();
 
-        StopGatheringLogsSafely();
         StopMaintainingLogsSafely();
+        StopGatheringLogsSafely();
 
         _parentController.Callback_LogsManager_StoppedWork_NothingToDo();
     }
@@ -149,8 +141,11 @@ public class LogsManager
     public void Callback_Gatherer_StartGatheringLogsFailed()
     {
         StopMaintainingLogsSafely();
+        EndWorkCleanup();
 
-        Callback_FatalError("Failed with starting gathering logs.");
+        AppLogger.Log(LogType.FATAL_ERROR, ModuleName, "Failed with starting gathering logs.");
+
+        _parentController.Callback_LogsManager_StartGatheringLogsFailed();
     }
 
     public void Callback_Gatherer_StoppedComputerLogger_NotIntendedInterruption(ComputerLogger computerLogger)
@@ -167,17 +162,7 @@ public class LogsManager
                 return;
             }
 
-            try
-            {
-                _logsMaintainer.RestartMaintainingLogs();
-            }
-            catch (LogsException e)
-            {
-                StopGatheringLogsSafely();
-
-                Callback_FatalError(e.getMessage());
-                return;
-            }
+            _logsMaintainer.RestartMaintainingLogs();
 
             _parentController.Callback_LogsManager_ComputerDisconnected(computerLogger.GetComputer());
         }
@@ -186,6 +171,42 @@ public class LogsManager
             AppLogger.Log(LogType.FATAL_ERROR, ModuleName,
                     "Unable to stop gathering logs for '" + usernameAndHost + "'.");
         }
+    }
+
+    public void Callback_Gatherer_StoppedComputerLogger_SshConnectionFailed(ComputerLogger computerLogger)
+    {
+        String usernameAndHost = computerLogger.GetComputer().GetUsernameAndHost();
+        if(_connectedComputerLoggers.contains(computerLogger))
+        {
+            _connectedComputerLoggers.remove(computerLogger);
+            AppLogger.Log(LogType.INFO, ModuleName,"Stopped maintaining logs for '" + usernameAndHost + "'.");
+
+            if(HasConnectedComputersLoggers() == false)
+            {
+                Callback_NothingToDo_StopWork();
+                return;
+            }
+
+            _logsMaintainer.RestartMaintainingLogs();
+
+            _parentController.Callback_LogsManager_ComputerDisconnected(computerLogger.GetComputer());
+        }
+        else
+        {
+            AppLogger.Log(LogType.FATAL_ERROR, ModuleName,
+                    "Unable to stop gathering logs for '" + usernameAndHost + "'.");
+        }
+    }
+
+    public void Callback_Gatherer_StoppedComputerLogger_InternetConnectionLost()
+    {
+        StopGatheringLogsSafely();
+        StopMaintainingLogsSafely();
+        EndWorkCleanup();
+
+        AppLogger.Log(LogType.FATAL_ERROR, ModuleName, "Stopped work. Connection with internet lost.");
+
+        _parentController.Callback_LogsManager_InternetConnectionLost();
     }
 
     // ---  MAINTAINER CALLBACKS  --------------------------------------------------------------------------------------
@@ -198,24 +219,16 @@ public class LogsManager
         }
         catch (LogsException e)
         {
-            Callback_FatalError(e.getMessage());
+            AppLogger.Log(LogType.FATAL_ERROR, e.getMessage());
             return;
         }
 
         _connectedComputerLoggers.remove(computerLogger);
 
         String host = computerLogger.GetComputer().GetHost();
-        AppLogger.Log(LogType.INFO, ModuleName, "Stopped gathering logs for '" + host + "'.");
         AppLogger.Log(LogType.INFO, ModuleName, "Stopped maintaining logs for '" + host + "'.");
 
-        try
-        {
-            _logsMaintainer.RestartMaintainingLogs();
-        }
-        catch (LogsException e)
-        {
-            Callback_FatalError(e.getMessage());
-        }
+        _logsMaintainer.RestartMaintainingLogs();
     }
 
     public void Callback_Maintainer_StopWork_InterruptionIntended()
@@ -227,7 +240,8 @@ public class LogsManager
 
     public void Callback_Maintainer_InterruptionNotIntended_StopWorkForAllComputerLoggers()
     {
-        Callback_FatalError("LogsMaintainer unintentionally interrupted.");
+        AppLogger.Log(LogType.INFO, ModuleName, "LogsMaintainer unintentionally interrupted.");
+        StopGatheringLogsSafely();
 
         StopGatheringLogsSafely();
     }

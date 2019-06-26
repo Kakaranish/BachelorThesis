@@ -10,6 +10,10 @@ import javafx.scene.control.ButtonType;
 import org.hibernate.Session;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -234,6 +238,24 @@ public class Utilities
 
         Optional<ButtonType> result = alert.showAndWait();
         return result.get() == okButton ? true : false;
+    }
+
+    public static boolean InternetConnectionIsAvailable()
+    {
+        try
+        {
+            final URL url = new URL("http://www.google.com");
+            final URLConnection conn = url.openConnection();
+
+            conn.connect();
+            conn.getInputStream().close();
+
+            return true;
+        }
+        catch(IOException e)
+        {
+            return false;
+        }
     }
 
     public static boolean EmptyOrNull(String str)

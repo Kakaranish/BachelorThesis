@@ -102,7 +102,7 @@ public class MainWindowController implements Initializable
         InitializeAppLogsTableView();
         InitializeConnectedComputersTableView();
 
-        startOrStopGatheringLogsButton.setOnAction(event -> _logsManager.StartWork());
+        CleanUpGuiComponents();
         InitializeAddComputerOrSshConfigButton();
         InitializeClearAppLogsButton();
         InitializeTabPaneSelectionListener();
@@ -275,6 +275,56 @@ public class MainWindowController implements Initializable
         }
     }
 
+    // ---  LogsManager CALLBACKS  -------------------------------------------------------------------------------------
+
+    public void Callback_LogsManager_StartedWork(List<Computer> selectedComputers)
+    {
+        connectedComputers.clear();
+        computerItemsListView.refresh();
+
+        startOrStopGatheringLogsButton.setOnAction(event -> _logsManager.StopWork());
+        startOrStopGatheringLogsButton.setText("Stop Gathering Logs");
+        _isEditionAndRemovingAllowed = false;
+
+        for (Computer selectedComputer : selectedComputers)
+        {
+            connectedComputers.add(new ConnectedComputerEntry()
+            {{
+                UsernameAndHost = new SimpleStringProperty(
+                        selectedComputer.GetSshConfig().GetUsername() + "@" + selectedComputer.GetHost());
+            }});
+        }
+    }
+
+    public void Callback_LogsManager_StoppedWork()
+    {
+        CleanUpGuiComponents();
+    }
+
+    public void Callback_LogsManager_InternetConnectionLost()
+    {
+        CleanUpGuiComponents();
+
+        Utilities.ShowErrorDialog("LogsManager stopped work. Fatal error occurred.");
+    }
+
+    public void Callback_LogsManager_ComputerDisconnected(Computer computer)
+    {
+        String usernameAndHostToRemove = computer.GetSshConfig().GetUsername() + "@" + computer.GetHost();
+        connectedComputers.removeIf(c -> c.UsernameAndHost.get().equals(usernameAndHostToRemove));
+    }
+
+    public void Callback_LogsManager_StartGatheringLogsFailed()
+    {
+        Utilities.ShowErrorDialog("LogsManager stopped work. Fatal error occurred.");
+        CleanUpGuiComponents();
+    }
+
+    public void Callback_LogsManager_StoppedWork_NothingToDo()
+    {
+        Utilities.ShowInfoDialog("LogsManager stopped work. No connected computers.");
+    }
+
     // ---  MISC  ------------------------------------------------------------------------------------------------------
 
     public void OnCloseAction(WindowEvent event)
@@ -322,55 +372,20 @@ public class MainWindowController implements Initializable
         return tabNum == 3;
     }
 
-    // ---  LogsManager CALLBACKS  -------------------------------------------------------------------------------------
-
-    public void Callback_LogsManager_StartedWork(List<Computer> selectedComputers)
-    {
-        connectedComputers.clear();
-
-        startOrStopGatheringLogsButton.setOnAction(event -> _logsManager.StopWork());
-        startOrStopGatheringLogsButton.setText("Stop Gathering Logs");
-        _isEditionAndRemovingAllowed = false;
-
-        for (Computer selectedComputer : selectedComputers)
-        {
-            connectedComputers.add(new ConnectedComputerEntry()
-            {{
-                UsernameAndHost = new SimpleStringProperty(
-                        selectedComputer.GetSshConfig().GetUsername() + "@" + selectedComputer.GetHost());
-            }});
-        }
-    }
-
-    public void Callback_LogsManager_StoppedWork()
+    private void CleanUpGuiComponents()
     {
         connectedComputers.clear();
 
         startOrStopGatheringLogsButton.setOnAction(event -> _logsManager.StartWork());
         startOrStopGatheringLogsButton.setText("Start Gathering Logs");
         _isEditionAndRemovingAllowed = true;
-    }
 
-    public void Callback_LogsManager_ComputerDisconnected(Computer computer)
-    {
-        String usernameAndHostToRemove = computer.GetSshConfig().GetUsername() + "@" + computer.GetHost();
-        connectedComputers.removeIf(c -> c.UsernameAndHost.get().equals(usernameAndHostToRemove));
+        System.out.println("was here");
     }
 
     public void ClearInitListViewOfGatheredComputers()
     {
         connectedComputers.clear();
-    }
-
-    public void Callback_LogsManager_StoppedWork_FatalError()
-    {
-        Utilities.ShowErrorDialog("LogsManager stopped work. Fatal error occurred.");
-        connectedComputers.clear();
-    }
-
-    public void Callback_LogsManager_StoppedWork_NothingToDo()
-    {
-        Utilities.ShowInfoDialog("LogsManager stopped work. No connected computers.");
     }
 
     public boolean IsLogsManagerWorking()

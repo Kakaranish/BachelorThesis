@@ -98,8 +98,7 @@ public class LogsGatherer
         }
     }
 
-    // -----------------------------------------------------------------------------------------------------------------
-    // ---------------------------------------------- CALLBACKS --------------------------------------------------------
+    // ---  GENERAL CALLBACKS  -----------------------------------------------------------------------------------------
 
     public void Callback_InfoMessage(String message)
     {
@@ -116,6 +115,8 @@ public class LogsGatherer
         AppLogger.Log(LogType.FATAL_ERROR, ModuleName, message);
     }
 
+    // ---  CALLBACKS TO LOGSMANAGER  ----------------------------------------------------------------------------------
+
     public void Callback_StartGatheringLogsFailed(List<ComputerLogger> gatheredComputerLoggers)
     {
         for (ComputerLogger startedComputerLogger : gatheredComputerLoggers)
@@ -129,22 +130,33 @@ public class LogsGatherer
         AppLogger.Log(LogType.INFO, ModuleName, "Stopped work.");
     }
 
-    public void Callback_StoppedComputerLogger_InterruptionNotIntended(
-            ComputerLogger computerLogger, String additionalMessage)
-    {
-        String usernameAndHost = computerLogger.GetComputer().GetUsernameAndHost();
-        AppLogger.Log(LogType.FATAL_ERROR, ModuleName,
-                "'" + usernameAndHost + "' ComputerLogger thread was unintentionally interrupted." +
-                additionalMessage != null ? " " + additionalMessage : "");
-
-        _logsManager.Callback_Gatherer_StoppedComputerLogger_NotIntendedInterruption(computerLogger);
-    }
-
     public void Callback_StoppedComputerLogger_InterruptionIntended(ComputerLogger computerLogger)
     {
         String usernameAndHost = computerLogger.GetComputer().GetUsernameAndHost();
         AppLogger.Log(LogType.INFO, ModuleName, "Gathering logs stopped for '" + usernameAndHost + "'.");
     }
+
+    public void Callback_StoppedComputerLogger_InterruptionNotIntended(ComputerLogger computerLogger)
+    {
+        String usernameAndHost = computerLogger.GetComputer().GetUsernameAndHost();
+        AppLogger.Log(LogType.FATAL_ERROR, ModuleName,
+                "'" + usernameAndHost + "' ComputerLogger thread was unintentionally interrupted.");
+
+        _logsManager.Callback_Gatherer_StoppedComputerLogger_NotIntendedInterruption(computerLogger);
+    }
+
+    public void Callback_StoppedComputer_SshConnectionFailed(ComputerLogger computerLogger, String message)
+    {
+        AppLogger.Log(LogType.FATAL_ERROR, ModuleName, message);
+        _logsManager.Callback_Gatherer_StoppedComputerLogger_SshConnectionFailed(computerLogger);
+    }
+
+    public void Callback_StoppedComputerLogger_InternetConnectionLost()
+    {
+        _logsManager.Callback_Gatherer_StoppedComputerLogger_InternetConnectionLost();
+    }
+
+    // ---  MISC  ------------------------------------------------------------------------------------------------------
 
     public final boolean InterruptionIntended()
     {
