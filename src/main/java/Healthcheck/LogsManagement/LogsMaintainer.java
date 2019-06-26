@@ -165,7 +165,6 @@ public class LogsMaintainer
                     {
                         _interruptionIntended = false;
                         _isMaintaining = false;
-                        _logsManager.Callback_Maintainer_StopWork_InterruptionIntended();
                     }
 
                     return;

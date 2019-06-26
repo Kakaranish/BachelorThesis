@@ -17,7 +17,7 @@
                            <children>
                               <ToolBar prefHeight="40.0" prefWidth="200.0">
                                 <items>
-                                  <Button fx:id="startOrStopGatheringLogsButton" mnemonicParsing="false" text="Start Gathering Logs" />
+                                  <Button fx:id="startOrStopGatheringLogsButton" mnemonicParsing="false" />
                                     <Button fx:id="clearAppLogsButton" mnemonicParsing="false" text="Clear" />
                                 </items>
                               </ToolBar>

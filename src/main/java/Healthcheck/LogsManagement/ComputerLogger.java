@@ -214,7 +214,9 @@ public class ComputerLogger extends Thread
             {
                 if(Utilities.InternetConnectionIsAvailable() == false)
                 {
-                    _logsGatherer.Callback_StoppedComputerLogger_InternetConnectionLost();
+                    String fatalErrorMessage = "Getting logs for '"
+                            + _usernameAndHost + "' failed - internet connection lost.";
+                    _logsGatherer.Callback_StoppedComputerLogger_InternetConnectionLost(fatalErrorMessage);
                 }
                 else
                 {
@@ -311,7 +313,8 @@ public class ComputerLogger extends Thread
             {
                 if(Utilities.InternetConnectionIsAvailable() == false)
                 {
-                    _logsGatherer.Callback_StoppedComputerLogger_InternetConnectionLost();
+                    String fatalErrorMessage = "Saving logs for '" + _usernameAndHost + "' failed - internet connection lost.";
+                    _logsGatherer.Callback_StoppedComputerLogger_InternetConnectionLost(fatalErrorMessage);
                 }
                 else
                 {

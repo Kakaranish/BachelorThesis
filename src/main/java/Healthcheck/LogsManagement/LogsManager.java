@@ -7,6 +7,7 @@ import Healthcheck.DatabaseManagement.DatabaseException;
 import Healthcheck.Entities.Computer;
 import Healthcheck.AppLogging.LogType;
 import Healthcheck.Utilities;
+import javafx.application.Platform;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -126,14 +127,14 @@ public class LogsManager
 
     public void Callback_NothingToDo_StopWork()
     {
-        AppLogger.Log(LogType.INFO, ModuleName, "Stopped work. Nothing to do - no connected computer.");
-
-        _parentController.Callback_LogsManager_StoppedWork();
-
         StopMaintainingLogsSafely();
         StopGatheringLogsSafely();
 
-        _parentController.Callback_LogsManager_StoppedWork_NothingToDo();
+        Platform.runLater(() ->
+        {
+            AppLogger.Log(LogType.INFO, ModuleName, "Stopped work. Nothing to do - no connected computer.");
+            _parentController.Callback_LogsManager_StoppedWork_NothingToDo();
+        });
     }
 
     // ---  GATHERER CALLBACKS  -----------------------------------------------------------------------------------------
@@ -143,9 +144,11 @@ public class LogsManager
         StopMaintainingLogsSafely();
         EndWorkCleanup();
 
-        AppLogger.Log(LogType.FATAL_ERROR, ModuleName, "Failed with starting gathering logs.");
-
-        _parentController.Callback_LogsManager_StartGatheringLogsFailed();
+        Platform.runLater(() ->
+        {
+            AppLogger.Log(LogType.FATAL_ERROR, ModuleName, "Failed with starting gathering logs.");
+            _parentController.Callback_LogsManager_StartGatheringLogsFailed();
+        });
     }
 
     public void Callback_Gatherer_StoppedComputerLogger_NotIntendedInterruption(ComputerLogger computerLogger)
@@ -154,7 +157,9 @@ public class LogsManager
         if(_connectedComputerLoggers.contains(computerLogger))
         {
             _connectedComputerLoggers.remove(computerLogger);
-            AppLogger.Log(LogType.INFO, ModuleName,"Stopped maintaining logs for '" + usernameAndHost + "'.");
+            Platform.runLater(() -> AppLogger.Log(
+                    LogType.INFO, ModuleName,"Stopped maintaining logs for '" + usernameAndHost + "'.")
+            );
 
             if(HasConnectedComputersLoggers() == false)
             {
@@ -164,12 +169,15 @@ public class LogsManager
 
             _logsMaintainer.RestartMaintainingLogs();
 
-            _parentController.Callback_LogsManager_ComputerDisconnected(computerLogger.GetComputer());
+            Platform.runLater(() ->
+                    _parentController.Callback_LogsManager_ComputerDisconnected(computerLogger.GetComputer())
+            );
         }
         else
         {
-            AppLogger.Log(LogType.FATAL_ERROR, ModuleName,
-                    "Unable to stop gathering logs for '" + usernameAndHost + "'.");
+            Platform.runLater(() -> AppLogger.Log(LogType.FATAL_ERROR, ModuleName,
+                    "Unable to stop gathering logs for '" + usernameAndHost + "'.")
+            );
         }
     }
 
@@ -179,7 +187,9 @@ public class LogsManager
         if(_connectedComputerLoggers.contains(computerLogger))
         {
             _connectedComputerLoggers.remove(computerLogger);
-            AppLogger.Log(LogType.INFO, ModuleName,"Stopped maintaining logs for '" + usernameAndHost + "'.");
+            Platform.runLater(() -> AppLogger.Log(LogType.INFO, ModuleName,
+                    "Stopped maintaining logs for '" + usernameAndHost + "'.")
+            );
 
             if(HasConnectedComputersLoggers() == false)
             {
@@ -189,12 +199,15 @@ public class LogsManager
 
             _logsMaintainer.RestartMaintainingLogs();
 
-            _parentController.Callback_LogsManager_ComputerDisconnected(computerLogger.GetComputer());
+            Platform.runLater(() ->
+                _parentController.Callback_LogsManager_ComputerDisconnected(computerLogger.GetComputer())
+            );
         }
         else
         {
-            AppLogger.Log(LogType.FATAL_ERROR, ModuleName,
-                    "Unable to stop gathering logs for '" + usernameAndHost + "'.");
+            Platform.runLater(() -> AppLogger.Log(LogType.FATAL_ERROR, ModuleName,
+                    "Unable to stop gathering logs for '" + usernameAndHost + "'.")
+            );
         }
     }
 
@@ -204,9 +217,18 @@ public class LogsManager
         StopMaintainingLogsSafely();
         EndWorkCleanup();
 
-        AppLogger.Log(LogType.FATAL_ERROR, ModuleName, "Stopped work. Connection with internet lost.");
-
-        _parentController.Callback_LogsManager_InternetConnectionLost();
+        Platform.runLater(() ->
+        {
+            try
+            {
+                AppLogger.Log(LogType.FATAL_ERROR, ModuleName, "Stopped work. Connection with internet lost.");
+                _parentController.Callback_LogsManager_InternetConnectionLost();
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace(System.out);
+            }
+        });
     }
 
     // ---  MAINTAINER CALLBACKS  --------------------------------------------------------------------------------------
@@ -219,29 +241,25 @@ public class LogsManager
         }
         catch (LogsException e)
         {
-            AppLogger.Log(LogType.FATAL_ERROR, e.getMessage());
+            Platform.runLater(() -> AppLogger.Log(LogType.FATAL_ERROR, e.getMessage()));
             return;
         }
 
         _connectedComputerLoggers.remove(computerLogger);
 
         String host = computerLogger.GetComputer().GetHost();
-        AppLogger.Log(LogType.INFO, ModuleName, "Stopped maintaining logs for '" + host + "'.");
+        Platform.runLater(() ->
+            AppLogger.Log(LogType.INFO, ModuleName, "Stopped maintaining logs for '" + host + "'.")
+        );
 
         _logsMaintainer.RestartMaintainingLogs();
     }
 
-    public void Callback_Maintainer_StopWork_InterruptionIntended()
-    {
-        AppLogger.Log(LogType.INFO, ModuleName, "LogsMaintainer intentionally interrupted.");
-
-        EndWorkCleanup();
-    }
-
     public void Callback_Maintainer_InterruptionNotIntended_StopWorkForAllComputerLoggers()
     {
-        AppLogger.Log(LogType.INFO, ModuleName, "LogsMaintainer unintentionally interrupted.");
-        StopGatheringLogsSafely();
+        Platform.runLater(() ->
+                AppLogger.Log(LogType.INFO, ModuleName, "LogsMaintainer unintentionally interrupted.")
+        );
 
         StopGatheringLogsSafely();
     }

@@ -3,6 +3,7 @@ package Healthcheck.LogsManagement;
 import Healthcheck.AppLogging.AppLogger;
 import Healthcheck.AppLogging.LogType;
 import Healthcheck.Utilities;
+import javafx.application.Platform;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,8 +26,6 @@ public class LogsGatherer
         {
             throw new LogsException("Unable to start gathering logs. Other gatherer currently is working.");
         }
-
-        AppLogger.Log(LogType.INFO, ModuleName, "Started work.");
 
         new Thread(() -> {
             List<ComputerLogger> gatheredComputerLoggers = new ArrayList<>();
@@ -62,6 +61,8 @@ public class LogsGatherer
 
             _isGathering = true;
         }).start();
+
+        Platform.runLater(() -> AppLogger.Log(LogType.INFO, ModuleName, "Started work"));
     }
 
     public void StopGatheringLogs() throws LogsException
@@ -151,8 +152,9 @@ public class LogsGatherer
         _logsManager.Callback_Gatherer_StoppedComputerLogger_SshConnectionFailed(computerLogger);
     }
 
-    public void Callback_StoppedComputerLogger_InternetConnectionLost()
+    public void Callback_StoppedComputerLogger_InternetConnectionLost(String message)
     {
+        AppLogger.Log(LogType.FATAL_ERROR, ModuleName, message);
         _logsManager.Callback_Gatherer_StoppedComputerLogger_InternetConnectionLost();
     }
 

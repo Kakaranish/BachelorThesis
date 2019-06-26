@@ -85,7 +85,7 @@ public class MainWindowController implements Initializable
     private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
     private LogsManager _logsManager;
 
-    private boolean _isEditionAndRemovingAllowed = true;
+    private boolean _logsManagerIsNotWorking = true;
 
     // ---  INITIALIZATION  --------------------------------------------------------------------------------------------
 
@@ -102,13 +102,19 @@ public class MainWindowController implements Initializable
         InitializeAppLogsTableView();
         InitializeConnectedComputersTableView();
 
-        CleanUpGuiComponents();
+        InitializeStartOrStopGatheringLogs();
         InitializeAddComputerOrSshConfigButton();
         InitializeClearAppLogsButton();
         InitializeTabPaneSelectionListener();
 
         LoadComputersToListView();
         LoadSshConfigsToListView();
+    }
+
+    private void InitializeStartOrStopGatheringLogs()
+    {
+        startOrStopGatheringLogsButton.setOnAction(event -> _logsManager.StartWork());
+        startOrStopGatheringLogsButton.setText("Start Gathering Logs");
     }
 
     private void InitializeAppLogsTableView()
@@ -277,14 +283,19 @@ public class MainWindowController implements Initializable
 
     // ---  LogsManager CALLBACKS  -------------------------------------------------------------------------------------
 
+    public void Callback_LogsManager_ComputerDisconnected(Computer computer)
+    {
+        String usernameAndHostToRemove = computer.GetSshConfig().GetUsername() + "@" + computer.GetHost();
+        connectedComputers.removeIf(c -> c.UsernameAndHost.get().equals(usernameAndHostToRemove));
+    }
+
     public void Callback_LogsManager_StartedWork(List<Computer> selectedComputers)
     {
         connectedComputers.clear();
-        computerItemsListView.refresh();
 
-        startOrStopGatheringLogsButton.setOnAction(event -> _logsManager.StopWork());
+        _logsManagerIsNotWorking = false;
         startOrStopGatheringLogsButton.setText("Stop Gathering Logs");
-        _isEditionAndRemovingAllowed = false;
+        startOrStopGatheringLogsButton.setOnAction(event -> _logsManager.StopWork());
 
         for (Computer selectedComputer : selectedComputers)
         {
@@ -294,6 +305,7 @@ public class MainWindowController implements Initializable
                         selectedComputer.GetSshConfig().GetUsername() + "@" + selectedComputer.GetHost());
             }});
         }
+        connectedComputersTableView.refresh();
     }
 
     public void Callback_LogsManager_StoppedWork()
@@ -308,24 +320,30 @@ public class MainWindowController implements Initializable
         Utilities.ShowErrorDialog("LogsManager stopped work. Fatal error occurred.");
     }
 
-    public void Callback_LogsManager_ComputerDisconnected(Computer computer)
-    {
-        String usernameAndHostToRemove = computer.GetSshConfig().GetUsername() + "@" + computer.GetHost();
-        connectedComputers.removeIf(c -> c.UsernameAndHost.get().equals(usernameAndHostToRemove));
-    }
-
     public void Callback_LogsManager_StartGatheringLogsFailed()
     {
-        Utilities.ShowErrorDialog("LogsManager stopped work. Fatal error occurred.");
         CleanUpGuiComponents();
+
+        Utilities.ShowErrorDialog("LogsManager stopped work. Fatal error occurred.");
     }
 
     public void Callback_LogsManager_StoppedWork_NothingToDo()
     {
+        CleanUpGuiComponents();
+
         Utilities.ShowInfoDialog("LogsManager stopped work. No connected computers.");
     }
 
     // ---  MISC  ------------------------------------------------------------------------------------------------------
+
+    private void CleanUpGuiComponents()
+    {
+        connectedComputers.clear();
+
+        _logsManagerIsNotWorking = true;
+        startOrStopGatheringLogsButton.setText("Start Gathering Logs");
+        startOrStopGatheringLogsButton.setOnAction(event -> _logsManager.StartWork());
+    }
 
     public void OnCloseAction(WindowEvent event)
     {
@@ -372,17 +390,6 @@ public class MainWindowController implements Initializable
         return tabNum == 3;
     }
 
-    private void CleanUpGuiComponents()
-    {
-        connectedComputers.clear();
-
-        startOrStopGatheringLogsButton.setOnAction(event -> _logsManager.StartWork());
-        startOrStopGatheringLogsButton.setText("Start Gathering Logs");
-        _isEditionAndRemovingAllowed = true;
-
-        System.out.println("was here");
-    }
-
     public void ClearInitListViewOfGatheredComputers()
     {
         connectedComputers.clear();
@@ -395,12 +402,12 @@ public class MainWindowController implements Initializable
 
     public boolean IsEditionAllowed()
     {
-        return _isEditionAndRemovingAllowed;
+        return _logsManagerIsNotWorking;
     }
 
     public boolean IsRemovingAllowed()
     {
-        return _isEditionAndRemovingAllowed;
+        return _logsManagerIsNotWorking;
     }
 
     public void RefreshComputersListView()
