@@ -5,6 +5,7 @@ import GUI.ChangeEvent.ChangeEvent;
 import GUI.ChangeEvent.ChangeEventType;
 import GUI.Controllers.LogsForComputerController;
 import GUI.Controllers.MainWindowController;
+import GUI.Controllers.StatsForComputerController;
 import Healthcheck.ComputersAndSshConfigsManager;
 import Healthcheck.Entities.Computer;
 import Healthcheck.Utilities;
@@ -26,6 +27,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import java.io.IOException;
 
 public class ComputerListCell extends ListCell<ComputerItem>
 {
@@ -92,8 +94,39 @@ public class ComputerListCell extends ListCell<ComputerItem>
         content.setSpacing(10);
         content.setAlignment(Pos.CENTER_LEFT);
 
+        InitStatsButton(statsButton);
         InitLogButton(logButton);
         InitEditButtonAction(editButton);
+    }
+
+    private void InitStatsButton(Button statsButton)
+    {
+        statsButton.setOnAction(event ->
+        {
+            try
+            {
+                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/StatsForComputer.fxml"));
+
+                Computer computer = _computersAndSshConfigsManager.GetComputerByDisplayedName(DisplayedName.getText());
+                StatsForComputerController statsForComputerController = new StatsForComputerController(computer);
+
+                fxmlLoader.setController(statsForComputerController);
+
+                final Scene scene = new Scene(fxmlLoader.load());
+                scene.getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());
+
+                Stage stage = new Stage(StageStyle.DECORATED);
+                stage.setResizable(false);
+                stage.setScene(scene);
+                stage.setTitle(DisplayedName.getText() + " - charts");
+
+                stage.show();
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+        });
     }
 
     private void InitLogButton(Button logButton)

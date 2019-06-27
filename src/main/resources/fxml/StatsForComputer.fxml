@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.chart.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+
+<TabPane prefHeight="720.0" prefWidth="1399.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+   <tabs>
+      <Tab closable="false" text="Disks">
+         <content>
+            <ScrollPane prefHeight="200.0" prefWidth="200.0">
+               <content>
+                  <VBox fx:id="disksVBox" prefHeight="95.0" prefWidth="1395.0" />
+               </content>
+            </ScrollPane>
+         </content>
+      </Tab>
+      <Tab closable="false" text="CPU">
+         <content>
+            <ScrollPane prefHeight="200.0" prefWidth="200.0">
+               <content>
+                  <VBox fx:id="cpuVBox" prefHeight="95.0" prefWidth="1395.0" />
+               </content>
+            </ScrollPane>
+         </content>
+      </Tab>
+      <Tab closable="false" text="Ram">
+         <content>
+            <ScrollPane prefHeight="200.0" prefWidth="200.0">
+               <content>
+                  <VBox fx:id="ramVBox" prefHeight="95.0" prefWidth="1395.0" />
+               </content>
+            </ScrollPane>
+         </content>
+      </Tab>
+      <Tab closable="false" text="Swap">
+         <content>
+            <ScrollPane prefHeight="200.0" prefWidth="200.0">
+               <content>
+                  <VBox fx:id="swapVBox" prefHeight="95.0" prefWidth="1395.0" />
+               </content>
+            </ScrollPane>
+         </content>
+      </Tab>
+      <Tab closable="false" text="Users">
+         <content>
+            <ScrollPane prefHeight="200.0" prefWidth="200.0">
+               <content>
+                  <VBox fx:id="usersVBox" prefHeight="95.0" prefWidth="1395.0" />
+               </content>
+            </ScrollPane>
+         </content>
+      </Tab>
+   </tabs>
+</TabPane>

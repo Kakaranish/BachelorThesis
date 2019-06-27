@@ -11,7 +11,6 @@ import org.hibernate.Session;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.time.Duration;
@@ -261,5 +260,10 @@ public class Utilities
     public static boolean EmptyOrNull(String str)
     {
         return str == null || str.trim().equals("");
+    }
+
+    public static double KilobytesToMegabytes(long kilobytes)
+    {
+        return kilobytes/1024D;
     }
 }
