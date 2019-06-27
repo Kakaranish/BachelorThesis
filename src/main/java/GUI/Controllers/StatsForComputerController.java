@@ -39,29 +39,30 @@ public class StatsForComputerController implements Initializable
     public final static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy' 'HH:mm:ss");
 
     private Computer _computer;
+    private Timestamp _from;
 
-    public StatsForComputerController(Computer computer)
+    public StatsForComputerController(Computer computer, Timestamp from)
     {
         _computer = computer;
+        _from = from;
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources)
     {
         Timestamp now = new Timestamp(new Date().getTime());
-        Timestamp from = new Timestamp(LocalDate.now().minusDays(2).toEpochDay());
 
         Map<String, List<DiskLog>> groupedDisksLogs = LogsGetter.GroupDisksLogsByFileSystem(
                 LogsGetter.GetCertainTypeLogsForSingleComputer(
-                _computer, Preferences.PreferenceNameMap.get("DisksInfoPreference"), from, now).stream()
+                _computer, Preferences.PreferenceNameMap.get("DisksInfoPreference"), _from, now).stream()
                 .map(l -> (DiskLog) l).collect(Collectors.toList())
         );
 
-        CreateDisksChart(_computer, from, now);
-        CreateCpuCharts(_computer, from, now);
-        CreateRamChart(_computer, from, now);
-        CreateSwapChart(_computer, from, now);
-        CreateUsersChart(_computer, from, now);
+        CreateDisksChart(_computer, _from, now);
+        CreateCpuCharts(_computer, _from, now);
+        CreateRamChart(_computer, _from, now);
+        CreateSwapChart(_computer, _from, now);
+        CreateUsersChart(_computer, _from, now);
     }
 
     private void CreateCpuCharts(Computer computer, Timestamp from, Timestamp now)

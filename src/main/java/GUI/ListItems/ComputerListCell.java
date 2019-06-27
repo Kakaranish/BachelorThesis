@@ -1,11 +1,8 @@
 package GUI.ListItems;
 
-import GUI.Controllers.AddOrUpdateComputerController;
+import GUI.Controllers.*;
 import GUI.ChangeEvent.ChangeEvent;
 import GUI.ChangeEvent.ChangeEventType;
-import GUI.Controllers.LogsForComputerController;
-import GUI.Controllers.MainWindowController;
-import GUI.Controllers.StatsForComputerController;
 import Healthcheck.ComputersAndSshConfigsManager;
 import Healthcheck.Entities.Computer;
 import Healthcheck.Utilities;
@@ -105,12 +102,12 @@ public class ComputerListCell extends ListCell<ComputerItem>
         {
             try
             {
-                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/StatsForComputer.fxml"));
+                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/DateTimePopup.fxml"));
 
                 Computer computer = _computersAndSshConfigsManager.GetComputerByDisplayedName(DisplayedName.getText());
-                StatsForComputerController statsForComputerController = new StatsForComputerController(computer);
+                DateTimePopupController dateTimePopupController = new DateTimePopupController(computer);
 
-                fxmlLoader.setController(statsForComputerController);
+                fxmlLoader.setController(dateTimePopupController);
 
                 final Scene scene = new Scene(fxmlLoader.load());
                 scene.getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());
@@ -118,7 +115,7 @@ public class ComputerListCell extends ListCell<ComputerItem>
                 Stage stage = new Stage(StageStyle.DECORATED);
                 stage.setResizable(false);
                 stage.setScene(scene);
-                stage.setTitle(DisplayedName.getText() + " - charts");
+                stage.setTitle("Choose date and time");
 
                 stage.show();
             }
