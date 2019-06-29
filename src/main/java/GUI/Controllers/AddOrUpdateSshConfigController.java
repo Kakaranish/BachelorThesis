@@ -147,7 +147,7 @@ public class AddOrUpdateSshConfigController implements Initializable
             {
                 portTextField.setText(String.valueOf(Utilities.DefaultPort));
             }
-            
+
             passwordAuthMethodRadioButton.setSelected(true);
             saveOrUpdateButton.setText("Add");
             removeButton.setDisable(true);

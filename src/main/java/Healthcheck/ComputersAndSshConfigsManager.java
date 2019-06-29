@@ -1,7 +1,7 @@
 package Healthcheck;
 
 import Healthcheck.DatabaseManagement.DatabaseException;
-import Healthcheck.DatabaseManagement.DatabaseManager;
+import Healthcheck.DatabaseManagement.MainDatabaseManager;
 import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.SshConfig;
 import org.hibernate.Session;
@@ -31,11 +31,11 @@ public class ComputersAndSshConfigsManager
     {
         String attemptErrorMessage = "Attempt of getting ssh configs from db failed.";
 
-        Session session = DatabaseManager.GetInstance().GetSession();
+        Session session = MainDatabaseManager.GetInstance().GetSession();
         String hql = "from SshConfig c";
         Query query = session.createQuery(hql);
         List<SshConfig> sshConfigs
-                = DatabaseManager.ExecuteSelectQueryWithRetryPolicy(session, query, ModuleName, attemptErrorMessage);
+                = MainDatabaseManager.ExecuteSelectQueryWithRetryPolicy(session, query, ModuleName, attemptErrorMessage);
         session.close();
 
         if(sshConfigs != null)

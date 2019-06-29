@@ -1,6 +1,6 @@
 package Healthcheck;
 
-import Healthcheck.DatabaseManagement.DatabaseManager;
+import Healthcheck.DatabaseManagement.MainDatabaseManager;
 import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.Preference;
 import Healthcheck.Preferences.IPreference;
@@ -93,8 +93,9 @@ public class Utilities
             Class iPreferenceClass = Class.forName(iPreferenceClassName);
             iPreference = (IPreference) iPreferenceClass.getConstructor().newInstance();
         }
-        catch (Exception e) // No matter what kind of exception will be thrown
+        catch (Exception e)
         {
+            // This block will be never entered
         }
 
         return iPreference;
@@ -129,7 +130,7 @@ public class Utilities
     private static List<Preference> GetAvailablePreferencesFromDb()
     {
         String hql = "from Preference";
-        Session session = DatabaseManager.GetInstance().GetSession();
+        Session session = MainDatabaseManager.GetInstance().GetSession();
 
         try
         {

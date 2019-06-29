@@ -1,10 +1,10 @@
 package Healthcheck.LogsManagement;
 
 import Healthcheck.*;
-import Healthcheck.DatabaseManagement.DatabaseManager;
+import Healthcheck.DatabaseManagement.MainDatabaseManager;
 import Healthcheck.Encryption.EncrypterException;
 import Healthcheck.Entities.Computer;
-import Healthcheck.Entities.Logs.BaseEntity;
+import Healthcheck.Entities.Logs.LogBaseEntity;
 import Healthcheck.Models.Info.IInfo;
 import Healthcheck.Preferences.IPreference;
 import Healthcheck.SSHConnectionManagement.SSHConnection;
@@ -103,7 +103,7 @@ public class ComputerLogger extends Thread
 
         for (IPreference computerPreference : _iPreferences)
         {
-            List<BaseEntity> logsToSave = GatherLogsForGivenPreferenceTypeWithRetryPolicy(computerPreference, now);
+            List<LogBaseEntity> logsToSave = GatherLogsForGivenPreferenceTypeWithRetryPolicy(computerPreference, now);
             if(logsToSave == null)
             {
                 _sshConnection.CloseConnection();
@@ -124,9 +124,9 @@ public class ComputerLogger extends Thread
                 return false;
             }
 
-            for (BaseEntity log : logsToSave)
+            for (LogBaseEntity log : logsToSave)
             {
-                Session session = DatabaseManager.GetInstance().GetSession();
+                Session session = MainDatabaseManager.GetInstance().GetSession();
 
                 boolean logSaved = SaveLogToSessionWithRetryPolicy(session, log);
                 if (logSaved == false)
@@ -144,7 +144,7 @@ public class ComputerLogger extends Thread
         return true;
     }
 
-    private List<BaseEntity> GatherLogsForGivenPreferenceTypeWithRetryPolicy(IPreference computerIPreference, Timestamp timestamp)
+    private List<LogBaseEntity> GatherLogsForGivenPreferenceTypeWithRetryPolicy(IPreference computerIPreference, Timestamp timestamp)
     {
         String attemptErrorMessage = "Attempt of getting logs for '" + _usernameAndHost + "' failed. SSH connection failed.";
 
@@ -153,7 +153,7 @@ public class ComputerLogger extends Thread
             // First attempt
             String sshResultNotProcessed = _sshConnection.ExecuteCommand(computerIPreference.GetCommandToExecute());
             IInfo model = computerIPreference.GetInformationModel(sshResultNotProcessed);
-            List<BaseEntity> logs = model.ToLogList(_computer, timestamp);
+            List<LogBaseEntity> logs = model.ToLogList(_computer, timestamp);
 
             return logs;
         }
@@ -184,7 +184,7 @@ public class ComputerLogger extends Thread
 
                     String sshResultNotProcessed = _sshConnection.ExecuteCommand(computerIPreference.GetCommandToExecute());
                     IInfo model = computerIPreference.GetInformationModel(sshResultNotProcessed);
-                    List<BaseEntity> logs = model.ToLogList(_computer, timestamp);
+                    List<LogBaseEntity> logs = model.ToLogList(_computer, timestamp);
 
                     return logs;
                 }
@@ -240,7 +240,7 @@ public class ComputerLogger extends Thread
         }
     }
 
-    private boolean SaveLogToSessionWithRetryPolicy(Session session, BaseEntity log)
+    private boolean SaveLogToSessionWithRetryPolicy(Session session, LogBaseEntity log)
     {
         try
         {

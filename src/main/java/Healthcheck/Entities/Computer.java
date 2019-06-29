@@ -2,7 +2,7 @@ package Healthcheck.Entities;
 
 import Healthcheck.ComputersAndSshConfigsManager;
 import Healthcheck.DatabaseManagement.DatabaseException;
-import Healthcheck.DatabaseManagement.DatabaseManager;
+import Healthcheck.DatabaseManagement.MainDatabaseManager;
 import Healthcheck.LogsManagement.NothingToDoException;
 import Healthcheck.Preferences.IPreference;
 import Healthcheck.Utilities;
@@ -152,7 +152,7 @@ public class Computer
 
     public void AddToDb() throws ComputerException, SshConfigException, DatabaseException
     {
-        Session session = DatabaseManager.GetInstance().GetSession();
+        Session session = MainDatabaseManager.GetInstance().GetSession();
         AddToDb(session);
         session.close();
     }
@@ -174,14 +174,14 @@ public class Computer
 
         String attemptErrorMessage = "Attempt of adding computer to db failed.";
         boolean addSucceed =
-                DatabaseManager.PersistWithRetryPolicy(session, this, ModuleName, attemptErrorMessage);
+                MainDatabaseManager.PersistWithRetryPolicy(session, this, ModuleName, attemptErrorMessage);
         if(addSucceed == false)
         {
             if(SshConfig.HasLocalScope())
             {
                 String attemptErrorMessage2 = "Attempt of removing local ssh config to db failed.";
                 boolean removeSucceed =
-                        DatabaseManager.PersistWithRetryPolicy(session, SshConfig, ModuleName, attemptErrorMessage);
+                        MainDatabaseManager.PersistWithRetryPolicy(session, SshConfig, ModuleName, attemptErrorMessage);
                 if(removeSucceed == false)
                 {
                     throw new FatalErrorException("Removing local ssh config after computer adding failed!");
@@ -251,7 +251,7 @@ public class Computer
 
     public void UpdateInDb() throws NothingToDoException, ComputerException, SshConfigException, DatabaseException
     {
-        Session session = DatabaseManager.GetInstance().GetSession();
+        Session session = MainDatabaseManager.GetInstance().GetSession();
         UpdateInDb(session);
         session.close();
     }
@@ -293,7 +293,7 @@ public class Computer
                 {
                     String attemptErrorMessage = "Attempt of restore computer's ssh config in db failed.";
                     boolean restoreSucceed
-                            = DatabaseManager.MergeWithRetryPolicy(session, sshConfigBackupParam, ModuleName, attemptErrorMessage);
+                            = MainDatabaseManager.MergeWithRetryPolicy(session, sshConfigBackupParam, ModuleName, attemptErrorMessage);
                     if(restoreSucceed == false)
                     {
                         throw new FatalErrorException("Restoring computer's ssh config after retries failed!");
@@ -354,7 +354,7 @@ public class Computer
         {
             String attemptErrorMessage = "Attempt of updating computer without ssh config changes in db failed.";
             boolean updateSucceed =
-                    DatabaseManager.UpdateWithRetryPolicy(session, this, ModuleName, attemptErrorMessage);
+                    MainDatabaseManager.UpdateWithRetryPolicy(session, this, ModuleName, attemptErrorMessage);
             if(updateSucceed == false)
             {
                 throw new DatabaseException("Unable to update computer without ssh config changes in db.");
@@ -370,7 +370,7 @@ public class Computer
     {
         String attemptErrorMessage = "Attempt of update computer in db failed.";
         boolean updateSucceed =
-                DatabaseManager.UpdateWithRetryPolicy(session, this, ModuleName, attemptErrorMessage);
+                MainDatabaseManager.UpdateWithRetryPolicy(session, this, ModuleName, attemptErrorMessage);
         if(updateSucceed == false)
         {
             restoreCallback.accept(sshConfigBackup);
@@ -438,7 +438,7 @@ public class Computer
 
     public void RemoveFromDb() throws ComputerException
     {
-        Session session = DatabaseManager.GetInstance().GetSession();
+        Session session = MainDatabaseManager.GetInstance().GetSession();
         RemoveFromDb(session);
         session.close();
     }
@@ -466,7 +466,7 @@ public class Computer
 
         String attemptErrorMessage = "Attempt of removing computer from db failed.";
         boolean removeSucceed =
-                DatabaseManager.RemoveWithRetryPolicy(session, this, ModuleName, attemptErrorMessage);
+                MainDatabaseManager.RemoveWithRetryPolicy(session, this, ModuleName, attemptErrorMessage);
         if(removeSucceed == false)
         {
             try
