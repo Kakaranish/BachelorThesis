@@ -1,7 +1,7 @@
 package Healthcheck.Models.Info;
 
 import Healthcheck.Entities.Computer;
-import Healthcheck.Entities.Logs.BaseEntity;
+import Healthcheck.Entities.Logs.LogBaseEntity;
 import Healthcheck.Entities.Logs.CpuLog;
 import javax.persistence.Embeddable;
 import java.sql.Timestamp;
@@ -56,9 +56,9 @@ public class CpuInfo implements IInfo
         RecentlyCreatedProcessPID = Integer.parseInt(commandExecutionResultSplit[4]);
     }
 
-    public List<BaseEntity> ToLogList(Computer computer, Timestamp timestamp)
+    public List<LogBaseEntity> ToLogList(Computer computer, Timestamp timestamp)
     {
-        List<BaseEntity> logList = new ArrayList<>();
+        List<LogBaseEntity> logList = new ArrayList<>();
         logList.add(new CpuLog(computer, this, timestamp));
 
         return logList;

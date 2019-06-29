@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat;
 
 @Entity
 @Table(name = "SwapLogs")
-public class SwapLog extends BaseEntity
+public class SwapLog extends LogBaseEntity
 {
     @Embedded
     public SwapInfo SwapInfo;

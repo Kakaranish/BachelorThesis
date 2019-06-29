@@ -15,7 +15,7 @@ import java.text.SimpleDateFormat;
 
 @Entity
 @Table(name = "CpuLogs")
-public class CpuLog extends BaseEntity
+public class CpuLog extends LogBaseEntity
 {
     @Embedded
     public CpuInfo CpuInfo;

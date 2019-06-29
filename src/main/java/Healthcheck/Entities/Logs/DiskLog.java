@@ -15,7 +15,7 @@ import java.text.SimpleDateFormat;
 
 @Entity
 @Table(name = "DisksLogs")
-public class DiskLog extends BaseEntity
+public class DiskLog extends LogBaseEntity
 {
     @Embedded
     public DiskInfo DiskInfo;

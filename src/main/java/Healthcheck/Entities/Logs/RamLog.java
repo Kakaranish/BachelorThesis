@@ -14,7 +14,7 @@ import java.text.SimpleDateFormat;
 
 @Entity
 @Table(name = "RamLogs")
-public class RamLog extends BaseEntity
+public class RamLog extends LogBaseEntity
 {
     @Embedded
     public RamInfo RamInfo;

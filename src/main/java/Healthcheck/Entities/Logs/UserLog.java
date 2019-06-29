@@ -13,7 +13,7 @@ import java.text.SimpleDateFormat;
 
 @Entity
 @Table(name = "UsersLogs")
-public class UserLog extends BaseEntity
+public class UserLog extends LogBaseEntity
 {
     @Embedded
     public UserInfo UserInfo;
