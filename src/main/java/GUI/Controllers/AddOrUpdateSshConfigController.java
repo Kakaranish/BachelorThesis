@@ -143,6 +143,11 @@ public class AddOrUpdateSshConfigController implements Initializable
         }
         else
         {
+            if(Utilities.UseDefaultValues)
+            {
+                portTextField.setText(String.valueOf(Utilities.DefaultPort));
+            }
+            
             passwordAuthMethodRadioButton.setSelected(true);
             saveOrUpdateButton.setText("Add");
             removeButton.setDisable(true);

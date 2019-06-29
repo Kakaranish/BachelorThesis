@@ -22,18 +22,40 @@ import java.util.stream.Collectors;
 
 public class Utilities
 {
-    public static final int SSHTimeout = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("SSHTimeout"));
-    public static final int PersistNumOfRetries = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("PersistNumOfRetries"));
-    public static final int PersistCooldown = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("PersistCooldown"));
-    public static final int UpdateNumOfRetries = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("UpdateNumOfRetries"));
-    public static final int UpdateCooldown = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("UpdateCooldown"));
-    public static final int RemoveNumOfRetries = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("RemoveNumOfRetries"));
-    public static final int RemoveCooldown = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("RemoveCooldown"));
-    public static final int SelectNumOfRetries = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("SelectNumOfRetries"));
-    public static final int SelectCooldown = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("SelectCooldown"));
-    public static final int DeleteNumOfRetries = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("DeleteNumOfRetries"));
-    public static final int DeleteCooldown = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("DeleteCooldown"));
-    public static final int GatheringStartDelay = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("GatheringStartDelay"));
+    public static final int SSHTimeout =
+            Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("SSHTimeout"));
+    public static final int PersistNumOfRetries =
+            Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("PersistNumOfRetries"));
+    public static final int PersistCooldown =
+            Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("PersistCooldown"));
+    public static final int UpdateNumOfRetries =
+            Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("UpdateNumOfRetries"));
+    public static final int UpdateCooldown =
+            Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("UpdateCooldown"));
+    public static final int RemoveNumOfRetries =
+            Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("RemoveNumOfRetries"));
+    public static final int RemoveCooldown =
+            Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("RemoveCooldown"));
+    public static final int SelectNumOfRetries =
+            Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("SelectNumOfRetries"));
+    public static final int SelectCooldown =
+            Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("SelectCooldown"));
+    public static final int DeleteNumOfRetries =
+            Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("DeleteNumOfRetries"));
+    public static final int DeleteCooldown =
+            Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("DeleteCooldown"));
+    public static final int GatheringStartDelay
+            = Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("GatheringStartDelay"));
+    public static final boolean UseDefaultValues =
+            Boolean.parseBoolean(AppProperties.GetInstance().Properties.getProperty("UseDefaultValues"));
+    public static final int DefaultPort =
+            Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("DefaultPort"));
+    public static final int DefaultRequestInterval =
+            Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("DefaultRequestInterval"));
+    public static final int DefaultMaintainPeriod =
+            Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("DefaultMaintainPeriod"));
+    public static final int DefaultLogExpiration =
+            Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("DefaultLogExpiration"));
 
     public static final List<Preference> AvailablePreferences = GetAvailablePreferencesFromDb();
 

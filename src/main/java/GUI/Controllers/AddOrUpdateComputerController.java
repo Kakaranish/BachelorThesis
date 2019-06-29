@@ -273,11 +273,13 @@ public class AddOrUpdateComputerController implements Initializable
             _localLocalConfig = SshConfig.CreateEmpty();
         }
 
+        SetUpIntegerValidators();
+        SetUpEmptinessValidators();
 
         InitializeAndFillGuiComponents();
 
-        SetUpIntegerValidators();
-        SetUpEmptinessValidators();
+        ValidateStringTextFieldsIfEmpty();
+        ValidateIntegerTextFieldsIfParsable();
     }
 
     private void InitializeAndFillGuiComponents()
@@ -302,13 +304,21 @@ public class AddOrUpdateComputerController implements Initializable
         }
         else
         {
+
+            if(Utilities.UseDefaultValues)
+            {
+                sshPortTextField.setText(String.valueOf(Utilities.DefaultPort));
+                requestIntervalTextField.setText(String.valueOf(Utilities.DefaultRequestInterval));
+                maintainPeriodTextField.setText(String.valueOf(Utilities.DefaultMaintainPeriod));
+                logExpirationTextField.setText(String.valueOf(Utilities.DefaultLogExpiration));
+            }
+
             saveOrUpdateButton.setText("Add");
             removeButton.setDisable(true);
 
             isSelectedCheckBox.setSelected(true);
         }
 
-        ValidateAllFieldsIfEmpty();
         InitializePreferencesCheckboxes();
         DiscardChangesInPreferenceCheckboxes();
     }
@@ -510,7 +520,7 @@ public class AddOrUpdateComputerController implements Initializable
 
     // ---  OTHER VALIDATION  ------------------------------------------------------------------------------------------
 
-    private void ValidateAllFieldsIfEmpty()
+    private void ValidateStringTextFieldsIfEmpty()
     {
         ValidateIfEmpty(displayedNameTextField);
         ValidateIfEmpty(hostTextField);
@@ -518,6 +528,14 @@ public class AddOrUpdateComputerController implements Initializable
         ValidateIfEmpty(logExpirationTextField);
         ValidateIfEmpty(maintainPeriodTextField);
         ValidateIfEmpty(requestIntervalTextField);
+    }
+
+    private void ValidateIntegerTextFieldsIfParsable()
+    {
+        ValidateIfInteger(sshPortTextField);
+        ValidateIfInteger(requestIntervalTextField);
+        ValidateIfInteger(maintainPeriodTextField);
+        ValidateIfInteger(logExpirationTextField);
     }
 
     private void ValidateIfRequiredSshFieldsCorrect(SshAuthMethod sshAuthMethod)
