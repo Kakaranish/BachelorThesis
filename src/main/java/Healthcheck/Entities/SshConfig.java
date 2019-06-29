@@ -2,7 +2,7 @@ package Healthcheck.Entities;
 
 import Healthcheck.ComputersAndSshConfigsManager;
 import Healthcheck.DatabaseManagement.DatabaseException;
-import Healthcheck.DatabaseManagement.DatabaseManager;
+import Healthcheck.DatabaseManagement.MainDatabaseManager;
 import Healthcheck.LogsManagement.NothingToDoException;
 import Healthcheck.Utilities;
 import org.hibernate.Session;
@@ -200,7 +200,7 @@ public class SshConfig
 
     public void AddToDb() throws SshConfigException, DatabaseException
     {
-        Session session = DatabaseManager.GetInstance().GetSession();
+        Session session = MainDatabaseManager.GetInstance().GetSession();
         AddToDb(session);
         session.close();
     }
@@ -211,7 +211,7 @@ public class SshConfig
 
         String attemptErrorMessage = "Attempt of adding ssh config to db failed.";
         boolean addSucceed =
-                DatabaseManager.PersistWithRetryPolicy(session, this, ModuleName, attemptErrorMessage);
+                MainDatabaseManager.PersistWithRetryPolicy(session, this, ModuleName, attemptErrorMessage);
         if(addSucceed == false)
         {
             throw new DatabaseException("Unable to save ssh config in db.");
@@ -257,7 +257,7 @@ public class SshConfig
 
     public void UpdateInDb() throws NothingToDoException, SshConfigException
     {
-        Session session = DatabaseManager.GetInstance().GetSession();
+        Session session = MainDatabaseManager.GetInstance().GetSession();
         UpdateInDb(session);
         session.close();
     }
@@ -268,7 +268,7 @@ public class SshConfig
 
         String attemptErrorMessage = "Attempt of update ssh config in db failed.";
         boolean updateSucceed =
-                DatabaseManager.UpdateWithRetryPolicy(session, this, ModuleName, attemptErrorMessage);
+                MainDatabaseManager.UpdateWithRetryPolicy(session, this, ModuleName, attemptErrorMessage);
         if(updateSucceed == false)
         {
             throw new DatabaseException("Unable to update ssh config in db.");
@@ -308,7 +308,7 @@ public class SshConfig
 
         String removeAttemptErrorMessage = "Attempt of removing local ssh config from db failed.";
         boolean removeSucceed =
-                DatabaseManager.RemoveWithRetryPolicy(session, this, ModuleName, removeAttemptErrorMessage);
+                MainDatabaseManager.RemoveWithRetryPolicy(session, this, ModuleName, removeAttemptErrorMessage);
 
         if(removeSucceed == false)
         {
@@ -340,7 +340,7 @@ public class SshConfig
 
     public void RemoveGlobalFromDb() throws SshConfigException, DatabaseException, FatalErrorException
     {
-        Session session = DatabaseManager.GetInstance().GetSession();
+        Session session = MainDatabaseManager.GetInstance().GetSession();
         RemoveGlobalFromDb(session);
         session.close();
     }
@@ -369,7 +369,7 @@ public class SshConfig
 
         String removeAttemptErrorMessage = "Attempt of removing global ssh config from db failed.";
         boolean removeSucceed =
-                DatabaseManager.RemoveWithRetryPolicy(session, this, ModuleName, removeAttemptErrorMessage);
+                MainDatabaseManager.RemoveWithRetryPolicy(session, this, ModuleName, removeAttemptErrorMessage);
         if(removeSucceed == false)
         {
             throw new DatabaseException("Unable to remove global ssh config in db.");
@@ -413,7 +413,7 @@ public class SshConfig
 
             String restoreAttemptErrorMessage =
                     "Attempt of removing new local ssh config in db failed.";
-            boolean restoreSucceed = DatabaseManager
+            boolean restoreSucceed = MainDatabaseManager
                     .RemoveWithRetryPolicy(session, persistedSshConfig, ModuleName, restoreAttemptErrorMessage);
             if(restoreSucceed == false)
             {

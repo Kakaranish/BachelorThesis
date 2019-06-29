@@ -14,7 +14,6 @@ import org.javatuples.Triplet;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -53,7 +52,7 @@ public class StatsForComputerController implements Initializable
         Timestamp now = new Timestamp(new Date().getTime());
 
         Map<String, List<DiskLog>> groupedDisksLogs = LogsGetter.GroupDisksLogsByFileSystem(
-                LogsGetter.GetCertainTypeLogsForSingleComputer(
+                LogsGetter.GetCertainTypeLogsForComputer(
                 _computer, Preferences.PreferenceNameMap.get("DisksInfoPreference"), _from, now).stream()
                 .map(l -> (DiskLog) l).collect(Collectors.toList())
         );
@@ -67,7 +66,7 @@ public class StatsForComputerController implements Initializable
 
     private void CreateCpuCharts(Computer computer, Timestamp from, Timestamp now)
     {
-        List<CpuLog> diskLogs = LogsGetter.GetCertainTypeLogsForSingleComputer(
+        List<CpuLog> diskLogs = LogsGetter.GetCertainTypeLogsForComputer(
                 computer, Preferences.PreferenceNameMap.get("CpuInfoPreference"), from, now)
                 .stream().map(l -> (CpuLog) l).collect(Collectors.toList());
 
@@ -128,7 +127,7 @@ public class StatsForComputerController implements Initializable
 
     public void CreateDisksChart(Computer computer, Timestamp from, Timestamp now)
     {
-        List<DiskLog> diskLogs = LogsGetter.GetCertainTypeLogsForSingleComputer(
+        List<DiskLog> diskLogs = LogsGetter.GetCertainTypeLogsForComputer(
                 computer, Preferences.PreferenceNameMap.get("DisksInfoPreference"), from, now)
                 .stream().map(l -> (DiskLog) l).collect(Collectors.toList());
         var disksLogsGroupedByFileSystems = LogsGetter.GroupDisksLogsByFileSystem(diskLogs);
@@ -177,7 +176,7 @@ public class StatsForComputerController implements Initializable
 
     private void CreateRamChart(Computer computer, Timestamp from, Timestamp now)
     {
-        List<RamLog> ramLogs = LogsGetter.GetCertainTypeLogsForSingleComputer(
+        List<RamLog> ramLogs = LogsGetter.GetCertainTypeLogsForComputer(
                 computer, Preferences.PreferenceNameMap.get("RamInfoPreference"),from, now)
                 .stream().map(l -> (RamLog) l).collect(Collectors.toList());
         var tripletsTimestampUsedFree = LogsGetter.GetRamTimestampUsedFreeTripletList(ramLogs);
@@ -220,7 +219,7 @@ public class StatsForComputerController implements Initializable
 
     private void CreateSwapChart(Computer computer, Timestamp from, Timestamp now)
     {
-        List<SwapLog> swapLogs = LogsGetter.GetCertainTypeLogsForSingleComputer(
+        List<SwapLog> swapLogs = LogsGetter.GetCertainTypeLogsForComputer(
                 computer, Preferences.PreferenceNameMap.get("SwapInfoPreference"),from, now)
                 .stream().map(l -> (SwapLog) l).collect(Collectors.toList());
         var tripletsTimestampUsedFree = LogsGetter.GetSwapTimestampUsedFreeTripletList(swapLogs);
@@ -262,7 +261,7 @@ public class StatsForComputerController implements Initializable
 
     private void CreateUsersChart(Computer computer, Timestamp from, Timestamp now)
     {
-        List<UserLog> usersLogs = LogsGetter.GetCertainTypeLogsForSingleComputer(
+        List<UserLog> usersLogs = LogsGetter.GetCertainTypeLogsForComputer(
                 computer, Preferences.PreferenceNameMap.get("UsersInfoPreference"), from, now)
                 .stream().map(l -> (UserLog) l).collect(Collectors.toList());
         List<Pair<Timestamp, Integer>> pairsTimestampLoggedUsersNum = LogsGetter.GetUsersTimestampNumOfLogged(usersLogs);

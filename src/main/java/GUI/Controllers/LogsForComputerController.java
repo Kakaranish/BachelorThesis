@@ -2,7 +2,7 @@ package GUI.Controllers;
 
 import GUI.TableViewEntries.*;
 import Healthcheck.Entities.Computer;
-import Healthcheck.Entities.Logs.BaseEntity;
+import Healthcheck.Entities.Logs.LogBaseEntity;
 import Healthcheck.LogsManagement.LogsGetter;
 import Healthcheck.Preferences.Preferences;
 import javafx.collections.FXCollections;
@@ -73,9 +73,9 @@ public class LogsForComputerController implements Initializable
     {
         Timestamp now = new Timestamp(new Date().getTime());
 
-        List<UserEntry> logEntries = LogsGetter.GetCertainTypeLogsForSingleComputer(
+        List<UserEntry> logEntries = LogsGetter.GetCertainTypeLogsForComputer(
                 _computer, Preferences.PreferenceNameMap.get("UsersInfoPreference"), from, now)
-                .stream().map(BaseEntity::ToEntry).map(u -> (UserEntry) u).collect(Collectors.toList());
+                .stream().map(LogBaseEntity::ToEntry).map(u -> (UserEntry) u).collect(Collectors.toList());
 
         usersEntries.clear();
         usersEntries.addAll(logEntries);
@@ -134,9 +134,9 @@ public class LogsForComputerController implements Initializable
     {
         Timestamp now = new Timestamp(new Date().getTime());
 
-        List<CpuEntry> logEntries = LogsGetter.GetCertainTypeLogsForSingleComputer(
+        List<CpuEntry> logEntries = LogsGetter.GetCertainTypeLogsForComputer(
                 _computer, Preferences.PreferenceNameMap.get("CpuInfoPreference"), from, now)
-                .stream().map(BaseEntity::ToEntry).map(u -> (CpuEntry) u).collect(Collectors.toList());
+                .stream().map(LogBaseEntity::ToEntry).map(u -> (CpuEntry) u).collect(Collectors.toList());
 
         cpuEntries.clear();
         cpuEntries.addAll(logEntries);
@@ -188,9 +188,9 @@ public class LogsForComputerController implements Initializable
     {
         Timestamp now = new Timestamp(new Date().getTime());
 
-        List<RamEntry> logEntries = LogsGetter.GetCertainTypeLogsForSingleComputer(
+        List<RamEntry> logEntries = LogsGetter.GetCertainTypeLogsForComputer(
                 _computer, Preferences.PreferenceNameMap.get("RamInfoPreference"), from, now)
-                .stream().map(BaseEntity::ToEntry).map(u -> (RamEntry) u).collect(Collectors.toList());
+                .stream().map(LogBaseEntity::ToEntry).map(u -> (RamEntry) u).collect(Collectors.toList());
 
         ramEntries.clear();
         ramEntries.addAll(logEntries);
@@ -230,9 +230,9 @@ public class LogsForComputerController implements Initializable
     {
         Timestamp now = new Timestamp(new Date().getTime());
 
-        List<SwapEntry> logEntries = LogsGetter.GetCertainTypeLogsForSingleComputer(
+        List<SwapEntry> logEntries = LogsGetter.GetCertainTypeLogsForComputer(
                 _computer, Preferences.PreferenceNameMap.get("SwapInfoPreference"), from, now)
-                .stream().map(BaseEntity::ToEntry).map(u -> (SwapEntry) u).collect(Collectors.toList());
+                .stream().map(LogBaseEntity::ToEntry).map(u -> (SwapEntry) u).collect(Collectors.toList());
 
         swapEntries.clear();
         swapEntries.addAll(logEntries);
@@ -284,9 +284,9 @@ public class LogsForComputerController implements Initializable
     {
         Timestamp now = new Timestamp(new Date().getTime());
 
-        List<DiskEntry> logEntries = LogsGetter.GetCertainTypeLogsForSingleComputer(
+        List<DiskEntry> logEntries = LogsGetter.GetCertainTypeLogsForComputer(
                 _computer, Preferences.PreferenceNameMap.get("DisksInfoPreference"), from, now)
-                .stream().map(BaseEntity::ToEntry).map(u -> (DiskEntry) u).collect(Collectors.toList());
+                .stream().map(LogBaseEntity::ToEntry).map(u -> (DiskEntry) u).collect(Collectors.toList());
 
         disksEntries.clear();
         disksEntries.addAll(logEntries);
@@ -358,9 +358,9 @@ public class LogsForComputerController implements Initializable
     {
         Timestamp now = new Timestamp(new Date().getTime());
 
-        List<ProcessEntry> logEntries = LogsGetter.GetCertainTypeLogsForSingleComputer(
+        List<ProcessEntry> logEntries = LogsGetter.GetCertainTypeLogsForComputer(
                 _computer, Preferences.PreferenceNameMap.get("ProcessesInfoPreference"), from, now)
-                .stream().map(BaseEntity::ToEntry).map(u -> (ProcessEntry) u).collect(Collectors.toList());
+                .stream().map(LogBaseEntity::ToEntry).map(u -> (ProcessEntry) u).collect(Collectors.toList());
 
         processesEntries.clear();
         processesEntries.addAll(logEntries);

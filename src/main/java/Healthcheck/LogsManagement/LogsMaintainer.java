@@ -2,7 +2,7 @@ package Healthcheck.LogsManagement;
 
 import Healthcheck.AppLogging.AppLogger;
 import Healthcheck.DatabaseManagement.DatabaseException;
-import Healthcheck.DatabaseManagement.DatabaseManager;
+import Healthcheck.DatabaseManagement.MainDatabaseManager;
 import Healthcheck.Entities.Computer;
 import Healthcheck.AppLogging.LogType;
 import Healthcheck.Preferences.IPreference;
@@ -196,15 +196,13 @@ public class LogsMaintainer
                     "where t.Computer = :computer " +
                     "and (" + now  + " - t.Timestamp) > " + logExpiration;
 
-            Session session = DatabaseManager.GetInstance().GetSession();
+            Session session = MainDatabaseManager.GetInstance().GetSession();
             Query query = session.createQuery(hql);
             query.setParameter("computer", computer);
 
             String attemptErrorMessage = "Attempt of deleting logs for '" + usernameAndHost + "' failed.";
-            // TODO: vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
             boolean removingLogsSucceed =
-                    DatabaseManager.ExecuteDeleteQueryWithRetryPolicy(session, query, ModuleName, attemptErrorMessage); //
-            // TODO: ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    MainDatabaseManager.ExecuteDeleteQueryWithRetryPolicy(session, query, ModuleName, attemptErrorMessage);
             if (removingLogsSucceed == false)
             {
                 ComputerLogger computerLogger = _logsManager.GetComputerLoggerForComputer(computer);
@@ -243,7 +241,7 @@ public class LogsMaintainer
     {
         for (IPreference computerPreference : Preferences.AllPreferencesList)
         {
-            Session session = DatabaseManager.GetInstance().GetSession();
+            Session session = MainDatabaseManager.GetInstance().GetSession();
 
             String hql = "delete from " + computerPreference.GetClassName() + " t where t.Computer = :computer";
             Query query = session.createQuery(hql);
@@ -251,7 +249,7 @@ public class LogsMaintainer
 
             String attemptErrorMessage = "Attempt of removing logs associated with '" + computer + "' failed.";
             boolean removeSucceed =
-                    DatabaseManager.ExecuteDeleteQueryWithRetryPolicy(session, query, ModuleName, attemptErrorMessage);
+                    MainDatabaseManager.ExecuteDeleteQueryWithRetryPolicy(session, query, ModuleName, attemptErrorMessage);
             session.close();
             if(removeSucceed == false)
             {
