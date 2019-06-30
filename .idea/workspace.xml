@@ -1,29 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/src/main/java/Healthcheck/ComputerManager.java" />
-  </component>
   <component name="ChangeListManager">
     <list default="true" id="8cfffe7f-53da-4319-8d7e-b4cc618e7528" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Healthcheck/Application.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Healthcheck/Application.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/ComputerLogger.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/ComputerLogger.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsGatherer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsGatherer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Computer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Computer.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsMaintainer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsMaintainer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/Application.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/SSHConnection.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/SSHConnectionException.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/SystemInfo/CpuInfo.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/SystemInfo/DiskInfo.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/SystemInfo/DisksInfo.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/SystemInfo/ProcessInfo.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/SystemInfo/ProcessesInfo.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/SystemInfo/SwapInfo.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/SystemInfo/UserInfo.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/SystemInfo/UsersInfo.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/app.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/hibernate.cfg.xml" beforeDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <ignored path="$PROJECT_DIR$/target/" />
@@ -34,7 +16,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="CoverageViewManager">
-    <option name="myElementSize" value="182" />
+    <option name="myElementSize" value="180" />
   </component>
   <component name="DaemonCodeAnalyzer">
     <disable_hints>
@@ -44,18 +26,57 @@
   <component name="DefaultGradleProjectSettings">
     <option name="isMigrated" value="true" />
   </component>
+  <component name="DockManager">
+    <window id="12">
+      <content type="file-editors">
+        <state>
+          <leaf SIDE_TABS_SIZE_LIMIT_KEY="375">
+            <file pinned="false" current-in-tab="true">
+              <entry file="file://$PROJECT_DIR$/src/main/java/GUI/ListItems/ComputerListCell.java">
+                <provider selected="true" editor-type-id="text-editor">
+                  <state relative-caret-position="462">
+                    <caret line="61" selection-start-line="61" selection-end-line="63" selection-end-column="43" />
+                    <folding>
+                      <element signature="imports" expanded="true" />
+                      <element signature="e#8292#8293#0" expanded="true" />
+                      <element signature="e#8326#8327#0" expanded="true" />
+                    </folding>
+                  </state>
+                </provider>
+              </entry>
+            </file>
+          </leaf>
+        </state>
+      </content>
+    </window>
+  </component>
   <component name="FavoritesManager">
     <favorites_list name="JSCHtest">
       <favorite_root url="file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsGatherer.java" type="psiFile" klass="com.intellij.ide.projectView.impl.nodes.PsiFileNode" />
+      <favorite_root url="file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/SshConfig.java" type="psiFile" klass="com.intellij.ide.projectView.impl.nodes.PsiFileNode" />
     </favorites_list>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Application.java">
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/App.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="8569">
-              <caret line="466" column="35" selection-start-line="466" selection-start-column="35" selection-end-line="466" selection-end-column="35" />
+            <state relative-caret-position="220">
+              <caret line="10" column="36" lean-forward="true" selection-start-line="10" selection-start-column="36" selection-end-line="10" selection-end-column="36" />
+              <folding>
+                <element signature="imports" expanded="true" />
+                <element signature="e#429#430#0" expanded="true" />
+                <element signature="e#462#463#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/GUI/Controllers/LogsForComputerController.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="286">
+              <caret line="243" column="72" selection-start-line="243" selection-start-column="72" selection-end-line="243" selection-end-column="72" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -64,10 +85,19 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Computer.java">
+        <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsManager.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="361">
-              <caret line="22" column="25" selection-start-line="22" selection-start-column="25" selection-end-line="22" selection-end-column="25" />
+            <state relative-caret-position="299">
+              <caret line="235" column="16" selection-start-line="235" selection-start-column="16" selection-end-line="235" selection-end-column="16" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsMaintainer.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="158">
+              <caret line="181" column="17" lean-forward="true" selection-start-line="181" selection-start-column="17" selection-end-line="181" selection-end-column="17" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -78,49 +108,37 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/ComputerLogger.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3914">
-              <caret line="227" selection-start-line="227" selection-end-line="227" />
+            <state relative-caret-position="220">
+              <caret line="10" column="58" selection-start-line="10" selection-start-column="58" selection-end-line="10" selection-end-column="58" />
               <folding>
-                <element signature="imports" expanded="true" />
-                <element signature="e#911#912#0" expanded="true" />
-                <element signature="e#939#940#0" expanded="true" />
-                <element signature="e#982#983#0" expanded="true" />
-                <element signature="e#1014#1015#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsManager.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="379">
-              <caret line="60" selection-start-line="60" selection-end-line="60" />
-              <folding>
-                <element signature="imports" expanded="true" />
-                <element signature="method#GetConnectedComputers#0;class#LogsManager#0" />
+                <element signature="e#13214#13215#0" expanded="true" />
+                <element signature="e#13293#13294#0" expanded="true" />
+                <element signature="e#13384#13385#0" expanded="true" />
+                <element signature="e#13493#13494#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsMaintainer.java">
+        <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Logs/UserLog.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="4636">
-              <caret line="258" column="23" selection-start-line="258" selection-start-column="23" selection-end-line="258" selection-end-column="23" />
+            <state relative-caret-position="1408">
+              <caret line="84" column="7" selection-start-line="84" selection-start-column="7" selection-end-line="84" selection-end-column="7" />
               <folding>
                 <element signature="imports" expanded="true" />
+                <element signature="e#2961#2962#0" expanded="true" />
+                <element signature="e#3006#3007#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Utilities.java">
+        <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/CacheLogs/UserCacheLog.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="342">
-              <caret line="28" column="132" selection-start-line="28" selection-start-column="132" selection-end-line="28" selection-end-column="132" />
+            <state relative-caret-position="721">
+              <caret line="44" column="5" selection-start-line="44" selection-start-column="5" selection-end-line="44" selection-end-column="5" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -129,10 +147,32 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/resources/app.properties">
+        <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Computer.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="114">
-              <caret line="6" selection-start-line="6" selection-end-line="6" selection-end-column="18" />
+            <state relative-caret-position="299">
+              <caret line="421" column="15" selection-start-line="421" selection-start-column="15" selection-end-line="421" selection-end-column="15" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/GUI/Controllers/AddOrUpdateComputerController.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="70">
+              <caret line="825" column="7" selection-start-line="825" selection-start-column="7" selection-end-line="825" selection-end-column="7" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/AppLogging/AppLogger.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="198">
+              <caret line="13" selection-start-line="13" selection-end-line="13" />
+              <folding>
+                <element signature="e#1056#1057#0" expanded="true" />
+                <element signature="e#1116#1117#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -142,46 +182,63 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
+        <option value="JavaFXApplication" />
+        <option value="Kotlin File" />
+        <option value="Enum" />
+        <option value="FxmlFile" />
+        <option value="Interface" />
         <option value="Class" />
       </list>
     </option>
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>computerManager</find>
-      <find>DatabaseTra</find>
-      <find>Callback_DatabaseTransactionCommitAttemptFailed</find>
-      <find>random</find>
-      <find>database transactio</find>
-      <find>Execute</find>
-      <find>udalo sie</find>
-      <find>executing</find>
-      <find>Database transa</find>
-      <find>Database gathering</find>
-      <find>GetSSH</find>
-      <find>df</find>
-      <find>persi</find>
-      <find>Retries</find>
-      <find>GetLogs</find>
-      <find>Executing</find>
-      <find>Cooldown</find>
-      <find>Callbac</find>
-      <find>LogsMaintainer star</find>
-      <find>Stop</find>
-      <find>chuj</find>
-      <find>Update</find>
-      <find>AddUser</find>
-      <find>UpdateUser</find>
-      <find>computerManager.add</find>
-      <find>UpdateComputer</find>
-      <find>equa</find>
-      <find>equals</find>
-      <find>RemoveUs</find>
-      <find>re</find>
+      <find>ic</find>
+      <find>Refresh</find>
+      <find>Re</find>
+      <find>for</find>
+      <find>GenerateLatestAvgOfAvgCpuUtilForComputers</find>
+      <find>Uable to stop</find>
+      <find>Ram</find>
+      <find>User</find>
+      <find>Swap</find>
+      <find>System.out</find>
+      <find>Average of</find>
+      <find>Was un</find>
+      <find>Unable to start</find>
+      <find>Fatal error occ</find>
+      <find>was m</find>
+      <find>App</find>
+      <find>applo</find>
+      <find>app</find>
+      <find>appLogger</find>
+      <find>appl</find>
+      <find>Attempt of deleting logs for</find>
+      <find>getLog</find>
+      <find>removing logs</find>
+      <find>now</find>
+      <find>Discard c</find>
+      <find>initialize</find>
+      <find>t.Timestam</find>
+      <find>t.Timestamp</find>
+      <find>Logs</find>
+      <find>TODO:</find>
     </findStrings>
     <replaceStrings>
       <replace>username</replace>
       <replace>_computersToGatherLogs</replace>
+      <replace>Get</replace>
+      <replace>Set</replace>
+      <replace>Host</replace>
+      <replace>DisplayedName</replace>
+      <replace>Classroom</replace>
+      <replace>Utilities.EmptyOrNull</replace>
+      <replace>_usernameAndHost</replace>
+      <replace>SimpleLongProperty</replace>
+      <replace>user_</replace>
+      <replace>users_</replace>
+      <replace>String</replace>
+      <replace>RamEntry, Long</replace>
     </replaceStrings>
   </component>
   <component name="Git.Settings">
@@ -190,57 +247,57 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/src/main/java/SystemInfo/UserInfo.java" />
-        <option value="$PROJECT_DIR$/src/main/java/SystemInfo/UsersInfo.java" />
-        <option value="$PROJECT_DIR$/src/main/java/SystemInfo/SwapInfo.java" />
-        <option value="$PROJECT_DIR$/src/main/java/SystemInfo/DiskInfo.java" />
-        <option value="$PROJECT_DIR$/pom.xml" />
-        <option value="$APPLICATION_CONFIG_DIR$/scratches/scratch.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Entities/Classroom.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Entities/Preference.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Entities/Logs/BaseEntity.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Entities/ComputerEntity.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Entities/User.java" />
-        <option value="$PROJECT_DIR$/src/main/java/UsersManager.java" />
-        <option value="$PROJECT_DIR$/src/main/java/ComputerManager.java" />
-        <option value="$PROJECT_DIR$/src/main/java/LogsMaintainerException.java" />
-        <option value="$PROJECT_DIR$/src/main/java/LogsMaintainer.java" />
-        <option value="$PROJECT_DIR$/src/main/java/LogsGetter.java" />
-        <option value="$PROJECT_DIR$/src/main/java/SSHConnectionException.java" />
-        <option value="$PROJECT_DIR$/src/main/java/LogsManager.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Computer.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Encrypter.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Application.java" />
-        <option value="$PROJECT_DIR$/src/main/java/SSHConnection.java" />
-        <option value="$PROJECT_DIR$/src/main/java/LogsGatherer.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Logs/ComputerLogger.java" />
-        <option value="$PROJECT_DIR$/src/main/java/ComputerLogger.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/ComputerLogger.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Preference.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/LogsGatherer.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Database/DatabaseManager.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsMaintainerException.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsException.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/NothingToDoException.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Preferences/ProcessesInfoPreference.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Preferences/DisksInfoPreference.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/SSHConnectionManagement/SSHConnection.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Logs/BaseEntity.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsGatherer.java" />
-        <option value="$PROJECT_DIR$/src/main/resources/hibernate.cfg.xml" />
-        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/ComputerLogger.java" />
-        <option value="$PROJECT_DIR$/src/main/resources/app.properties" />
-        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/DatabaseManagement/DatabaseManager.java" />
+        <option value="$PROJECT_DIR$/src/main/java/GUI/TableViewEntries/ProcessEntry.java" />
+        <option value="$PROJECT_DIR$/src/main/java/GUI/TableViewEntries/DiskEntry.java" />
+        <option value="$PROJECT_DIR$/src/main/resources/css/style.css" />
         <option value="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsManager.java" />
+        <option value="$PROJECT_DIR$/src/main/resources/fxml/StatsForComputer.fxml" />
+        <option value="$PROJECT_DIR$/pom.xml" />
+        <option value="$PROJECT_DIR$/src/main/resources/fxml/PopupDatePicker.fxml" />
+        <option value="$PROJECT_DIR$/src/main/java/GUI/Controllers/PopupDatePicker.java" />
+        <option value="$PROJECT_DIR$/src/main/java/GUI/ListItems/ComputerListCell.java" />
+        <option value="$PROJECT_DIR$/src/main/java/GUI/Controllers/DateTimePopupController.java" />
+        <option value="$PROJECT_DIR$/src/main/java/GUI/Controllers/AddOrUpdateComputerController.java" />
+        <option value="$PROJECT_DIR$/src/main/resources/app.properties" />
+        <option value="$PROJECT_DIR$/src/main/java/GUI/Controllers/AddOrUpdateSshConfigController.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/DatabaseManagement/CacheDatabaseManager.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/DatabaseManagement/MainDatabaseManager.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Preferences/Preferences.java" />
         <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Utilities.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Classroom.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/ComputerEntity.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Preferences/IPreference.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/CacheLogs/IConvertableToCacheLog.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/CacheLogs/DiskLog.java" />
+        <option value="$PROJECT_DIR$/src/main/resources/hibernate-cache.cfg.xml" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/CacheLogsSaver.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/CacheLogs/CacheLogBaseEntity.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/CacheLogs/CpuCacheLog.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/CacheLogs/DiskCacheLog.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/CacheLogs/RamCacheLog.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/CacheLogs/SwapCacheLog.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/CacheLogs/UserCacheLog.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Logs/DiskLog.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Logs/CpuLog.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Logs/ProcessLog.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Logs/RamLog.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Logs/SwapLog.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/CacheLogs/ProcessCacheLog.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Logs/LogBaseEntity.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/CacheLogs/CacheLogBase.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Models/Info/UserInfo.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Models/Info/UsersInfo.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsGetter.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/ComputersAndSshConfigsManager.java" />
+        <option value="$PROJECT_DIR$/src/main/java/GUI/Controllers/MainWindowController.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsGatherer.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/AppLogging/AppLogger.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/DatabaseManagement/DatabaseManager.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/ComputerLogger.java" />
+        <option value="$PROJECT_DIR$/src/main/java/GUI/Controllers/StatsForComputerController.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Logs/UserLog.java" />
+        <option value="$PROJECT_DIR$/src/main/java/GUI/Controllers/LogsForComputerController.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Computer.java" />
         <option value="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsMaintainer.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Computer.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Application.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/User.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/UsersManager.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/ComputerManager.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/App.java" />
       </list>
     </option>
   </component>
@@ -256,16 +313,18 @@
     </treeState>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="58" />
-    <option name="y" value="-12" />
-    <option name="width" value="1629" />
-    <option name="height" value="1025" />
+    <option name="x" value="-9" />
+    <option name="y" value="-9" />
+    <option name="width" value="976" />
+    <option name="height" value="1054" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
+      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -297,6 +356,50 @@
               <item name="src" type="462c0819:PsiDirectoryNode" />
               <item name="main" type="462c0819:PsiDirectoryNode" />
               <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="GUI" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="JSCHtest" type="b2602c69:ProjectViewProjectNode" />
+              <item name="JSCHtest" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="GUI" type="462c0819:PsiDirectoryNode" />
+              <item name="ChangeEvent" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="JSCHtest" type="b2602c69:ProjectViewProjectNode" />
+              <item name="JSCHtest" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="GUI" type="462c0819:PsiDirectoryNode" />
+              <item name="Controllers" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="JSCHtest" type="b2602c69:ProjectViewProjectNode" />
+              <item name="JSCHtest" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="GUI" type="462c0819:PsiDirectoryNode" />
+              <item name="ListItems" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="JSCHtest" type="b2602c69:ProjectViewProjectNode" />
+              <item name="JSCHtest" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="GUI" type="462c0819:PsiDirectoryNode" />
+              <item name="TableViewEntries" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="JSCHtest" type="b2602c69:ProjectViewProjectNode" />
+              <item name="JSCHtest" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
               <item name="Healthcheck" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
@@ -306,7 +409,26 @@
               <item name="main" type="462c0819:PsiDirectoryNode" />
               <item name="java" type="462c0819:PsiDirectoryNode" />
               <item name="Healthcheck" type="462c0819:PsiDirectoryNode" />
+              <item name="DatabaseManagement" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="JSCHtest" type="b2602c69:ProjectViewProjectNode" />
+              <item name="JSCHtest" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="Healthcheck" type="462c0819:PsiDirectoryNode" />
               <item name="Entities" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="JSCHtest" type="b2602c69:ProjectViewProjectNode" />
+              <item name="JSCHtest" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="Healthcheck" type="462c0819:PsiDirectoryNode" />
+              <item name="Entities" type="462c0819:PsiDirectoryNode" />
+              <item name="CacheLogs" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="JSCHtest" type="b2602c69:ProjectViewProjectNode" />
@@ -355,6 +477,22 @@
             </path>
             <path>
               <item name="JSCHtest" type="b2602c69:ProjectViewProjectNode" />
+              <item name="JSCHtest" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="resources" type="462c0819:PsiDirectoryNode" />
+              <item name="css" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="JSCHtest" type="b2602c69:ProjectViewProjectNode" />
+              <item name="JSCHtest" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="resources" type="462c0819:PsiDirectoryNode" />
+              <item name="fxml" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="JSCHtest" type="b2602c69:ProjectViewProjectNode" />
               <item name="Scratches and Consoles" type="1a2a3e82:ScratchProjectViewPane$MyProjectNode" />
             </path>
             <path>
@@ -366,18 +504,44 @@
           <select />
         </subPane>
       </pane>
-      <pane id="PackagesPane" />
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/New Scratch File" value="JAVA" />
-    <property name="project.structure.last.edited" value="Project" />
+    <property name="jdk.selected.JAVA_MODULE" value="10" />
+    <property name="last_directory_selection" value="$PROJECT_DIR$/src/main/java/GUI/Controllers" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../javafx_test" />
+    <property name="project.structure.last.edited" value="Modules" />
     <property name="project.structure.proportion" value="0.0" />
-    <property name="project.structure.side.proportion" value="0.0" />
+    <property name="project.structure.side.proportion" value="0.2" />
     <property name="restartRequiresConfirmation" value="false" />
-    <property name="settings.editor.selected.configurable" value="File.Encoding" />
+    <property name="run.code.analysis.last.selected.profile" value="pProject Default" />
+    <property name="settings.editor.selected.configurable" value="preferences.externalResources" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveMembersDialog.RECENTS_KEY">
+      <recent name="Healthcheck.Utilities" />
+    </key>
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="GUI.Controllers" />
+      <recent name="" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\Licencjat\demo2\JSCHtest\src\main\resources" />
+    </key>
+    <key name="MoveInnerDialog.RECENTS_KEY">
+      <recent name="GUI.Controllers" />
+    </key>
+    <key name="CreateClassDialog.RecentsKey">
+      <recent name="GUI.Controllers" />
+      <recent name="Healthcheck" />
+    </key>
+  </component>
+  <component name="RunAnythingCache">
+    <option name="myCommands">
+      <command value=".eq" />
+    </option>
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -391,17 +555,74 @@
       </list>
     </option>
   </component>
-  <component name="RunManager">
-    <configuration name="Application" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="Healthcheck.Application" />
+  <component name="RunManager" selected="Application.App">
+    <configuration name="App" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Healthcheck.App" />
+      <module name="JSCHtest" />
+      <option name="VM_PARAMETERS" value="--module-path &quot;\path\to\javafx-sdk-12.0.1\lib&quot; --add-modules javafx.controls,javafx.fxml" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="Healthcheck.AppLogging.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ListViewWithCheckbox" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="ListViewWithCheckbox" />
       <module name="JSCHtest" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Healthcheck.Main" />
+      <module name="JSCHtest" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="GUI.ListItems.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Healthcheck.Main" />
+      <module name="JSCHtest" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="xD" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Healthcheck.xD" />
+      <module name="JSCHtest" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="GUI.ListItems.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="Application.App" />
+      <item itemvalue="Application.ListViewWithCheckbox" />
+      <item itemvalue="Application.Main" />
+      <item itemvalue="Application.xD" />
+    </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.Application" />
+        <item itemvalue="Application.App" />
+        <item itemvalue="Application.Main" />
+        <item itemvalue="Application.ListViewWithCheckbox" />
+        <item itemvalue="Application.xD" />
+        <item itemvalue="Application.Main" />
       </list>
     </recent_temporary>
   </component>
@@ -428,23 +649,23 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1691" height="929" extended-state="6" />
+    <frame x="-9" y="-9" width="1938" height="1064" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Image Layers" order="0" />
       <window_info id="Designer" order="1" />
       <window_info id="UI Designer" order="2" />
       <window_info id="Capture Tool" order="3" />
-      <window_info id="Favorites" order="4" side_tool="true" weight="0.32955223" />
-      <window_info id="Structure" order="5" side_tool="true" weight="0.25" />
-      <window_info anchor="bottom" id="Version Control" order="0" />
-      <window_info anchor="bottom" id="Terminal" order="1" weight="0.32912987" />
-      <window_info anchor="bottom" id="Event Log" order="2" side_tool="true" />
-      <window_info anchor="bottom" id="Messages" order="3" weight="0.3280098" />
+      <window_info id="Favorites" order="4" side_tool="true" weight="0.32916668" />
+      <window_info id="Structure" order="5" side_tool="true" weight="0.24947916" />
+      <window_info anchor="bottom" id="Version Control" order="0" weight="0.32923833" />
+      <window_info anchor="bottom" id="Terminal" order="1" weight="0.32831" />
+      <window_info anchor="bottom" id="Event Log" order="2" sideWeight="0.5005208" side_tool="true" weight="0.32615715" />
+      <window_info anchor="bottom" id="Messages" order="3" weight="0.32831" />
       <window_info anchor="bottom" id="Message" order="4" />
-      <window_info anchor="bottom" id="Find" order="5" weight="0.32923833" />
-      <window_info anchor="bottom" id="Run" order="6" weight="0.35135135" />
-      <window_info anchor="bottom" id="Debug" order="7" weight="0.3992629" />
+      <window_info anchor="bottom" id="Find" order="5" sideWeight="0.49947917" weight="0.32723358" />
+      <window_info active="true" anchor="bottom" id="Run" order="6" sideWeight="0.49947917" visible="true" weight="0.3240043" />
+      <window_info anchor="bottom" id="Debug" order="7" weight="0.3810549" />
       <window_info anchor="bottom" id="Cvs" order="8" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="9" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="10" weight="0.32923833" />
@@ -456,25 +677,25 @@
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="5" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="6" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="7" weight="0.25" />
-      <window_info anchor="right" content_ui="combo" id="Project" order="8" sideWeight="0.48771498" visible="true" weight="0.22865671" />
-      <window_info anchor="right" x="0" y="0" width="372" height="729" id="Documentation" order="9" sideWeight="0.512285" side_tool="true" visible="true" weight="0.22865671" />
-      <window_info anchor="right" id="Coverage" order="10" sideWeight="0.50274223" side_tool="true" weight="0.25671643" />
+      <window_info anchor="right" content_ui="combo" id="Project" order="8" sideWeight="0.46932185" visible="true" weight="0.23125" />
+      <window_info anchor="right" x="0" y="0" width="372" height="729" id="Documentation" order="9" sideWeight="0.53067815" side_tool="true" weight="0.23125" />
+      <window_info anchor="right" id="Coverage" order="10" sideWeight="0.5156082" side_tool="true" weight="0.2296875" />
     </layout>
     <layout-to-restore>
       <window_info id="Image Layers" order="0" />
       <window_info id="Designer" order="1" />
       <window_info id="UI Designer" order="2" />
       <window_info id="Capture Tool" order="3" />
-      <window_info id="Favorites" order="4" side_tool="true" weight="0.32955223" />
-      <window_info id="Structure" order="5" side_tool="true" weight="0.25" />
-      <window_info anchor="bottom" id="Version Control" order="0" />
-      <window_info anchor="bottom" id="Terminal" order="1" weight="0.32912987" />
-      <window_info anchor="bottom" id="Event Log" order="2" side_tool="true" />
-      <window_info anchor="bottom" id="Messages" order="3" weight="0.3280098" />
+      <window_info id="Favorites" order="4" side_tool="true" weight="0.32916668" />
+      <window_info id="Structure" order="5" side_tool="true" weight="0.24947916" />
+      <window_info anchor="bottom" id="Version Control" order="0" weight="0.32923833" />
+      <window_info anchor="bottom" id="Terminal" order="1" weight="0.32831" />
+      <window_info anchor="bottom" id="Event Log" order="2" sideWeight="0.5005208" side_tool="true" weight="0.32615715" />
+      <window_info anchor="bottom" id="Messages" order="3" weight="0.32831" />
       <window_info anchor="bottom" id="Message" order="4" />
-      <window_info anchor="bottom" id="Find" order="5" weight="0.32923833" />
-      <window_info anchor="bottom" id="Run" order="6" weight="0.25798526" />
-      <window_info anchor="bottom" id="Debug" order="7" weight="0.3992629" />
+      <window_info anchor="bottom" id="Find" order="5" sideWeight="0.49947917" weight="0.32723358" />
+      <window_info anchor="bottom" id="Run" order="6" sideWeight="0.49947917" weight="0.3240043" />
+      <window_info anchor="bottom" id="Debug" order="7" weight="0.3810549" />
       <window_info anchor="bottom" id="Cvs" order="8" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="9" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="10" weight="0.32923833" />
@@ -486,456 +707,596 @@
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="5" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="6" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="7" weight="0.25" />
-      <window_info anchor="right" content_ui="combo" id="Project" order="8" sideWeight="0.490172" visible="true" weight="0.22865671" />
-      <window_info anchor="right" x="0" y="0" width="372" height="729" id="Documentation" order="9" sideWeight="0.50982803" side_tool="true" visible="true" weight="0.22865671" />
-      <window_info anchor="right" id="Coverage" order="10" sideWeight="0.50274223" side_tool="true" weight="0.25671643" />
+      <window_info active="true" anchor="right" content_ui="combo" id="Project" order="8" sideWeight="0.47039828" visible="true" weight="0.23125" />
+      <window_info anchor="right" x="0" y="0" width="372" height="729" id="Documentation" order="9" sideWeight="0.5296017" side_tool="true" weight="0.23125" />
+      <window_info anchor="right" id="Coverage" order="10" sideWeight="0.5156082" side_tool="true" weight="0.2296875" />
     </layout-to-restore>
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint enabled="true" type="java-line">
+        <line-breakpoint type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/SystemInfo/DisksInfo.java</url>
           <line>24</line>
           <properties />
           <option name="timeStamp" value="16" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/Healthcheck/Application.java</url>
-          <line>345</line>
+        <line-breakpoint type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsManager.java</url>
+          <line>301</line>
           <properties />
-          <option name="timeStamp" value="27" />
+          <option name="timeStamp" value="86" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/ComputerLogger.java</url>
+          <line>37</line>
+          <properties />
+          <option name="timeStamp" value="93" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/Healthcheck/Application.java</url>
-          <line>127</line>
+          <url>file://$PROJECT_DIR$/src/main/java/GUI/Controllers/AddOrUpdateSshConfigController.java</url>
+          <line>610</line>
           <properties />
-          <option name="timeStamp" value="31" />
+          <option name="timeStamp" value="335" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/ComputerEntity.java</url>
-          <line>180</line>
+          <url>file://$PROJECT_DIR$/src/main/java/GUI/Controllers/AddOrUpdateSshConfigController.java</url>
+          <line>650</line>
           <properties />
-          <option name="timeStamp" value="39" />
+          <option name="timeStamp" value="337" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/Healthcheck/Application.java</url>
-          <line>160</line>
+          <url>file://$PROJECT_DIR$/src/main/java/GUI/Controllers/AddOrUpdateSshConfigController.java</url>
+          <line>443</line>
           <properties />
-          <option name="timeStamp" value="42" />
+          <option name="timeStamp" value="338" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/GUI/Controllers/AddOrUpdateSshConfigController.java</url>
+          <line>515</line>
+          <properties />
+          <option name="timeStamp" value="339" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/GUI/Controllers/AddOrUpdateSshConfigController.java</url>
+          <line>571</line>
+          <properties />
+          <option name="timeStamp" value="341" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsManager.java</url>
-          <line>42</line>
+          <line>85</line>
           <properties />
-          <option name="timeStamp" value="55" />
+          <option name="timeStamp" value="356" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/Healthcheck/Application.java</url>
-          <line>381</line>
+          <url>file://$PROJECT_DIR$/src/main/java/GUI/Controllers/LogsForComputerController.java</url>
+          <line>550</line>
           <properties />
-          <option name="timeStamp" value="57" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/Healthcheck/ComputerManager.java</url>
-          <line>89</line>
-          <properties />
-          <option name="timeStamp" value="63" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/Healthcheck/Application.java</url>
-          <line>449</line>
-          <properties />
-          <option name="timeStamp" value="64" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/Healthcheck/UsersManager.java</url>
-          <line>146</line>
-          <properties />
-          <option name="timeStamp" value="67" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/Healthcheck/UsersManager.java</url>
-          <line>151</line>
-          <properties />
-          <option name="timeStamp" value="68" />
+          <option name="timeStamp" value="360" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsManager.java</url>
-          <line>61</line>
+          <line>217</line>
           <properties />
-          <option name="timeStamp" value="69" />
+          <option name="timeStamp" value="364" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/GUI/Controllers/LogsForComputerController.java</url>
+          <line>299</line>
+          <properties />
+          <option name="timeStamp" value="365" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/GUI/Controllers/StatsForComputerController.java</url>
+          <line>56</line>
+          <properties />
+          <option name="timeStamp" value="367" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/Healthcheck/App.java</url>
+          <line>17</line>
+          <properties />
+          <option name="timeStamp" value="374" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/Healthcheck/App.java</url>
+          <line>21</line>
+          <properties />
+          <option name="timeStamp" value="380" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/GUI/Controllers/StatsForComputerController.java</url>
+          <line>466</line>
+          <properties />
+          <option name="timeStamp" value="388" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsGetter.java</url>
+          <line>170</line>
+          <properties />
+          <option name="timeStamp" value="389" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/GUI/Controllers/StatsForComputerController.java</url>
+          <line>67</line>
+          <properties />
+          <option name="timeStamp" value="391" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsManager.java</url>
+          <line>156</line>
+          <properties />
+          <option name="timeStamp" value="394" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsGatherer.java</url>
+          <line>27</line>
+          <properties />
+          <option name="timeStamp" value="397" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsGatherer.java</url>
+          <line>48</line>
+          <properties />
+          <option name="timeStamp" value="399" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsMaintainer.java</url>
+          <line>281</line>
+          <properties />
+          <option name="timeStamp" value="401" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsMaintainer.java</url>
+          <line>278</line>
+          <properties />
+          <option name="timeStamp" value="402" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-method">
-          <url>file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsMaintainer.java</url>
-          <line>169</line>
-          <properties class="Healthcheck.LogsManagement.LogsMaintainer" method="ExecuteQueryWithRetryPolicy">
+          <url>file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsGatherer.java</url>
+          <line>83</line>
+          <properties class="Healthcheck.LogsManagement.LogsGatherer" method="StopGatheringLogs">
             <option name="EMULATED" value="true" />
           </properties>
-          <option name="timeStamp" value="56" />
+          <option name="timeStamp" value="393" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/JSCHtest$Application.ic" NAME="Application Coverage Results" MODIFIED="1558466265450" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/JSCHtest$Main.ic" NAME="Main Coverage Results" MODIFIED="1560285767135" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false">
+      <FILTER>GUI.Controllers.*</FILTER>
+    </SUITE>
+    <SUITE FILE_PATH="coverage/JSCHtest$App.ic" NAME="App Coverage Results" MODIFIED="1561890344228" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false">
+      <FILTER>Healthcheck.AppLogging.*</FILTER>
+    </SUITE>
+  </component>
+  <component name="debuggerHistoryManager">
+    <expressions id="evaluateExpression">
+      <expression>
+        <expression-string>TestController.data</expression-string>
+        <language-id>JAVA</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>TestController.listView</expression-string>
+        <language-id>JAVA</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>_sshConfig.GetPrivateKeyPath()</expression-string>
+        <language-id>JAVA</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>passwordPasswordField.getStyleClass()</expression-string>
+        <language-id>JAVA</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>passwordPasswordField.getStyleClass().</expression-string>
+        <language-id>JAVA</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>sshConfigObservableList</expression-string>
+        <language-id>JAVA</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>_localLocalConfig</expression-string>
+        <language-id>JAVA</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>_computer</expression-string>
+        <language-id>JAVA</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>sshKeyPathTextField.getText()</expression-string>
+        <language-id>JAVA</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+    </expressions>
   </component>
   <component name="editorHistoryManager">
-    <entry file="jar://C:/Program Files/Java/jdk-10.0.1/lib/src.zip!/java.base/java/util/List.java">
+    <entry file="file://$PROJECT_DIR$/src/main/resources/hibernate-cache.cfg.xml">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="172">
-          <caret line="264" column="12" selection-start-line="264" selection-start-column="12" selection-end-line="264" selection-end-column="12" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Logs/ComputerLogger.java" />
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Preference.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="285">
-          <caret line="16" column="28" selection-start-line="16" selection-start-column="28" selection-end-line="16" selection-end-column="28" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Logs/DiskLog.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="228">
-          <caret line="17" column="5" selection-start-line="17" selection-start-column="5" selection-end-line="17" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsGetter.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="261">
-          <caret line="19" column="13" selection-start-line="19" selection-start-column="13" selection-end-line="19" selection-end-column="13" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/SSHConnectionManagement.java" />
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Encryption/EncrypterException.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="38">
-          <caret line="2" column="13" selection-start-line="2" selection-start-column="13" selection-end-line="2" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/DatabaseManagement/DatabaseException.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="57">
-          <caret line="3" column="1" lean-forward="true" selection-start-line="3" selection-start-column="1" selection-end-line="3" selection-end-column="1" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Encryption/Encrypter.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-343">
-          <caret line="11" column="13" selection-start-line="11" selection-start-column="13" selection-end-line="11" selection-end-column="13" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsException.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="76">
-          <caret line="4" selection-start-line="4" selection-end-line="8" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$MAVEN_REPOSITORY$/org/hibernate/hibernate-core/5.4.2.Final/hibernate-core-5.4.2.Final.jar!/org/hibernate/Session.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="304">
-          <caret line="19" column="31" lean-forward="true" selection-start-line="19" selection-start-column="31" selection-end-line="19" selection-end-column="31" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/NothingToDoException.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="171">
-          <caret line="9" lean-forward="true" selection-start-line="9" selection-end-line="9" />
-          <folding>
-            <element signature="e#137#138#0" expanded="true" />
-            <element signature="e#161#162#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Models/Info/RamInfo.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="798">
-          <caret line="48" column="8" selection-start-line="48" selection-start-column="8" selection-end-line="48" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://C:/Program Files/Java/jdk-10.0.1/lib/src.zip!/java.base/java/lang/Object.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="153">
-          <caret line="351" column="29" selection-start-line="351" selection-start-column="29" selection-end-line="351" selection-end-column="29" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$MAVEN_REPOSITORY$/com/jcraft/jsch/0.1.55/jsch-0.1.55.jar!/com/jcraft/jsch/Session.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="153">
-          <caret line="1180" selection-start-line="1180" selection-end-line="1180" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/SSHConnectionManagement/SSHConnectionException.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="38">
-          <caret line="2" column="13" selection-start-line="2" selection-start-column="13" selection-end-line="2" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Models/Info/IInfo.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="152">
-          <caret line="11" lean-forward="true" selection-start-line="11" selection-end-line="11" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Models/Info/CpuInfo.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="59">
-          <caret line="11" column="13" selection-start-line="11" selection-start-column="13" selection-end-line="11" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pom.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="418">
-          <caret line="22" column="33" selection-start-line="22" selection-start-column="33" selection-end-line="22" selection-end-column="33" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Logs/CpuLog.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="114">
-          <caret line="11" column="13" selection-start-line="11" selection-start-column="13" selection-end-line="11" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$MAVEN_REPOSITORY$/org/xerial/sqlite-jdbc/3.27.2.1/sqlite-jdbc-3.27.2.1.jar!/org/sqlite/jdbc3/JDBC3PreparedStatement.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="166">
-          <caret line="100" selection-start-line="100" selection-end-line="100" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$MAVEN_REPOSITORY$/org/hibernate/hibernate-core/5.4.2.Final/hibernate-core-5.4.2.Final.jar!/org/hibernate/engine/jdbc/internal/ResultSetReturnImpl.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="299">
-          <caret line="158" column="13" lean-forward="true" selection-start-line="158" selection-start-column="13" selection-end-line="158" selection-end-column="13" />
+        <state relative-caret-position="264">
+          <caret line="12" column="56" lean-forward="true" selection-start-line="12" selection-start-column="56" selection-end-line="12" selection-end-column="56" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Preferences/ProcessesInfoPreference.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="152">
-          <caret line="14" column="46" selection-start-line="14" selection-start-column="46" selection-end-line="14" selection-end-column="46" />
+        <state relative-caret-position="88">
+          <caret line="5" column="13" selection-start-line="5" selection-start-column="13" selection-end-line="5" selection-end-column="13" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Models/Info/ProcessesInfo.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Preferences/IPreference.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="271">
-          <caret line="23" column="68" selection-start-line="23" selection-start-column="68" selection-end-line="23" selection-end-column="68" />
+        <state relative-caret-position="88">
+          <caret line="4" column="23" selection-start-line="4" selection-start-column="23" selection-end-line="4" selection-end-column="23" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Logs/RamLog.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Preferences/CpuInfoPreference.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="114">
-          <caret line="11" column="13" selection-start-line="11" selection-start-column="13" selection-end-line="11" selection-end-column="13" />
+        <state relative-caret-position="132">
+          <caret line="10" column="5" selection-start-line="10" selection-start-column="5" selection-end-line="10" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Preferences/Preferences.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="352">
+          <caret line="19" column="37" selection-start-line="19" selection-start-column="37" selection-end-line="19" selection-end-column="37" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Preferences/DisksInfoPreference.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="133">
-          <caret line="11" selection-start-line="11" selection-end-line="11" />
-          <folding>
-            <element signature="e#289#290#0" expanded="true" />
-            <element signature="e#316#317#0" expanded="true" />
-          </folding>
+        <state>
+          <caret column="32" lean-forward="true" selection-start-column="32" selection-end-column="32" />
         </state>
       </provider>
     </entry>
-    <entry file="jar://$MAVEN_REPOSITORY$/org/xerial/sqlite-jdbc/3.27.2.1/sqlite-jdbc-3.27.2.1.jar!/org/sqlite/core/DB.class">
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/CacheLogs/CpuCacheLog.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="166">
-          <caret line="372" selection-start-line="372" selection-end-line="372" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$MAVEN_REPOSITORY$/org/hibernate/hibernate-core/5.4.2.Final/hibernate-core-5.4.2.Final.jar!/org/hibernate/exception/internal/StandardSQLExceptionConverter.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="270">
-          <caret line="46" selection-start-line="46" selection-end-line="46" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/SSHConnectionManagement/SSHConnection.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="798">
-          <caret line="48" column="79" selection-start-line="48" selection-start-column="79" selection-end-line="48" selection-end-column="79" />
+        <state relative-caret-position="496">
+          <caret line="35" selection-start-line="35" selection-end-line="44" selection-end-column="5" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="jar://C:/Program Files/Java/jdk-10.0.1/lib/src.zip!/java.base/java/lang/Thread.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/CacheLogs/DiskCacheLog.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="261">
-          <caret line="794" column="29" selection-start-line="794" selection-start-column="29" selection-end-line="794" selection-end-column="29" />
+        <state relative-caret-position="88">
+          <caret line="4" column="39" selection-start-line="4" selection-start-column="39" selection-end-line="4" selection-end-column="39" />
         </state>
       </provider>
     </entry>
-    <entry file="jar://C:/Program Files/Java/jdk-10.0.1/lib/src.zip!/java.base/jdk/internal/misc/Unsafe.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/CacheLogs/SwapCacheLog.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="153">
-          <caret line="2293" column="23" selection-start-line="2293" selection-start-column="23" selection-end-line="2293" selection-end-column="23" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://C:/Program Files/Java/jdk-10.0.1/lib/src.zip!/java.base/java/net/SocketInputStream.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-285">
-          <caret line="97" selection-start-line="97" selection-end-line="97" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/resources/hibernate.cfg.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="285">
-          <caret line="15" selection-start-line="15" selection-end-line="15" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Logs/BaseEntity.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="380">
-          <caret line="20" column="5" lean-forward="true" selection-start-line="20" selection-start-column="5" selection-end-line="20" selection-end-column="5" />
+        <state relative-caret-position="496">
+          <caret line="35" selection-start-line="35" selection-end-line="44" selection-end-column="5" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/AppProperties.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Logs/ProcessLog.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="95">
-          <caret line="7" column="1" selection-start-line="7" selection-start-column="1" selection-end-line="7" selection-end-column="1" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$MAVEN_REPOSITORY$/javax/persistence/javax.persistence-api/2.2/javax.persistence-api-2.2.jar!/javax/persistence/Query.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="361">
-          <caret line="29" column="25" selection-start-line="29" selection-start-column="25" selection-end-line="29" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Classroom.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="526">
-          <caret line="38" column="42" lean-forward="true" selection-start-line="38" selection-start-column="42" selection-end-line="38" selection-end-column="42" />
+        <state relative-caret-position="330">
+          <caret line="29" column="66" selection-start-line="29" selection-start-column="66" selection-end-line="29" selection-end-column="66" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="jar://$MAVEN_REPOSITORY$/org/hibernate/hibernate-core/5.4.2.Final/hibernate-core-5.4.2.Final.jar!/org/hibernate/event/internal/DefaultSaveOrUpdateEventListener.class">
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Logs/RamLog.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="148">
-          <caret line="136" selection-start-line="136" selection-end-line="136" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsGatherer.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="190">
-          <caret line="15" column="36" selection-start-line="15" selection-start-column="36" selection-end-line="15" selection-end-column="36" />
+        <state relative-caret-position="497">
+          <caret line="28" column="54" selection-start-line="28" selection-start-column="54" selection-end-line="28" selection-end-column="54" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/User.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/CacheLogs/RamCacheLog.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="526">
-          <caret line="73" column="28" selection-start-line="73" selection-start-column="28" selection-end-line="73" selection-end-column="28" />
+        <state relative-caret-position="367">
+          <caret line="43" column="26" selection-start-line="43" selection-start-column="26" selection-end-line="43" selection-end-column="26" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/ComputerEntity.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/CacheLogs/ProcessCacheLog.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="257">
-          <caret line="163" column="16" selection-start-line="163" selection-start-column="16" selection-end-line="163" selection-end-column="16" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#4630#4631#0" expanded="true" />
-            <element signature="e#4657#4658#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="-88">
+          <caret line="6" column="34" selection-start-line="6" selection-start-column="34" selection-end-line="6" selection-end-column="34" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/UsersManager.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Logs/LogBase.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="398">
-          <caret line="242" column="70" selection-start-line="242" selection-start-column="70" selection-end-line="242" selection-end-column="70" />
+        <state relative-caret-position="396">
+          <caret line="18" column="42" selection-start-line="18" selection-start-column="42" selection-end-line="18" selection-end-column="42" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/ComputerManager.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Logs/CpuLog.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="208">
-          <caret line="297" column="26" lean-forward="true" selection-start-line="297" selection-start-column="26" selection-end-line="297" selection-end-column="26" />
+        <state relative-caret-position="286">
+          <caret line="13" column="28" selection-start-line="13" selection-start-column="28" selection-end-line="13" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Models/Info/RamInfo.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="22">
+          <caret line="11" column="32" selection-start-line="11" selection-start-column="32" selection-end-line="11" selection-end-column="32" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Logs/DiskLog.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-120">
+          <caret line="29" column="57" selection-start-line="29" selection-start-column="57" selection-end-line="29" selection-end-column="57" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#11033#11034#0" expanded="true" />
-            <element signature="e#11066#11067#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Logs/SwapLog.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="330">
+          <caret line="26" column="57" selection-start-line="26" selection-start-column="57" selection-end-line="26" selection-end-column="57" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://C:/Program Files/Java/jdk-10.0.1/lib/src.zip!/java.desktop/java/awt/Label.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="299">
+          <caret line="53" column="13" selection-start-line="53" selection-start-column="13" selection-end-line="53" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Preferences/UsersInfoPreference.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="88">
+          <caret line="5" column="13" selection-start-line="5" selection-start-column="13" selection-end-line="5" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/CacheLogs/CacheLogBase.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="496">
+          <caret line="25" column="43" lean-forward="true" selection-start-line="25" selection-start-column="43" selection-end-line="25" selection-end-column="43" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Models/Info/IInfo.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="132">
+          <caret line="9" column="22" lean-forward="true" selection-start-line="9" selection-start-column="22" selection-end-line="9" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Models/Info/UsersInfo.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="716">
+          <caret line="54" column="43" lean-forward="true" selection-start-line="54" selection-start-column="43" selection-end-line="54" selection-end-column="43" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/GUI/Controllers/DateTimePopupController.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="172">
+          <caret line="84" column="12" selection-start-line="84" selection-start-column="12" selection-end-line="84" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://C:/Program Files/Java/jdk-10.0.1/lib/src.zip!/javafx.fxml/javafx/fxml/FXMLLoader.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="401">
+          <caret line="2602" selection-start-line="2602" selection-end-line="2602" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/ComputersAndSshConfigsManager.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4202">
+          <caret line="209" lean-forward="true" selection-start-line="209" selection-end-line="209" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Models/Info/SwapInfo.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="44">
+          <caret line="2" column="7" selection-start-line="2" selection-start-column="7" selection-end-line="2" selection-end-column="7" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Models/Info/UserInfo.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="44">
+          <caret line="2" column="7" lean-forward="true" selection-start-line="2" selection-start-column="7" selection-end-line="2" selection-end-column="7" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/GUI/Controllers/MainWindowController.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="13706">
+          <caret line="666" column="45" selection-start-line="666" selection-start-column="45" selection-end-line="666" selection-end-column="45" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/GUI/ListItems/ComputerListCell.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="462">
+          <caret line="61" selection-start-line="61" selection-end-line="63" selection-end-column="43" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#8292#8293#0" expanded="true" />
+            <element signature="e#8326#8327#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/DatabaseManagement/DatabaseManager.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-595">
-          <caret line="188" column="23" selection-start-line="188" selection-start-column="23" selection-end-line="188" selection-end-column="23" />
+        <state relative-caret-position="176">
+          <caret line="8" column="27" selection-start-line="8" selection-start-column="27" selection-end-line="8" selection-end-column="27" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/SSHConnectionManagement/SSHConnection.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-638">
+          <caret line="83" column="18" selection-start-line="83" selection-start-column="18" selection-end-line="83" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/org/hibernate/dialect/SQLiteDialect.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="418">
+          <caret line="202" column="27" selection-start-line="202" selection-start-column="27" selection-end-line="202" selection-end-column="27" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/resources/fxml/LogsForComputer.fxml">
+      <provider editor-type-id="JavaFX-Scene-Builder" />
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="198">
+          <caret line="89" column="62" lean-forward="true" selection-start-line="89" selection-start-column="62" selection-end-line="89" selection-end-column="62" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsGatherer.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="532">
+          <caret line="120" column="9" lean-forward="true" selection-start-line="120" selection-start-column="9" selection-end-line="120" selection-end-column="9" />
+          <folding>
+            <element signature="e#6431#6432#0" expanded="true" />
+            <element signature="e#6475#6476#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/GUI/Controllers/StatsForComputerController.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="330">
+          <caret line="45" selection-start-line="45" selection-end-line="46" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Application.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/CacheLogsSaver.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="8569">
-          <caret line="466" column="35" selection-start-line="466" selection-start-column="35" selection-end-line="466" selection-end-column="35" />
+        <state relative-caret-position="290">
+          <caret line="63" column="24" selection-start-line="63" selection-start-column="24" selection-end-line="63" selection-end-column="24" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Computer.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/GUI/TableViewEntries/UserEntry.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="361">
-          <caret line="22" column="25" selection-start-line="22" selection-start-column="25" selection-end-line="22" selection-end-column="25" />
+        <state relative-caret-position="198">
+          <caret line="17" selection-start-line="17" selection-end-line="17" />
+          <folding>
+            <element signature="e#510#511#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://C:/Program Files/Java/jdk-10.0.1/lib/src.zip!/javafx.controls/javafx/scene/control/ComboBoxBase.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="198">
+          <caret line="151" column="19" selection-start-line="151" selection-start-column="19" selection-end-line="151" selection-end-column="19" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://C:/Program Files/Java/jdk-10.0.1/lib/src.zip!/javafx.base/javafx/event/Event.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="267">
+          <caret line="197" selection-start-line="197" selection-end-line="197" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsGetter.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="181">
+          <caret line="95" column="24" selection-start-line="95" selection-start-column="24" selection-end-line="95" selection-end-column="24" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Logs/UserLog.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1408">
+          <caret line="84" column="7" selection-start-line="84" selection-start-column="7" selection-end-line="84" selection-end-column="7" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#2961#2962#0" expanded="true" />
+            <element signature="e#3006#3007#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/CacheLogs/UserCacheLog.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="721">
+          <caret line="44" column="5" selection-start-line="44" selection-start-column="5" selection-end-line="44" selection-end-column="5" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/GUI/Controllers/LogsForComputerController.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="286">
+          <caret line="243" column="72" selection-start-line="243" selection-start-column="72" selection-end-line="243" selection-end-column="72" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
@@ -944,52 +1305,67 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/ComputerLogger.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3914">
-          <caret line="227" selection-start-line="227" selection-end-line="227" />
+        <state relative-caret-position="220">
+          <caret line="10" column="58" selection-start-line="10" selection-start-column="58" selection-end-line="10" selection-end-column="58" />
           <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#911#912#0" expanded="true" />
-            <element signature="e#939#940#0" expanded="true" />
-            <element signature="e#982#983#0" expanded="true" />
-            <element signature="e#1014#1015#0" expanded="true" />
+            <element signature="e#13214#13215#0" expanded="true" />
+            <element signature="e#13293#13294#0" expanded="true" />
+            <element signature="e#13384#13385#0" expanded="true" />
+            <element signature="e#13493#13494#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsMaintainer.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Entities/Computer.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4636">
-          <caret line="258" column="23" selection-start-line="258" selection-start-column="23" selection-end-line="258" selection-end-column="23" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
+        <state relative-caret-position="299">
+          <caret line="421" column="15" selection-start-line="421" selection-start-column="15" selection-end-line="421" selection-end-column="15" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/Utilities.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/GUI/Controllers/AddOrUpdateComputerController.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="342">
-          <caret line="28" column="132" selection-start-line="28" selection-start-column="132" selection-end-line="28" selection-end-column="132" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/resources/app.properties">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="114">
-          <caret line="6" selection-start-line="6" selection-end-line="6" selection-end-column="18" />
+        <state relative-caret-position="70">
+          <caret line="825" column="7" selection-start-line="825" selection-start-column="7" selection-end-line="825" selection-end-column="7" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsManager.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="379">
-          <caret line="60" selection-start-line="60" selection-end-line="60" />
+        <state relative-caret-position="299">
+          <caret line="235" column="16" selection-start-line="235" selection-start-column="16" selection-end-line="235" selection-end-column="16" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsMaintainer.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="158">
+          <caret line="181" column="17" lean-forward="true" selection-start-line="181" selection-start-column="17" selection-end-line="181" selection-end-column="17" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="method#GetConnectedComputers#0;class#LogsManager#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/AppLogging/AppLogger.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="198">
+          <caret line="13" selection-start-line="13" selection-end-line="13" />
+          <folding>
+            <element signature="e#1056#1057#0" expanded="true" />
+            <element signature="e#1116#1117#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/App.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="220">
+          <caret line="10" column="36" lean-forward="true" selection-start-line="10" selection-start-column="36" selection-end-line="10" selection-end-column="36" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#429#430#0" expanded="true" />
+            <element signature="e#462#463#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -1033,6 +1409,7 @@
       </state>
       <state key="JdkListConfigurable.UI">
         <settings>
+          <last-edited>10</last-edited>
           <splitter-proportions>
             <option name="proportions">
               <list>
@@ -1044,10 +1421,12 @@
       </state>
       <state key="ModuleStructureConfigurable.UI">
         <settings>
+          <last-edited>JSCHtest</last-edited>
           <splitter-proportions>
             <option name="proportions">
               <list>
                 <option value="0.2" />
+                <option value="0.6" />
               </list>
             </option>
           </splitter-proportions>
@@ -1067,6 +1446,7 @@
       </state>
       <state key="ProjectLibrariesConfigurable.UI">
         <settings>
+          <last-edited>Maven: antlr:antlr:2.7.7</last-edited>
           <splitter-proportions>
             <option name="proportions">
               <list>
