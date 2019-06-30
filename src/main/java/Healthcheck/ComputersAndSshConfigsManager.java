@@ -212,4 +212,9 @@ public class ComputersAndSshConfigsManager
     {
         return _sshConfigs.stream().filter(s -> s.HasGlobalScope()).collect(Collectors.toList());
     }
+
+    public List<Computer> GetComputersForClassroom(String classroom)
+    {
+        return _computers.stream().filter(c -> c.GetClassroom().equals(classroom)).collect(Collectors.toList());
+    }
 }
