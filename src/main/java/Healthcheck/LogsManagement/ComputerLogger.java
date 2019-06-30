@@ -11,6 +11,7 @@ import Healthcheck.SSHConnectionManagement.SSHConnection;
 import Healthcheck.SSHConnectionManagement.SSHConnectionException;
 import org.hibernate.Session;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -157,6 +158,10 @@ public class ComputerLogger extends Thread
             IInfo model = computerIPreference.GetInformationModel(sshResultNotProcessed);
             List<LogBase> logs = model.ToLogList(_computer, timestamp);
 
+            if(logs == null)
+            {
+                logs = new ArrayList<>();
+            }
             return logs;
         }
         catch (SSHConnectionException e)
@@ -185,8 +190,13 @@ public class ComputerLogger extends Thread
                     Thread.sleep(Utilities.SelectCooldown);
 
                     String sshResultNotProcessed = _sshConnection.ExecuteCommand(computerIPreference.GetCommandToExecute());
+
                     IInfo model = computerIPreference.GetInformationModel(sshResultNotProcessed);
                     List<LogBase> logs = model.ToLogList(_computer, timestamp);
+                    if(logs == null)
+                    {
+                        logs = new ArrayList<>();
+                    }
 
                     return logs;
                 }

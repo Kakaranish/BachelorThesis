@@ -59,14 +59,29 @@ public class UserLog extends LogBase
         return new UserEntry()
         {{
             Datetime = new SimpleStringProperty(new SimpleDateFormat("dd/MM/yyyy' 'HH:mm:ss:S").format(Timestamp));
-            FromWhere = new SimpleStringProperty(UserInfo.FromWhere);
-            Idle = new SimpleStringProperty(UserInfo.Idle);
-            JCPU = new SimpleStringProperty(UserInfo.JCPU);
-            PCPU = new SimpleStringProperty(UserInfo.PCPU);
-            SAT15 = new SimpleStringProperty(UserInfo.SAT15);
-            TTY = new SimpleStringProperty(UserInfo.TTY);
-            User = new SimpleStringProperty(UserInfo.User);
-            What = new SimpleStringProperty(UserInfo.What);
+
+            if(UserInfo != null)
+            {
+                FromWhere = new SimpleStringProperty(UserInfo.FromWhere);
+                Idle = new SimpleStringProperty(UserInfo.Idle);
+                JCPU = new SimpleStringProperty(UserInfo.JCPU);
+                PCPU = new SimpleStringProperty(UserInfo.PCPU);
+                SAT15 = new SimpleStringProperty(UserInfo.SAT15);
+                TTY = new SimpleStringProperty(UserInfo.TTY);
+                User = new SimpleStringProperty(UserInfo.User);
+                What = new SimpleStringProperty(UserInfo.What);
+            }
+            else
+            {
+                FromWhere = new SimpleStringProperty("");
+                Idle = new SimpleStringProperty("");
+                JCPU = new SimpleStringProperty("");
+                PCPU = new SimpleStringProperty("");
+                SAT15 = new SimpleStringProperty("");
+                TTY = new SimpleStringProperty("");
+                User = new SimpleStringProperty("");
+                What = new SimpleStringProperty("");
+            }
         }};
     }
 

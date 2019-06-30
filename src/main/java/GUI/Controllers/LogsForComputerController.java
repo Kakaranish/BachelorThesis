@@ -1,10 +1,16 @@
 package GUI.Controllers;
 
 import GUI.TableViewEntries.*;
+import Healthcheck.AppLogging.AppLogger;
+import Healthcheck.AppLogging.LogType;
 import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.Logs.LogBase;
 import Healthcheck.LogsManagement.LogsGetter;
+import Healthcheck.LogsManagement.LogsMaintainer;
+import Healthcheck.Preferences.IPreference;
 import Healthcheck.Preferences.Preferences;
+import Healthcheck.Utilities;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -14,12 +20,16 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import java.net.URL;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class LogsForComputerController implements Initializable
 {
+    public final static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy' 'HH:mm:ss");
+    public final static String ModuleName = "LogsForComputerController";
+
     // ---  USERS TABLEVIEW  -------------------------------------------------------------------------------------------
 
     @FXML
@@ -448,6 +458,72 @@ public class LogsForComputerController implements Initializable
         processesTableView.refresh();
     }
 
+    // ---  REMOVE LOGS BUTTON  ----------------------------------------------------------------------------------------
+
+    @FXML
+    private Button removeCurrentTabLogsButton;
+
+    private void InitializeRemoveCurrentTabLogsButton()
+    {
+        removeCurrentTabLogsButton.setOnAction(event ->
+        {
+            LocalDate fromLocalDate = datePicker.getValue();
+            if(fromLocalDate == null)
+            {
+                return;
+            }
+
+            IPreference preference = null;
+            if(usersTab.isSelected())
+            {
+                preference = Preferences.UsersInfoPreference;
+            }
+            else if(cpuTab.isSelected())
+            {
+                preference = Preferences.CpuInfoPreference;
+            }
+            else if(ramTab.isSelected())
+            {
+                preference = Preferences.RamInfoPreference;
+            }
+            else if(swapTab.isSelected())
+            {
+                preference = Preferences.SwapInfoPreference;
+            }
+            else if(disksTab.isSelected())
+            {
+                preference = Preferences.DisksInfoPreference;
+            }
+            else if(processesTab.isSelected())
+            {
+                preference = Preferences.ProcessesInfoPreference;
+            }
+
+            Timestamp from = Timestamp.valueOf(datePicker.getValue().atStartOfDay());
+            String logType = preference.GetClassName().replace("Log", "");
+            boolean response = Utilities.ShowYesNoDialog("Remove " + logType + " logs?",
+                    "Do you want remove " + logType + " logs from db \nfrom "
+                            + simpleDateFormat.format(from) + " to now?");
+            if(response == false)
+            {
+                return;
+            }
+
+            Timestamp now = new Timestamp(new Date().getTime());
+            try
+            {
+                LogsMaintainer.RemoveGivenTypeLogsForComputer(_computer, preference, from, now);
+
+                Clear(null);
+            }
+            catch(Exception e)
+            {
+                Platform.runLater(() -> AppLogger.Log(LogType.ERROR, ModuleName,
+                        "Removing " + logType + " logs from db failed."));
+            }
+        });
+    }
+
     // ---  FIELDS  ----------------------------------------------------------------------------------------------------
 
     private Computer _computer;
@@ -468,5 +544,7 @@ public class LogsForComputerController implements Initializable
         InitializeSwapLogsTableView();
         InitializeDisksLogsTableView();
         InitializeProcessesLogsTableView();
+
+        InitializeRemoveCurrentTabLogsButton();
     }
 }

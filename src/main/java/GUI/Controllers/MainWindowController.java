@@ -41,7 +41,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.stream.Collectors;
 
 public class MainWindowController implements Initializable
 {
@@ -662,7 +661,7 @@ public class MainWindowController implements Initializable
     {
         CleanUpGuiComponents();
 
-        Utilities.ShowErrorDialog("LogsManager stopped work. Fatal error occurred.");
+        Utilities.ShowErrorDialog("LogsManager stopped work. Connection with Internet lost..");
     }
 
     public void Callback_LogsManager_StartGatheringLogsFailed()

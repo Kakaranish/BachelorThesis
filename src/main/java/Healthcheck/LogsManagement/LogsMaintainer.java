@@ -7,6 +7,7 @@ import Healthcheck.Entities.Computer;
 import Healthcheck.AppLogging.LogType;
 import Healthcheck.Preferences.IPreference;
 import Healthcheck.Preferences.Preferences;
+import javafx.application.Platform;
 import org.hibernate.Session;
 import javax.persistence.Query;
 import java.sql.Timestamp;
@@ -68,7 +69,7 @@ public class LogsMaintainer
         _maintainingThread = null;
         _isMaintaining = false;
 
-        AppLogger.Log(LogType.INFO, ModuleName, "Stopped work.");
+        Platform.runLater(() -> AppLogger.Log(LogType.INFO, ModuleName, "Stopped work."));
     }
 
     public void RestartMaintainingLogs() throws LogsException
@@ -78,7 +79,7 @@ public class LogsMaintainer
             throw new LogsException("Unable to restart maintaining logs. No maintainer is working.");
         }
 
-        AppLogger.Log(LogType.INFO, ModuleName, "Restarting.");
+        Platform.runLater(() -> AppLogger.Log(LogType.INFO, ModuleName, "Restarting."));
 
         _interruptionIntended = true;
         _interruptionForRestart = true;
@@ -133,7 +134,9 @@ public class LogsMaintainer
                     }
 
                     String usernameAndHost = computerToMaintain.GetUsernameAndHost();
-                    AppLogger.Log(LogType.INFO, ModuleName, "'" + usernameAndHost + "' was maintained.");
+                    Platform.runLater(() ->
+                            AppLogger.Log(LogType.INFO, ModuleName, "'" + usernameAndHost + "' was maintained.")
+                    );
                 }
             }
             /*
@@ -143,7 +146,9 @@ public class LogsMaintainer
             else
             {
                 long timeToNextMaintain = Duration.ofMillis(computerWithLowestTimeToMaintain.TimeToMaintain).toSeconds();
-                AppLogger.Log(LogType.INFO, ModuleName, "Next maintenance in " + timeToNextMaintain + "s.");
+                Platform.runLater(() ->
+                        AppLogger.Log(LogType.INFO, ModuleName, "Next maintenance in " + timeToNextMaintain + "s.")
+                );
 
                 try
                 {
@@ -177,7 +182,9 @@ public class LogsMaintainer
                 }
 
                 String usernameAndHost = computerWithLowestTimeToMaintain.Computer.GetUsernameAndHost();
-                AppLogger.Log(LogType.INFO, ModuleName, "'" + usernameAndHost + "' was maintained.");
+                Platform.runLater(() ->
+                        AppLogger.Log(LogType.INFO, ModuleName, "'" + usernameAndHost + "' was maintained.")
+                );
             }
         }
     }
@@ -209,8 +216,10 @@ public class LogsMaintainer
                 _logsManager.Callback_Maintainer_StopWorkForComputerLogger(computerLogger);
                 session.close();
 
-                AppLogger.Log(LogType.FATAL_ERROR, ModuleName, "Deleting logs for '" + usernameAndHost + "' failed.");
-
+                Platform.runLater(() ->
+                        AppLogger.Log(LogType.FATAL_ERROR, ModuleName,
+                                "Deleting logs for '" + usernameAndHost + "' failed.")
+                );
                 return false;
             }
 
@@ -228,8 +237,9 @@ public class LogsMaintainer
             ComputerLogger computerLogger = _logsManager.GetComputerLoggerForComputer(computer);
             _logsManager.Callback_Maintainer_StopWorkForComputerLogger(computerLogger); // TODO: ??????????????????????
 
-            AppLogger.Log(LogType.FATAL_ERROR, ModuleName,
-                    "Setting last maintenance time for '" + usernameAndHost + "' failed.");
+            Platform.runLater(() -> AppLogger.Log(LogType.FATAL_ERROR, ModuleName,
+                    "Setting last maintenance time for '" + usernameAndHost + "' failed.")
+            );
 
             return false;
         }
@@ -255,6 +265,32 @@ public class LogsMaintainer
             {
                 throw new DatabaseException("Unable to remove logs associated with '" + computer + "'.");
             }
+        }
+    }
+
+    public static void RemoveGivenTypeLogsForComputer(
+            Computer computer, IPreference preference, Timestamp from, Timestamp to)
+            throws DatabaseException
+    {
+        String className = preference.GetClassName();
+
+        String attemptErrorMessage = "Attempt of removing logs of " + className
+                + " type for " + computer.GetUsernameAndHost() + " failed.";
+        String hql = "delete from " + className + " t "+
+                "where t.Computer = :computer and t.Timestamp > " + from.getTime() + " and t.Timestamp < " + to.getTime();
+
+        Session session = MainDatabaseManager.GetInstance().GetSession();
+        Query query = session.createQuery(hql);
+        query.setParameter("computer", computer);
+
+        boolean removingSucceed = MainDatabaseManager.ExecuteDeleteQueryWithRetryPolicy(
+                session, query, ModuleName, attemptErrorMessage);
+        session.close();
+
+        if(removingSucceed == false)
+        {
+            throw new DatabaseException("Removing logs of "
+                    + preference.GetClassName() + " type for " + computer.GetUsernameAndHost() + " failed.");
         }
     }
 
