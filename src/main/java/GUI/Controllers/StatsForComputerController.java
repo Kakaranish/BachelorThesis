@@ -5,16 +5,24 @@ import Healthcheck.Entities.Logs.*;
 import Healthcheck.LogsManagement.LogsGetter;
 import Healthcheck.Preferences.Preferences;
 import Healthcheck.Utilities;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.chart.*;
+import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 import javafx.util.Pair;
 import org.javatuples.Triplet;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class StatsForComputerController implements Initializable
@@ -60,13 +68,70 @@ public class StatsForComputerController implements Initializable
         CreateDisksChart(_computer, _from, now);
         CreateCpuCharts(_computer, _from, now);
         CreateRamChart(_computer, _from, now);
-        CreateSwapChart(_computer, _from, now);
+        CreateSwapCharts(_computer, _from, now);
         CreateUsersChart(_computer, _from, now);
     }
 
     private void CreateCpuCharts(Computer computer, Timestamp from, Timestamp now)
     {
-        List<CpuLog> diskLogs = LogsGetter.GetGivenTypeLogsForComputer(
+        HBox pieChartsHBox = new HBox();
+        List<CpuLog> latestCpuLogs = LogsGetter.GetLatestGivenTypeLogsForComputer(
+                computer, Preferences.CpuInfoPreference).stream().map(l -> (CpuLog) l).collect(Collectors.toList());
+
+        if(latestCpuLogs.isEmpty())
+        {
+            VBox vBox = new VBox();
+            vBox.setAlignment(Pos.CENTER);
+            vBox.setPadding(new Insets(10, 0, 0, 0));
+
+            Label noChartsLabel = new Label();
+            noChartsLabel.setText("No charts to generate.");
+            noChartsLabel.setFont(new Font(20));
+
+            Label zeroTotalSwapLabel = new Label();
+            zeroTotalSwapLabel.setText("No logs gathered.");
+
+            vBox.getChildren().add(noChartsLabel);
+            vBox.getChildren().add(zeroTotalSwapLabel);
+
+            cpuVBox.getChildren().add(vBox);
+            return;
+        }
+
+        for(int i = 1; i <= 3; ++i)
+        {
+            String title = null;
+            double latestCpuUtil = 0;
+            switch (i)
+            {
+                case 1:
+                    title = "Latest avg CPU util from 1m - " + simpleDateFormat.format(latestCpuLogs.get(0).Timestamp);
+                    latestCpuUtil = latestCpuLogs.get(0).CpuInfo.Last1MinuteAvgCpuUtil;
+                    break;
+                case 2:
+                    title = "Latest avg CPU util from 5m - " + simpleDateFormat.format(latestCpuLogs.get(0).Timestamp);
+                    latestCpuUtil = latestCpuLogs.get(0).CpuInfo.Last5MinutesAvgCpuUtil;
+                    break;
+                case 3:
+                    title = "Latest avg CPU util from 15m - " + simpleDateFormat.format(latestCpuLogs.get(0).Timestamp);
+                    latestCpuUtil = latestCpuLogs.get(0).CpuInfo.Last15MinutesAvgCpuUtil;
+                    break;
+            }
+
+            ObservableList<PieChart.Data> pieChartData =
+                    FXCollections.observableArrayList(
+                            new PieChart.Data("Free CPU - "
+                                    + String.format("%.2f", 100 - latestCpuUtil) + "%", 100 - latestCpuUtil),
+                            new PieChart.Data("Used CPU - "
+                                    + String.format("%.2f", latestCpuUtil) + "%", latestCpuUtil));
+            final PieChart chart = new PieChart(pieChartData);
+            chart.setTitle(title);
+
+            pieChartsHBox.getChildren().add(chart);
+        }
+        cpuVBox.getChildren().add(pieChartsHBox);
+
+        List<CpuLog> cpuLogs = LogsGetter.GetGivenTypeLogsForComputer(
                 computer, Preferences.PreferenceNameMap.get("CpuInfoPreference"), from, now)
                 .stream().map(l -> (CpuLog) l).collect(Collectors.toList());
 
@@ -100,14 +165,14 @@ public class StatsForComputerController implements Initializable
             switch (i)
             {
                 case 1:
-                    pairsTimestampCpuUtilAvg = LogsGetter.GetCpuTimestamp1CpuUtilAvgList(diskLogs);
+                    pairsTimestampCpuUtilAvg = LogsGetter.GetCpuTimestamp1CpuUtilAvgList(cpuLogs);
                     break;
 
                 case 2:
-                    pairsTimestampCpuUtilAvg = LogsGetter.GetCpuTimestamp5CpuUtilAvgList(diskLogs);
+                    pairsTimestampCpuUtilAvg = LogsGetter.GetCpuTimestamp5CpuUtilAvgList(cpuLogs);
                     break;
                 case 3:
-                    pairsTimestampCpuUtilAvg = LogsGetter.GetCpuTimestamp15CpuUtilAvgList(diskLogs);
+                    pairsTimestampCpuUtilAvg = LogsGetter.GetCpuTimestamp15CpuUtilAvgList(cpuLogs);
                     break;
             }
 
@@ -130,13 +195,33 @@ public class StatsForComputerController implements Initializable
         List<DiskLog> diskLogs = LogsGetter.GetGivenTypeLogsForComputer(
                 computer, Preferences.PreferenceNameMap.get("DisksInfoPreference"), from, now)
                 .stream().map(l -> (DiskLog) l).collect(Collectors.toList());
+        if(diskLogs.isEmpty())
+        {
+            VBox vBox = new VBox();
+            vBox.setAlignment(Pos.CENTER);
+            vBox.setPadding(new Insets(10, 0, 0, 0));
+
+            Label noChartsLabel = new Label();
+            noChartsLabel.setText("No charts to generate.");
+            noChartsLabel.setFont(new Font(20));
+
+            Label zeroTotalSwapLabel = new Label();
+            zeroTotalSwapLabel.setText("No logs gathered.");
+
+            vBox.getChildren().add(noChartsLabel);
+            vBox.getChildren().add(zeroTotalSwapLabel);
+
+            disksVBox.getChildren().add(vBox);
+            return;
+        }
+
         var disksLogsGroupedByFileSystems = LogsGetter.GroupDisksLogsByFileSystem(diskLogs);
 
         for (String fileSystem : disksLogsGroupedByFileSystems.keySet())
         {
-            var pairsTimestampAvailable = LogsGetter.GetDisksAvailableForFileSystem(
+            List<Pair<Timestamp, Long>> pairsTimestampAvailable = LogsGetter.GetDisksAvailableForFileSystem(
                     disksLogsGroupedByFileSystems,fileSystem);
-            var pairsTimestampUsed = LogsGetter.GetDisksUsedForFileSystem(
+            List<Pair<Timestamp, Long>> pairsTimestampUsed = LogsGetter.GetDisksUsedForFileSystem(
                     disksLogsGroupedByFileSystems, fileSystem);
 
             CategoryAxis xAxis = new CategoryAxis();
@@ -176,11 +261,53 @@ public class StatsForComputerController implements Initializable
 
     private void CreateRamChart(Computer computer, Timestamp from, Timestamp now)
     {
+        HBox pieChartHBox = new HBox();
+        pieChartHBox.setAlignment(Pos.CENTER);
+
+        List<RamLog> latestRamLogs = LogsGetter.GetLatestGivenTypeLogsForComputer(
+                computer, Preferences.RamInfoPreference).stream().map(l -> (RamLog) l).collect(Collectors.toList());
+
+        if(latestRamLogs.isEmpty())
+        {
+            VBox vBox = new VBox();
+            vBox.setAlignment(Pos.CENTER);
+            vBox.setPadding(new Insets(10, 0, 0, 0));
+
+            Label noChartsLabel = new Label();
+            noChartsLabel.setText("No charts to generate.");
+            noChartsLabel.setFont(new Font(20));
+
+            Label zeroTotalSwapLabel = new Label();
+            zeroTotalSwapLabel.setText("No logs gathered.");
+
+            vBox.getChildren().add(noChartsLabel);
+            vBox.getChildren().add(zeroTotalSwapLabel);
+
+            ramVBox.getChildren().add(vBox);
+            return;
+        }
+
+        double used = latestRamLogs.get(0).RamInfo.Used;
+        double free = latestRamLogs.get(0).RamInfo.Free;
+
+        double freePercentage = free / (used + free) * 100;
+
+        ObservableList<PieChart.Data> pieChartData =
+                FXCollections.observableArrayList(
+                        new PieChart.Data("Free Ram - "
+                                + String.format("%.2f", freePercentage)+ "%", freePercentage),
+                        new PieChart.Data("Used Ram - "
+                                + String.format("%.2f", 100 - freePercentage) + "%", 100 - freePercentage));
+        final PieChart chart = new PieChart(pieChartData);
+        chart.setTitle("Latest Ram usage - " + simpleDateFormat.format(latestRamLogs.get(0).Timestamp));
+
+        pieChartHBox.getChildren().add(chart);
+        ramVBox.getChildren().add(pieChartHBox);
+
         List<RamLog> ramLogs = LogsGetter.GetGivenTypeLogsForComputer(
                 computer, Preferences.PreferenceNameMap.get("RamInfoPreference"),from, now)
                 .stream().map(l -> (RamLog) l).collect(Collectors.toList());
         var tripletsTimestampUsedFree = LogsGetter.GetRamTimestampUsedFreeTripletList(ramLogs);
-
 
         CategoryAxis xAxis = new CategoryAxis();
         xAxis.setLabel("Timestamp");
@@ -217,8 +344,69 @@ public class StatsForComputerController implements Initializable
         ramVBox.getChildren().add(stackedBarChart);
     }
 
-    private void CreateSwapChart(Computer computer, Timestamp from, Timestamp now)
+    private void CreateSwapCharts(Computer computer, Timestamp from, Timestamp now)
     {
+        HBox pieChartHBox = new HBox();
+        pieChartHBox.setAlignment(Pos.CENTER);
+        List<SwapLog> latestSwapLogs = LogsGetter.GetLatestGivenTypeLogsForComputer(
+                computer, Preferences.SwapInfoPreference).stream().map(l -> (SwapLog) l).collect(Collectors.toList());
+
+        if(latestSwapLogs.isEmpty())
+        {
+            VBox vBox = new VBox();
+            vBox.setAlignment(Pos.CENTER);
+            vBox.setPadding(new Insets(10, 0, 0, 0));
+
+            Label noChartsLabel = new Label();
+            noChartsLabel.setText("No charts to generate.");
+            noChartsLabel.setFont(new Font(20));
+
+            Label zeroTotalSwapLabel = new Label();
+            zeroTotalSwapLabel.setText("No logs gathered.");
+
+            vBox.getChildren().add(noChartsLabel);
+            vBox.getChildren().add(zeroTotalSwapLabel);
+
+            swapVBox.getChildren().add(vBox);
+            return;
+        }
+
+        double used = latestSwapLogs.get(0).SwapInfo.Used;
+        double free = latestSwapLogs.get(0).SwapInfo.Free;
+        if(used == 0 && free == 0)
+        {
+            VBox vBox = new VBox();
+            vBox.setAlignment(Pos.CENTER);
+            vBox.setPadding(new Insets(10, 0, 0, 0));
+
+            Label noChartsLabel = new Label();
+            noChartsLabel.setText("No charts to generate");
+            noChartsLabel.setFont(new Font(20));
+
+            Label zeroTotalSwapLabel = new Label();
+            zeroTotalSwapLabel.setText("Total swap: 0");
+
+            vBox.getChildren().add(noChartsLabel);
+            vBox.getChildren().add(zeroTotalSwapLabel);
+
+            swapVBox.getChildren().add(vBox);
+            return;
+        }
+
+        double freePercentage = free / (used + free) * 100;
+
+        ObservableList<PieChart.Data> pieChartData =
+                FXCollections.observableArrayList(
+                        new PieChart.Data("Free Swap - "
+                                + String.format("%.2f", freePercentage)+ "%", freePercentage),
+                        new PieChart.Data("Used Swap - "
+                                + String.format("%.2f", 100 - freePercentage) + "%", 100 - freePercentage));
+        final PieChart chart = new PieChart(pieChartData);
+        chart.setTitle("Latest Swap usage - " + simpleDateFormat.format(latestSwapLogs.get(0).Timestamp));
+
+        pieChartHBox.getChildren().add(chart);
+        swapVBox.getChildren().add(pieChartHBox);
+
         List<SwapLog> swapLogs = LogsGetter.GetGivenTypeLogsForComputer(
                 computer, Preferences.PreferenceNameMap.get("SwapInfoPreference"),from, now)
                 .stream().map(l -> (SwapLog) l).collect(Collectors.toList());
@@ -262,8 +450,29 @@ public class StatsForComputerController implements Initializable
     private void CreateUsersChart(Computer computer, Timestamp from, Timestamp now)
     {
         List<UserLog> usersLogs = LogsGetter.GetGivenTypeLogsForComputer(
-                computer, Preferences.PreferenceNameMap.get("UsersInfoPreference"), from, now)
+                computer, Preferences.UsersInfoPreference, from, now)
                 .stream().map(l -> (UserLog) l).collect(Collectors.toList());
+
+        if(usersLogs.isEmpty())
+        {
+            VBox vBox = new VBox();
+            vBox.setAlignment(Pos.CENTER);
+            vBox.setPadding(new Insets(10, 0, 0, 0));
+
+            Label noChartsLabel = new Label();
+            noChartsLabel.setText("No charts to generate.");
+            noChartsLabel.setFont(new Font(20));
+
+            Label zeroTotalSwapLabel = new Label();
+            zeroTotalSwapLabel.setText("No logs gathered.");
+
+            vBox.getChildren().add(noChartsLabel);
+            vBox.getChildren().add(zeroTotalSwapLabel);
+
+            usersVBox.getChildren().add(vBox);
+            return;
+        }
+
         List<Pair<Timestamp, Integer>> pairsTimestampLoggedUsersNum = LogsGetter.GetUsersTimestampNumOfLogged(usersLogs);
 
         CategoryAxis xAxis = new CategoryAxis();
