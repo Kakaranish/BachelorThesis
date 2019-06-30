@@ -217,4 +217,9 @@ public class ComputersAndSshConfigsManager
     {
         return _computers.stream().filter(c -> c.GetClassroom().equals(classroom)).collect(Collectors.toList());
     }
+
+    public List<String> GetAvailableClassrooms()
+    {
+        return _computers.stream().map(c -> c.GetClassroom()).distinct().collect(Collectors.toList());
+    }
 }
