@@ -73,7 +73,7 @@ public class LogsForComputerController implements Initializable
     {
         Timestamp now = new Timestamp(new Date().getTime());
 
-        List<UserEntry> logEntries = LogsGetter.GetCertainTypeLogsForComputer(
+        List<UserEntry> logEntries = LogsGetter.GetGivenTypeLogsForComputer(
                 _computer, Preferences.PreferenceNameMap.get("UsersInfoPreference"), from, now)
                 .stream().map(LogBaseEntity::ToEntry).map(u -> (UserEntry) u).collect(Collectors.toList());
 
@@ -134,7 +134,7 @@ public class LogsForComputerController implements Initializable
     {
         Timestamp now = new Timestamp(new Date().getTime());
 
-        List<CpuEntry> logEntries = LogsGetter.GetCertainTypeLogsForComputer(
+        List<CpuEntry> logEntries = LogsGetter.GetGivenTypeLogsForComputer(
                 _computer, Preferences.PreferenceNameMap.get("CpuInfoPreference"), from, now)
                 .stream().map(LogBaseEntity::ToEntry).map(u -> (CpuEntry) u).collect(Collectors.toList());
 
@@ -188,7 +188,7 @@ public class LogsForComputerController implements Initializable
     {
         Timestamp now = new Timestamp(new Date().getTime());
 
-        List<RamEntry> logEntries = LogsGetter.GetCertainTypeLogsForComputer(
+        List<RamEntry> logEntries = LogsGetter.GetGivenTypeLogsForComputer(
                 _computer, Preferences.PreferenceNameMap.get("RamInfoPreference"), from, now)
                 .stream().map(LogBaseEntity::ToEntry).map(u -> (RamEntry) u).collect(Collectors.toList());
 
@@ -230,7 +230,7 @@ public class LogsForComputerController implements Initializable
     {
         Timestamp now = new Timestamp(new Date().getTime());
 
-        List<SwapEntry> logEntries = LogsGetter.GetCertainTypeLogsForComputer(
+        List<SwapEntry> logEntries = LogsGetter.GetGivenTypeLogsForComputer(
                 _computer, Preferences.PreferenceNameMap.get("SwapInfoPreference"), from, now)
                 .stream().map(LogBaseEntity::ToEntry).map(u -> (SwapEntry) u).collect(Collectors.toList());
 
@@ -284,7 +284,7 @@ public class LogsForComputerController implements Initializable
     {
         Timestamp now = new Timestamp(new Date().getTime());
 
-        List<DiskEntry> logEntries = LogsGetter.GetCertainTypeLogsForComputer(
+        List<DiskEntry> logEntries = LogsGetter.GetGivenTypeLogsForComputer(
                 _computer, Preferences.PreferenceNameMap.get("DisksInfoPreference"), from, now)
                 .stream().map(LogBaseEntity::ToEntry).map(u -> (DiskEntry) u).collect(Collectors.toList());
 
@@ -358,7 +358,7 @@ public class LogsForComputerController implements Initializable
     {
         Timestamp now = new Timestamp(new Date().getTime());
 
-        List<ProcessEntry> logEntries = LogsGetter.GetCertainTypeLogsForComputer(
+        List<ProcessEntry> logEntries = LogsGetter.GetGivenTypeLogsForComputer(
                 _computer, Preferences.PreferenceNameMap.get("ProcessesInfoPreference"), from, now)
                 .stream().map(LogBaseEntity::ToEntry).map(u -> (ProcessEntry) u).collect(Collectors.toList());
 
