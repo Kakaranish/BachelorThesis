@@ -7,9 +7,9 @@ import Healthcheck.Entities.CacheLogs.CacheLogBase;
 import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.Logs.*;
 import Healthcheck.Preferences.IPreference;
+import Healthcheck.Preferences.Preferences;
 import javafx.util.Pair;
 import org.hibernate.Session;
-import org.javatuples.Quartet;
 import org.javatuples.Triplet;
 import javax.persistence.Query;
 import java.sql.Timestamp;
@@ -136,29 +136,19 @@ public class LogsGetter
 
     // --- SWAP LOGS  --------------------------------------------------------------------------------------------------
 
-    public static List<Quartet<Timestamp, Long, Long, Long>> GetSwapTimestampTotalUsedFreeQuartetList(List<SwapLog> swapLogs)
-    {
-        return swapLogs.stream().map(s -> new Quartet<Timestamp, Long, Long, Long>(s.Timestamp, s.SwapInfo.Total,
-                s.SwapInfo.Used, s.SwapInfo.Free)).collect(Collectors.toList());
-    }
-
-    public static long GetSwapTotal(List<SwapLog> ramLogs)
-    {
-        return ramLogs.get(0).SwapInfo.Total;
-    }
-
     public static List<Triplet<Timestamp, Long, Long>> GetSwapTimestampUsedFreeTripletList(List<SwapLog> ramLogs)
     {
         return ramLogs.stream().map(s -> new Triplet<Timestamp, Long, Long>(
                 s.Timestamp, s.SwapInfo.Used, s.SwapInfo.Free)).collect(Collectors.toList());
     }
 
-    // --- RAM LOGS  ---------------------------------------------------------------------------------------------------
-
-    public static long GetRamTotal(List<RamLog> ramLogs)
+    public static List<SwapLog> GetLatestSwapLogsForComputer(Computer computer)
     {
-        return ramLogs.get(0).RamInfo.Total;
+        return LogsGetter.GetLatestGivenTypeLogsForComputer(computer, Preferences.SwapInfoPreference)
+                .stream().map(l -> (SwapLog) l).collect(Collectors.toList());
     }
+
+    // --- RAM LOGS  ---------------------------------------------------------------------------------------------------
 
     public static List<Triplet<Timestamp, Long, Long>> GetRamTimestampUsedFreeTripletList(List<RamLog> ramLogs)
     {
@@ -166,13 +156,26 @@ public class LogsGetter
                 s.Timestamp, s.RamInfo.Used, s.RamInfo.Free)).collect(Collectors.toList());
     }
 
+    public static List<RamLog> GetLatestRamLogsForComputer(Computer computer)
+    {
+        return LogsGetter.GetLatestGivenTypeLogsForComputer(computer, Preferences.RamInfoPreference)
+                .stream().map(l -> (RamLog) l).collect(Collectors.toList());
+    }
+
     // --- USERS LOGS  -------------------------------------------------------------------------------------------------
 
     public static List<Pair<Timestamp, Integer>> GetUsersTimestampNumOfLogged(List<UserLog> usersLogs)
     {
         return usersLogs.stream().collect(Collectors.groupingBy(u -> u.Timestamp))
-                .entrySet().stream().map(u -> new Pair<Timestamp, Integer>(u.getKey(), u.getValue().size()))
+                .entrySet().stream().map(u -> new Pair<Timestamp, Integer>(u.getKey(),
+                        u.getValue().get(0).UserInfo == null
+                                || u.getValue().get(0).UserInfo.User == null ? 0 : u.getValue().size()))
                 .collect(Collectors.toList());
+    }
+
+    public static int GetLatestNumberOfLoggedUsersForComputer(Computer computer)
+    {
+        return LogsGetter.GetLatestGivenTypeLogsForComputer(computer, Preferences.UsersInfoPreference).size();
     }
 
     // --- DISKS LOGS  -------------------------------------------------------------------------------------------------
@@ -180,14 +183,6 @@ public class LogsGetter
     public static Map<String, List<DiskLog>> GroupDisksLogsByFileSystem(List<DiskLog> disksLogs)
     {
         return disksLogs.stream().collect(Collectors.groupingBy(d -> d.DiskInfo.FileSystem));
-    }
-
-    public static List<Pair<Timestamp, Double>> GetDisksFreePercentageForFileSystem(
-            Map<String, List<DiskLog>> groupedByFileSystemLogs, String fileSystem)
-    {
-        return groupedByFileSystemLogs.get(fileSystem).stream()
-                .map(l -> new Pair<Timestamp, Double>(l.Timestamp, (double) l.DiskInfo.UsePercentage))
-                .collect(Collectors.toList());
     }
 
     public static List<Pair<Timestamp, Long>> GetDisksAvailableForFileSystem(
@@ -206,24 +201,7 @@ public class LogsGetter
                 .collect(Collectors.toList());
     }
 
-    public static long GetDisksBlockNumberForFileSystem(
-            Map<String, List<DiskLog>> groupedByFileSystemLogs, String fileSystem)
-    {
-        return groupedByFileSystemLogs.get(fileSystem).get(0).DiskInfo.BlocksNumber;
-    }
-
-    public static List<Pair<Timestamp, Double>> GetDisksPercentageUsageForFileSystem(
-            Map<String, List<DiskLog>> groupedByFileSystemLogs, String fileSystem)
-    {
-        return groupedByFileSystemLogs.get(fileSystem).stream().map(l -> new Pair<Timestamp, Double>(
-                l.Timestamp, l.DiskInfo.Used / (double) l.DiskInfo.Available * 100)).collect(Collectors.toList());
-    }
-
-    public static long GetDiskAvailableSizeForFileSystem(
-            Map<String, List<DiskLog>> groupedByFileSystemLogs, String fileSystem)
-    {
-        return groupedByFileSystemLogs.get(fileSystem).get(0).DiskInfo.Available;
-    }
+    // --- CPU LOGS  ---------------------------------------------------------------------------------------------------
 
     public static List<Pair<Timestamp, Double>> GetCpuTimestamp1CpuUtilAvgList(List<CpuLog> cpuLogs)
     {
@@ -243,13 +221,9 @@ public class LogsGetter
                 c.CpuInfo.Last15MinutesAvgCpuUtil)).collect(Collectors.toList());
     }
 
-    public Map<Computer, List<LogBase>> GroupLogsByComputer(List<LogBase> logs)
+    public static List<CpuLog> GetLatestCpuLogsForComputer(Computer computer)
     {
-        return logs.stream().collect(Collectors.groupingBy(l -> l.Computer));
-    }
-
-    public Map<Integer, List<CacheLogBase>> GroupCacheLogsByComputerId(List<CacheLogBase> logs)
-    {
-        return logs.stream().collect(Collectors.groupingBy(l -> l.ComputerId));
+        return LogsGetter.GetLatestGivenTypeLogsForComputer(computer, Preferences.CpuInfoPreference)
+            .stream().map(l -> (CpuLog) l).collect(Collectors.toList());
     }
 }
