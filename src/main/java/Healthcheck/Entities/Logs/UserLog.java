@@ -11,6 +11,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 
@@ -44,6 +45,12 @@ public class UserLog extends LogBase
                 userCacheLog.Timestamp);
 
         UserInfo = userCacheLog.UserInfo;
+    }
+
+    @Transient
+    public static UserLog CreateEmptyUserLog(Computer computer, Timestamp timestamp)
+    {
+        return new UserLog(computer, Healthcheck.Models.Info.UserInfo.GetEmptyUserInfo(), timestamp);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package Healthcheck.Models.Info;
 
+import java.beans.Transient;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -24,6 +25,12 @@ public class UserInfo
 
     private UserInfo()
     {
+    }
+
+    @Transient
+    public static UserInfo GetEmptyUserInfo()
+    {
+        return new UserInfo();
     }
 
     public UserInfo(String commandExecutionResult)
