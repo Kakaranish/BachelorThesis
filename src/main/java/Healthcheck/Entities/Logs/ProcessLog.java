@@ -2,6 +2,9 @@ package Healthcheck.Entities.Logs;
 
 import GUI.TableViewEntries.LogEntry;
 import GUI.TableViewEntries.ProcessEntry;
+import Healthcheck.ComputersAndSshConfigsManager;
+import Healthcheck.Entities.CacheLogs.CacheLogBaseEntity;
+import Healthcheck.Entities.CacheLogs.ProcessCacheLog;
 import Healthcheck.Entities.Computer;
 import Healthcheck.Models.Info.ProcessInfo;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -24,16 +27,25 @@ public class ProcessLog extends LogBaseEntity
     {
     }
 
-    public ProcessLog(Computer computer, ProcessInfo processInfo)
-    {
-        super(computer);
-        ProcessInfo = processInfo;
-    }
-
     public ProcessLog(Computer computer, ProcessInfo processInfo, Timestamp timestamp)
     {
         super(computer, timestamp);
         ProcessInfo = processInfo;
+    }
+
+    public ProcessLog(ProcessCacheLog processCacheLog, Computer computer)
+    {
+        super(processCacheLog.LogId, computer, processCacheLog.Timestamp);
+
+        ProcessInfo = processCacheLog.ProcessInfo;
+    }
+
+    public ProcessLog(ProcessCacheLog processCacheLog, ComputersAndSshConfigsManager computersAndSshConfigsManager)
+    {
+        super(processCacheLog.LogId, computersAndSshConfigsManager.GetComputerById(processCacheLog.ComputerId),
+                processCacheLog.Timestamp);
+
+        ProcessInfo = processCacheLog.ProcessInfo;
     }
 
     @Override
@@ -54,5 +66,11 @@ public class ProcessLog extends LogBaseEntity
             Time = new SimpleStringProperty(ProcessInfo.Time);
             Command = new SimpleStringProperty(ProcessInfo.Command);
         }};
+    }
+
+    @Override
+    public CacheLogBaseEntity ToCacheLog()
+    {
+        return new ProcessCacheLog(this);
     }
 }

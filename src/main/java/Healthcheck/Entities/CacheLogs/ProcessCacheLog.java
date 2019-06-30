@@ -1,6 +1,7 @@
 package Healthcheck.Entities.CacheLogs;
 
 import Healthcheck.ComputersAndSshConfigsManager;
+import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.Logs.LogBaseEntity;
 import Healthcheck.Entities.Logs.ProcessLog;
 import Healthcheck.Models.Info.ProcessInfo;
@@ -15,6 +16,10 @@ public class ProcessCacheLog extends CacheLogBaseEntity
     @Embedded
     public ProcessInfo ProcessInfo;
 
+    private ProcessCacheLog()
+    {
+    }
+
     public ProcessCacheLog(ProcessLog processLog)
     {
         super(processLog);
@@ -23,8 +28,19 @@ public class ProcessCacheLog extends CacheLogBaseEntity
     }
 
     @Override
-    public LogBaseEntity ToLog(ComputersAndSshConfigsManager cpComputersAndSshConfigsManager)
+    public LogBaseEntity ToLog(ComputersAndSshConfigsManager computersAndSshConfigsManager)
     {
-        return new ProcessLog(cpComputersAndSshConfigsManager.GetComputerById(ComputerId), ProcessInfo);
+        return new ProcessLog(this, computersAndSshConfigsManager);
+    }
+
+    @Override
+    public LogBaseEntity ToLog(Computer computer)
+    {
+        if(ComputerId != computer.GetId())
+        {
+            return null;
+        }
+
+        return new ProcessLog(this, computer);
     }
 }

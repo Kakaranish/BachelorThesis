@@ -2,6 +2,9 @@ package Healthcheck.Entities.Logs;
 
 import GUI.TableViewEntries.CpuEntry;
 import GUI.TableViewEntries.LogEntry;
+import Healthcheck.ComputersAndSshConfigsManager;
+import Healthcheck.Entities.CacheLogs.CacheLogBaseEntity;
+import Healthcheck.Entities.CacheLogs.CpuCacheLog;
 import Healthcheck.Entities.Computer;
 import Healthcheck.Models.Info.CpuInfo;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -24,16 +27,25 @@ public class CpuLog extends LogBaseEntity
     {
     }
 
-    public CpuLog(Computer computer, CpuInfo cpuInfo)
-    {
-        super(computer);
-        CpuInfo = cpuInfo;
-    }
-
     public CpuLog(Computer computer, CpuInfo cpuInfo, Timestamp timestamp)
     {
         super(computer, timestamp);
         CpuInfo = cpuInfo;
+    }
+
+    public CpuLog(CpuCacheLog cpuCacheLog, Computer computer)
+    {
+        super(cpuCacheLog.LogId, computer,cpuCacheLog.Timestamp);
+
+        CpuInfo = cpuCacheLog.CpuInfo;
+    }
+
+    public CpuLog(CpuCacheLog cpuCacheLog, ComputersAndSshConfigsManager computersAndSshConfigsManager)
+    {
+        super(cpuCacheLog.LogId, computersAndSshConfigsManager.GetComputerById(cpuCacheLog.ComputerId),
+                cpuCacheLog.Timestamp);
+
+        CpuInfo = cpuCacheLog.CpuInfo;
     }
 
     @Override
@@ -49,5 +61,11 @@ public class CpuLog extends LogBaseEntity
             ExistingKernelSchedulingEntitiesNum = new SimpleIntegerProperty(CpuInfo.ExistingKernelSchedulingEntitiesNum);
             RecentlyCreatedProcessPID = new SimpleIntegerProperty(CpuInfo.RecentlyCreatedProcessPID);
         }};
+    }
+
+    @Override
+    public CacheLogBaseEntity ToCacheLog()
+    {
+        return new CpuCacheLog(this);
     }
 }

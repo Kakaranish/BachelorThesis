@@ -2,6 +2,9 @@ package Healthcheck.Entities.Logs;
 
 import GUI.TableViewEntries.LogEntry;
 import GUI.TableViewEntries.SwapEntry;
+import Healthcheck.ComputersAndSshConfigsManager;
+import Healthcheck.Entities.CacheLogs.CacheLogBaseEntity;
+import Healthcheck.Entities.CacheLogs.SwapCacheLog;
 import Healthcheck.Entities.Computer;
 import Healthcheck.Models.Info.SwapInfo;
 import javafx.beans.property.SimpleLongProperty;
@@ -21,16 +24,25 @@ public class SwapLog extends LogBaseEntity
     {
     }
 
-    public SwapLog(Computer computer, SwapInfo swapInfo)
-    {
-        super(computer);
-        SwapInfo = swapInfo;
-    }
-
     public SwapLog(Computer computer, SwapInfo swapInfo, Timestamp timestamp)
     {
         super(computer, timestamp);
         SwapInfo = swapInfo;
+    }
+
+    public SwapLog(SwapCacheLog swapCacheLog, Computer computer)
+    {
+        super(swapCacheLog.LogId, computer, swapCacheLog.Timestamp);
+
+        SwapInfo = swapCacheLog.SwapInfo;
+    }
+
+    public SwapLog(SwapCacheLog swapCacheLog, ComputersAndSshConfigsManager computersAndSshConfigsManager)
+    {
+        super(swapCacheLog.LogId, computersAndSshConfigsManager.GetComputerById(swapCacheLog.ComputerId),
+                swapCacheLog.Timestamp);
+
+        SwapInfo = swapCacheLog.SwapInfo;
     }
 
     @Override
@@ -43,5 +55,11 @@ public class SwapLog extends LogBaseEntity
             Used = new SimpleLongProperty(SwapInfo.Used);
             Free = new SimpleLongProperty(SwapInfo.Free);
         }};
+    }
+
+    @Override
+    public CacheLogBaseEntity ToCacheLog()
+    {
+        return new SwapCacheLog(this);
     }
 }

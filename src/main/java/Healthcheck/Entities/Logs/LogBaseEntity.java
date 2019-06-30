@@ -37,5 +37,14 @@ public abstract class LogBaseEntity
         Timestamp = timestamp;
     }
 
+    public LogBaseEntity(Long id, Computer computer, Timestamp timestamp)
+    {
+        Id = id;
+        Computer = computer;
+        Timestamp = timestamp;
+    }
+
     public abstract LogEntry ToEntry();
+
+    public abstract CacheLogBaseEntity ToCacheLog();
 }

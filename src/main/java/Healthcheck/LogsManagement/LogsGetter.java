@@ -1,8 +1,9 @@
 package Healthcheck.LogsManagement;
 
 import Healthcheck.ComputersAndSshConfigsManager;
-import Healthcheck.DatabaseManagement.DatabaseException;
-import Healthcheck.DatabaseManagement.DatabaseManager;
+import Healthcheck.DatabaseManagement.CacheDatabaseManager;
+import Healthcheck.DatabaseManagement.MainDatabaseManager;
+import Healthcheck.Entities.CacheLogs.CacheLogBaseEntity;
 import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.Logs.*;
 import Healthcheck.Preferences.IPreference;
@@ -10,133 +11,128 @@ import javafx.util.Pair;
 import org.hibernate.Session;
 import org.javatuples.Quartet;
 import org.javatuples.Triplet;
-import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 import java.sql.Timestamp;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class LogsGetter
 {
-    public static Map<Computer, List<BaseEntity>> GetLogsGroupedByComputer(List<BaseEntity> logs)
-    {
-        Map<Computer, List<BaseEntity>> grouped =
-                logs.stream().collect(Collectors.groupingBy(l -> l.Computer));
+    // ---  GETTING LATEST LOGS  ---------------------------------------------------------------------------------------
 
-        return grouped;
+    public static Map<Computer, List<LogBaseEntity>> GetLatestGivenTypeLogsForComputers(
+            List<Computer> computers, IPreference iPreference)
+    {
+        Map<Computer, List<LogBaseEntity>> groupedLogs = new HashMap<>();
+        for (Computer computer : computers)
+        {
+            groupedLogs.put(computer, GetLatestGivenTypeLogsForComputer(computer, iPreference));
+        }
+
+        return groupedLogs;
     }
 
-    public static List<BaseEntity> GetCertainTypeLogsForSingleComputer(
-            Computer computer, IPreference preference, Timestamp fromDate, Timestamp toDate)
+    public static List<LogBaseEntity> GetLatestGivenTypeLogsForComputer(Computer computer, IPreference preference)
     {
-        Session session = DatabaseManager.GetInstance().GetSession();
-
-        try
+        List<LogBaseEntity> logsFromCacheDb = GetLatestGivenTypeLogsForComputerFromCacheDb(computer, preference);
+        if(logsFromCacheDb.isEmpty())
         {
-            String hql = "from " + preference.GetClassName() + " t" +
-                    " where t.Timestamp > " + fromDate.getTime() + " and t.Timestamp < " + toDate.getTime() +
-                    " and t.Computer = :computer";
-            Query query = session.createQuery(hql);
-            query.setParameter("computer", computer);
-
-            List<BaseEntity> receivedLogs = query.getResultList();
-
-            return receivedLogs;
-        }
-        catch (PersistenceException e)
-        {
-            throw new DatabaseException("Unable get certain type logs for single computer.");
-        }
-        finally
-        {
-            session.close();
-        }
-    }
-
-    public static List<BaseEntity> GetCertainTypeLogsForClassroom(
-            String classroom, IPreference preference, Timestamp fromDate, Timestamp toDate)
-    {
-        Session session = DatabaseManager.GetInstance().GetSession();
-        try
-        {
-            String hql = "from " + preference.GetClassName() + " t" +
-                    " where t.Timestamp > " + fromDate.getTime() + " and t.Timestamp < " + toDate.getTime() +
-                    " and t.Computer.Classroom = '" + classroom + "'";
-            Query query = session.createQuery(hql);
-
-            List<BaseEntity> receivedLogs = query.getResultList();
-
-            return receivedLogs;
-        }
-        catch (PersistenceException e)
-        {
-            throw new DatabaseException("Unable to get certain type logs for classroom.");
-        }
-        finally
-        {
-            session.close();
-        }
-    }
-
-    public static List<BaseEntity> GetCertainTypeLogsForAllComputers(
-            IPreference preference, Timestamp fromDate, Timestamp toDate)
-    {
-        Session session = DatabaseManager.GetInstance().GetSession();
-
-        try
-        {
-            String hql = "from " + preference.GetClassName() + " t" +
-                    " where t.Timestamp > " + fromDate.getTime() + " and t.Timestamp < " + toDate.getTime();
-            Query query = session.createQuery(hql);
-
-            List<BaseEntity> receivedLogs = query.getResultList();
-
-            return receivedLogs;
-        }
-        catch (PersistenceException e)
-        {
-            throw new DatabaseException("Unable to get certain type logs for all computers.");
-        }
-        finally
-        {
-            session.close();
-        }
-    }
-
-    public static List<BaseEntity> GetCertainTypeLogsForSelectedComputers(
-            IPreference preference, Timestamp fromDate, Timestamp toDate,
-            ComputersAndSshConfigsManager computersAndSshConfigsManager)
-    {
-        Session session = DatabaseManager.GetInstance().GetSession();
-
-        try
-        {
-            List<BaseEntity> logsList = new ArrayList<>();
-
-            List<Computer> selectedComputers = computersAndSshConfigsManager.GetSelectedComputers();
-            for (Computer selectedComputer : selectedComputers)
+            List<LogBaseEntity> logsFromMainDb = GetLatestGivenTypeLogsForComputerFromMainDb(computer, preference);
+            if(logsFromMainDb.isEmpty() == false)
             {
-                String hql = "from " + preference.GetClassName() +" t" +
-                        " where t.Timestamp > " + fromDate.getTime() + " and t.Timestamp < " + toDate.getTime() +
-                        " and t.Computer = :computerEntity";
-                Query query = session.createQuery(hql);
-                query.setParameter("computerEntity", selectedComputer);
-
-                logsList.addAll(query.getResultList());
+                CacheLogsSaver.CacheGivenTypeLogsForComputer(logsFromMainDb, preference);
             }
 
-            return logsList;
+            return logsFromMainDb;
         }
-        catch (PersistenceException e)
-        {
-            throw new DatabaseException("Unable to get certain type logs for selected computers.");
-        }
-        finally
-        {
-            session.close();
-        }
+
+        return logsFromCacheDb;
+    }
+
+    public static List<LogBaseEntity> GetLatestGivenTypeLogsForComputerFromCacheDb(Computer computer, IPreference preference)
+    {
+        String cacheLogClassName = preference.GetClassName().replace("Log", "CacheLog");
+        String attemptErrorMessage = "Attempt of getting latest cache logs from " + cacheLogClassName + " for '"
+                + computer.GetUsernameAndHost() + "' failed.";
+
+        String hql = "from " + cacheLogClassName + " t where t.ComputerId = :computerId";
+        Session session = CacheDatabaseManager.GetInstance().GetSession();
+        Query query = session.createQuery(hql);
+        query.setParameter("computerId", computer.GetId());
+
+        List<CacheLogBaseEntity> receivedLogs = CacheDatabaseManager.ExecuteSelectQueryWithRetryPolicy(
+                session, query, "LogsGetter", attemptErrorMessage);
+        session.close();
+
+        return receivedLogs.stream().map(l -> l.ToLog(computer)).collect(Collectors.toList());
+    }
+
+    public static List<LogBaseEntity> GetLatestGivenTypeLogsForComputerFromMainDb(
+            Computer computer, IPreference preference)
+    {
+        String attemptErrorMessage = "Attempt of getting latest cache logs from " + preference.GetClassName() + " for '"
+                + computer.GetUsernameAndHost() + "' failed.";
+
+        String hql = "from " + preference.GetClassName() + " t where t.Timestamp = " +
+                "(select max(Timestamp) from " + preference.GetClassName() + " tt where tt.Computer = :computer)";
+        Session session = MainDatabaseManager.GetInstance().GetSession();
+        Query query = session.createQuery(hql);
+        query.setParameter("computer", computer);
+
+        List<LogBaseEntity> receivedLogs = MainDatabaseManager.ExecuteSelectQueryWithRetryPolicy(
+                session, query, "LogsGetter", attemptErrorMessage);
+        session.close();
+
+        return receivedLogs;
+    }
+
+    public static List<LogBaseEntity> GetCertainTypeLogsForClassroom(
+            String classroom, IPreference preference, Timestamp fromDate, Timestamp toDate)
+    {
+        String attemptErrorMessage = "Attempt of getting logs from "
+               + preference.GetClassName() + " for '" + classroom + "' classroom failed.";
+        String hql = "from " + preference.GetClassName() + " t" +
+                " where t.Timestamp > " + fromDate.getTime() + " and t.Timestamp < " + toDate.getTime() +
+                " and t.Computer.Classroom = '" + classroom + "'";
+
+        Session session = MainDatabaseManager.GetInstance().GetSession();
+        Query query = session.createQuery(hql);
+        List<LogBaseEntity> receivedLogs = MainDatabaseManager.ExecuteSelectQueryWithRetryPolicy(
+                session, query, "LogsGetter", attemptErrorMessage);
+        session.close();
+
+        return receivedLogs;
+    }
+
+    public static Map<Computer, List<LogBaseEntity>> GetLatestGivenTypeGroupedByComputerLogsForClassroom(
+            String classroom, IPreference preference, ComputersAndSshConfigsManager computersAndSshConfigsManager)
+    {
+        List<Computer> computersInClassroom = computersAndSshConfigsManager.GetComputersForClassroom(classroom);
+        return GetLatestGivenTypeLogsForComputers(computersInClassroom, preference);
+    }
+
+    // --- OTHER GETTING LOGS  -----------------------------------------------------------------------------------------
+
+    public static List<LogBaseEntity> GetGivenTypeLogsForComputer(
+            Computer computer, IPreference preference, Timestamp fromDate, Timestamp toDate)
+    {
+        String attemptErrorMessage = "Attempt of getting logs from "
+                + preference.GetClassName() + " for '" + computer.GetUsernameAndHost() + "' failed.";
+        String hql = "from " + preference.GetClassName() + " t" +
+                " where t.Timestamp > " + fromDate.getTime() + " and t.Timestamp < " + toDate.getTime() +
+                " and t.Computer = :computer";
+
+        Session session = MainDatabaseManager.GetInstance().GetSession();
+        Query query = session.createQuery(hql);
+        query.setParameter("computer", computer);
+
+        List<LogBaseEntity> receivedLogs = MainDatabaseManager.ExecuteSelectQueryWithRetryPolicy(
+                session, query, "LogsGetter", attemptErrorMessage);
+        session.close();
+
+        return receivedLogs;
     }
 
     // --- SWAP LOGS  --------------------------------------------------------------------------------------------------
@@ -236,7 +232,6 @@ public class LogsGetter
         return groupedByFileSystemLogs.get(fileSystem).get(0).DiskInfo.Available;
     }
 
-
     public static List<Pair<Timestamp, Double>> GetCpuTimestamp1CpuUtilAvgList(List<CpuLog> cpuLogs)
     {
         return cpuLogs.stream().map(c -> new Pair<Timestamp, Double>(c.Timestamp,
@@ -253,5 +248,15 @@ public class LogsGetter
     {
         return cpuLogs.stream().map(c -> new Pair<Timestamp, Double>(c.Timestamp,
                 c.CpuInfo.Last15MinutesAvgCpuUtil)).collect(Collectors.toList());
+    }
+
+    public Map<Computer, List<LogBaseEntity>> GroupLogsByComputer(List<LogBaseEntity> logs)
+    {
+        return logs.stream().collect(Collectors.groupingBy(l -> l.Computer));
+    }
+
+    public Map<Integer, List<CacheLogBaseEntity>> GroupCacheLogsByComputerId(List<CacheLogBaseEntity> logs)
+    {
+        return logs.stream().collect(Collectors.groupingBy(l -> l.ComputerId));
     }
 }

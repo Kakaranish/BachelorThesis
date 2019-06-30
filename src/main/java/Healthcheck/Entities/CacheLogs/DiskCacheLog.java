@@ -1,6 +1,7 @@
 package Healthcheck.Entities.CacheLogs;
 
 import Healthcheck.ComputersAndSshConfigsManager;
+import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.Logs.DiskLog;
 import Healthcheck.Entities.Logs.LogBaseEntity;
 import Healthcheck.Models.Info.DiskInfo;
@@ -15,6 +16,10 @@ public class DiskCacheLog extends CacheLogBaseEntity
     @Embedded
     public DiskInfo DiskInfo;
 
+    private DiskCacheLog()
+    {
+    }
+
     public DiskCacheLog(DiskLog diskLog)
     {
         super(diskLog);
@@ -23,8 +28,19 @@ public class DiskCacheLog extends CacheLogBaseEntity
     }
 
     @Override
-    public LogBaseEntity ToLog(ComputersAndSshConfigsManager cpComputersAndSshConfigsManager)
+    public LogBaseEntity ToLog(ComputersAndSshConfigsManager computersAndSshConfigsManager)
     {
-        return new DiskLog(cpComputersAndSshConfigsManager.GetComputerById(ComputerId), DiskInfo);
+        return new DiskLog(this, computersAndSshConfigsManager);
+    }
+
+    @Override
+    public LogBaseEntity ToLog(Computer computer)
+    {
+        if(ComputerId != computer.GetId())
+        {
+            return null;
+        }
+
+        return new DiskLog(this, computer);
     }
 }

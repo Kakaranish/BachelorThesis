@@ -2,6 +2,9 @@ package Healthcheck.Entities.Logs;
 
 import GUI.TableViewEntries.LogEntry;
 import GUI.TableViewEntries.UserEntry;
+import Healthcheck.ComputersAndSshConfigsManager;
+import Healthcheck.Entities.CacheLogs.CacheLogBaseEntity;
+import Healthcheck.Entities.CacheLogs.UserCacheLog;
 import Healthcheck.Entities.Computer;
 import Healthcheck.Models.Info.UserInfo;
 import javafx.beans.property.SimpleStringProperty;
@@ -22,16 +25,25 @@ public class UserLog extends LogBaseEntity
     {
     }
 
-    public UserLog(Computer computer, UserInfo userInfo)
-    {
-        super(computer);
-        UserInfo = userInfo;
-    }
-
     public UserLog(Computer computer, UserInfo userInfo, Timestamp timestamp)
     {
         super(computer, timestamp);
         UserInfo = userInfo;
+    }
+
+    public UserLog(UserCacheLog userCacheLog, Computer computer)
+    {
+        super(userCacheLog.LogId, computer, userCacheLog.Timestamp);
+
+        UserInfo = userCacheLog.UserInfo;
+    }
+
+    public UserLog(UserCacheLog userCacheLog, ComputersAndSshConfigsManager computersAndSshConfigsManager)
+    {
+        super(userCacheLog.LogId, computersAndSshConfigsManager.GetComputerById(userCacheLog.ComputerId),
+                userCacheLog.Timestamp);
+
+        UserInfo = userCacheLog.UserInfo;
     }
 
     @Override
@@ -49,5 +61,11 @@ public class UserLog extends LogBaseEntity
             User = new SimpleStringProperty(UserInfo.User);
             What = new SimpleStringProperty(UserInfo.What);
         }};
+    }
+
+    @Override
+    public CacheLogBaseEntity ToCacheLog()
+    {
+        return new UserCacheLog(this);
     }
 }

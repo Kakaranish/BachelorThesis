@@ -1,6 +1,7 @@
 package Healthcheck.Entities.CacheLogs;
 
 import Healthcheck.ComputersAndSshConfigsManager;
+import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.Logs.LogBaseEntity;
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -12,6 +13,8 @@ public abstract class CacheLogBaseEntity
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long Id;
 
+    public Long LogId;
+
     public Timestamp Timestamp;
 
     public int ComputerId;
@@ -22,10 +25,12 @@ public abstract class CacheLogBaseEntity
 
     protected CacheLogBaseEntity(LogBaseEntity logBaseEntity)
     {
-        Id = logBaseEntity.Id;
+        LogId = logBaseEntity.Id;
         Timestamp = logBaseEntity.Timestamp;
         ComputerId = logBaseEntity.Computer.GetId();
     }
 
-    public abstract LogBaseEntity ToLog(ComputersAndSshConfigsManager cpComputersAndSshConfigsManager);
+    public abstract LogBaseEntity ToLog(ComputersAndSshConfigsManager computersAndSshConfigsManager);
+
+    public abstract LogBaseEntity ToLog(Computer computer);
 }
