@@ -47,7 +47,21 @@
                   </BorderPane>
                </content>
             </Tab>
-          <Tab text="Stats" />
+          <Tab text="General stats">
+               <content>
+                  <AnchorPane prefHeight="200.0" prefWidth="200.0">
+                     <children>
+                        <ChoiceBox fx:id="statsScopeChoiceBox" layoutX="41.0" layoutY="20.0" prefWidth="150.0" />
+                        <Button fx:id="refreshButton" layoutX="6.0" layoutY="20.0" mnemonicParsing="false" />
+                        <Button fx:id="generateChartsButton" layoutX="199.0" layoutY="20.0" mnemonicParsing="false" text="Generate Charts" />
+                        <ScrollPane fx:id="statsScrollPane" layoutX="16.0" layoutY="69.0" prefHeight="517.0" prefWidth="1052.0">
+                           <content>
+                              <VBox fx:id="generalStatsVBox" prefHeight="65.0" prefWidth="1051.0" />
+                           </content>
+                        </ScrollPane>
+                     </children>
+                  </AnchorPane>
+               </content></Tab>
             <Tab text="Computers">
                <content>
                   <ListView fx:id="computerItemsListView" prefHeight="213.0" prefWidth="6.0" />
