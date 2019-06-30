@@ -50,6 +50,11 @@ public class UsersInfo implements IInfo
             logList.add(new UserLog(computer, userInfo, timestamp));
         }
 
+        if(logList.isEmpty())
+        {
+            logList.add(UserLog.CreateEmptyUserLog(computer, timestamp));
+        }
+
         return logList;
     }
 }
