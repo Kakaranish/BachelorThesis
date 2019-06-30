@@ -3,7 +3,7 @@ package Healthcheck.Entities.Logs;
 import GUI.TableViewEntries.DiskEntry;
 import GUI.TableViewEntries.LogEntry;
 import Healthcheck.ComputersAndSshConfigsManager;
-import Healthcheck.Entities.CacheLogs.CacheLogBaseEntity;
+import Healthcheck.Entities.CacheLogs.CacheLogBase;
 import Healthcheck.Entities.CacheLogs.DiskCacheLog;
 import Healthcheck.Entities.Computer;
 import Healthcheck.Models.Info.DiskInfo;
@@ -18,7 +18,7 @@ import java.text.SimpleDateFormat;
 
 @Entity
 @Table(name = "DisksLogs")
-public class DiskLog extends LogBaseEntity
+public class DiskLog extends LogBase
 {
     @Embedded
     public DiskInfo DiskInfo;
@@ -64,7 +64,7 @@ public class DiskLog extends LogBaseEntity
     }
 
     @Override
-    public CacheLogBaseEntity ToCacheLog()
+    public CacheLogBase ToCacheLog()
     {
         return new DiskCacheLog(this);
     }

@@ -1,13 +1,13 @@
 package Healthcheck.Entities.Logs;
 
 import GUI.TableViewEntries.LogEntry;
-import Healthcheck.Entities.CacheLogs.CacheLogBaseEntity;
+import Healthcheck.Entities.CacheLogs.CacheLogBase;
 import Healthcheck.Entities.Computer;
 import javax.persistence.*;
 import java.sql.Timestamp;
 
 @MappedSuperclass
-public abstract class LogBaseEntity
+public abstract class LogBase
 {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,25 +19,25 @@ public abstract class LogBaseEntity
     @JoinColumn(name = "Computer_Id", referencedColumnName = "Id")
     public Computer Computer;
 
-    protected LogBaseEntity()
+    protected LogBase()
     {
     }
 
-    public LogBaseEntity(Computer computer)
+    public LogBase(Computer computer)
     {
         Id = null;
         Computer = computer;
         Timestamp = new Timestamp(System.currentTimeMillis());
     }
 
-    public LogBaseEntity(Computer computer, Timestamp timestamp)
+    public LogBase(Computer computer, Timestamp timestamp)
     {
         Id = null;
         Computer = computer;
         Timestamp = timestamp;
     }
 
-    public LogBaseEntity(Long id, Computer computer, Timestamp timestamp)
+    public LogBase(Long id, Computer computer, Timestamp timestamp)
     {
         Id = id;
         Computer = computer;
@@ -46,5 +46,5 @@ public abstract class LogBaseEntity
 
     public abstract LogEntry ToEntry();
 
-    public abstract CacheLogBaseEntity ToCacheLog();
+    public abstract CacheLogBase ToCacheLog();
 }

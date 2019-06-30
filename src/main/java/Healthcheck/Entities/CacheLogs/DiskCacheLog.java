@@ -3,7 +3,7 @@ package Healthcheck.Entities.CacheLogs;
 import Healthcheck.ComputersAndSshConfigsManager;
 import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.Logs.DiskLog;
-import Healthcheck.Entities.Logs.LogBaseEntity;
+import Healthcheck.Entities.Logs.LogBase;
 import Healthcheck.Models.Info.DiskInfo;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -11,7 +11,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "DisksCacheLogs")
-public class DiskCacheLog extends CacheLogBaseEntity
+public class DiskCacheLog extends CacheLogBase
 {
     @Embedded
     public DiskInfo DiskInfo;
@@ -28,13 +28,13 @@ public class DiskCacheLog extends CacheLogBaseEntity
     }
 
     @Override
-    public LogBaseEntity ToLog(ComputersAndSshConfigsManager computersAndSshConfigsManager)
+    public LogBase ToLog(ComputersAndSshConfigsManager computersAndSshConfigsManager)
     {
         return new DiskLog(this, computersAndSshConfigsManager);
     }
 
     @Override
-    public LogBaseEntity ToLog(Computer computer)
+    public LogBase ToLog(Computer computer)
     {
         if(ComputerId != computer.GetId())
         {

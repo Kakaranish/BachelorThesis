@@ -2,7 +2,7 @@ package Healthcheck.Entities.CacheLogs;
 
 import Healthcheck.ComputersAndSshConfigsManager;
 import Healthcheck.Entities.Computer;
-import Healthcheck.Entities.Logs.LogBaseEntity;
+import Healthcheck.Entities.Logs.LogBase;
 import Healthcheck.Entities.Logs.SwapLog;
 import Healthcheck.Models.Info.SwapInfo;
 import javax.persistence.Embedded;
@@ -11,7 +11,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "SwapCacheLogs")
-public class SwapCacheLog extends CacheLogBaseEntity
+public class SwapCacheLog extends CacheLogBase
 {
     @Embedded
     public SwapInfo SwapInfo;
@@ -28,13 +28,13 @@ public class SwapCacheLog extends CacheLogBaseEntity
     }
 
     @Override
-    public LogBaseEntity ToLog(ComputersAndSshConfigsManager computersAndSshConfigsManager)
+    public LogBase ToLog(ComputersAndSshConfigsManager computersAndSshConfigsManager)
     {
         return new SwapLog(this, computersAndSshConfigsManager);
     }
 
     @Override
-    public LogBaseEntity ToLog(Computer computer)
+    public LogBase ToLog(Computer computer)
     {
         if(ComputerId != computer.GetId())
         {

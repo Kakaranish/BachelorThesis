@@ -3,7 +3,7 @@ package Healthcheck.Entities.Logs;
 import GUI.TableViewEntries.LogEntry;
 import GUI.TableViewEntries.ProcessEntry;
 import Healthcheck.ComputersAndSshConfigsManager;
-import Healthcheck.Entities.CacheLogs.CacheLogBaseEntity;
+import Healthcheck.Entities.CacheLogs.CacheLogBase;
 import Healthcheck.Entities.CacheLogs.ProcessCacheLog;
 import Healthcheck.Entities.Computer;
 import Healthcheck.Models.Info.ProcessInfo;
@@ -18,7 +18,7 @@ import java.text.SimpleDateFormat;
 
 @Entity
 @Table(name = "ProcessesLogs")
-public class ProcessLog extends LogBaseEntity
+public class ProcessLog extends LogBase
 {
     @Embedded
     public ProcessInfo ProcessInfo;
@@ -69,7 +69,7 @@ public class ProcessLog extends LogBaseEntity
     }
 
     @Override
-    public CacheLogBaseEntity ToCacheLog()
+    public CacheLogBase ToCacheLog()
     {
         return new ProcessCacheLog(this);
     }

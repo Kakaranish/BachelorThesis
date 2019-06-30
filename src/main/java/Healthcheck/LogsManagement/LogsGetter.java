@@ -3,7 +3,7 @@ package Healthcheck.LogsManagement;
 import Healthcheck.ComputersAndSshConfigsManager;
 import Healthcheck.DatabaseManagement.CacheDatabaseManager;
 import Healthcheck.DatabaseManagement.MainDatabaseManager;
-import Healthcheck.Entities.CacheLogs.CacheLogBaseEntity;
+import Healthcheck.Entities.CacheLogs.CacheLogBase;
 import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.Logs.*;
 import Healthcheck.Preferences.IPreference;
@@ -22,10 +22,10 @@ public class LogsGetter
 {
     // ---  GETTING LATEST LOGS  ---------------------------------------------------------------------------------------
 
-    public static Map<Computer, List<LogBaseEntity>> GetLatestGivenTypeLogsForComputers(
+    public static Map<Computer, List<LogBase>> GetLatestGivenTypeLogsForComputers(
             List<Computer> computers, IPreference iPreference)
     {
-        Map<Computer, List<LogBaseEntity>> groupedLogs = new HashMap<>();
+        Map<Computer, List<LogBase>> groupedLogs = new HashMap<>();
         for (Computer computer : computers)
         {
             groupedLogs.put(computer, GetLatestGivenTypeLogsForComputer(computer, iPreference));
@@ -34,12 +34,12 @@ public class LogsGetter
         return groupedLogs;
     }
 
-    public static List<LogBaseEntity> GetLatestGivenTypeLogsForComputer(Computer computer, IPreference preference)
+    public static List<LogBase> GetLatestGivenTypeLogsForComputer(Computer computer, IPreference preference)
     {
-        List<LogBaseEntity> logsFromCacheDb = GetLatestGivenTypeLogsForComputerFromCacheDb(computer, preference);
+        List<LogBase> logsFromCacheDb = GetLatestGivenTypeLogsForComputerFromCacheDb(computer, preference);
         if(logsFromCacheDb.isEmpty())
         {
-            List<LogBaseEntity> logsFromMainDb = GetLatestGivenTypeLogsForComputerFromMainDb(computer, preference);
+            List<LogBase> logsFromMainDb = GetLatestGivenTypeLogsForComputerFromMainDb(computer, preference);
             if(logsFromMainDb.isEmpty() == false)
             {
                 CacheLogsSaver.CacheGivenTypeLogsForComputer(logsFromMainDb, preference);
@@ -51,7 +51,7 @@ public class LogsGetter
         return logsFromCacheDb;
     }
 
-    public static List<LogBaseEntity> GetLatestGivenTypeLogsForComputerFromCacheDb(Computer computer, IPreference preference)
+    public static List<LogBase> GetLatestGivenTypeLogsForComputerFromCacheDb(Computer computer, IPreference preference)
     {
         String cacheLogClassName = preference.GetClassName().replace("Log", "CacheLog");
         String attemptErrorMessage = "Attempt of getting latest cache logs from " + cacheLogClassName + " for '"
@@ -62,15 +62,14 @@ public class LogsGetter
         Query query = session.createQuery(hql);
         query.setParameter("computerId", computer.GetId());
 
-        List<CacheLogBaseEntity> receivedLogs = CacheDatabaseManager.ExecuteSelectQueryWithRetryPolicy(
+        List<CacheLogBase> receivedLogs = CacheDatabaseManager.ExecuteSelectQueryWithRetryPolicy(
                 session, query, "LogsGetter", attemptErrorMessage);
         session.close();
 
         return receivedLogs.stream().map(l -> l.ToLog(computer)).collect(Collectors.toList());
     }
 
-    public static List<LogBaseEntity> GetLatestGivenTypeLogsForComputerFromMainDb(
-            Computer computer, IPreference preference)
+    public static List<LogBase> GetLatestGivenTypeLogsForComputerFromMainDb(Computer computer, IPreference preference)
     {
         String attemptErrorMessage = "Attempt of getting latest cache logs from " + preference.GetClassName() + " for '"
                 + computer.GetUsernameAndHost() + "' failed.";
@@ -81,14 +80,14 @@ public class LogsGetter
         Query query = session.createQuery(hql);
         query.setParameter("computer", computer);
 
-        List<LogBaseEntity> receivedLogs = MainDatabaseManager.ExecuteSelectQueryWithRetryPolicy(
+        List<LogBase> receivedLogs = MainDatabaseManager.ExecuteSelectQueryWithRetryPolicy(
                 session, query, "LogsGetter", attemptErrorMessage);
         session.close();
 
         return receivedLogs;
     }
 
-    public static List<LogBaseEntity> GetCertainTypeLogsForClassroom(
+    public static List<LogBase> GetCertainTypeLogsForClassroom(
             String classroom, IPreference preference, Timestamp fromDate, Timestamp toDate)
     {
         String attemptErrorMessage = "Attempt of getting logs from "
@@ -99,14 +98,14 @@ public class LogsGetter
 
         Session session = MainDatabaseManager.GetInstance().GetSession();
         Query query = session.createQuery(hql);
-        List<LogBaseEntity> receivedLogs = MainDatabaseManager.ExecuteSelectQueryWithRetryPolicy(
+        List<LogBase> receivedLogs = MainDatabaseManager.ExecuteSelectQueryWithRetryPolicy(
                 session, query, "LogsGetter", attemptErrorMessage);
         session.close();
 
         return receivedLogs;
     }
 
-    public static Map<Computer, List<LogBaseEntity>> GetLatestGivenTypeGroupedByComputerLogsForClassroom(
+    public static Map<Computer, List<LogBase>> GetLatestGivenTypeGroupedByComputerLogsForClassroom(
             String classroom, IPreference preference, ComputersAndSshConfigsManager computersAndSshConfigsManager)
     {
         List<Computer> computersInClassroom = computersAndSshConfigsManager.GetComputersForClassroom(classroom);
@@ -115,7 +114,7 @@ public class LogsGetter
 
     // --- OTHER GETTING LOGS  -----------------------------------------------------------------------------------------
 
-    public static List<LogBaseEntity> GetGivenTypeLogsForComputer(
+    public static List<LogBase> GetGivenTypeLogsForComputer(
             Computer computer, IPreference preference, Timestamp fromDate, Timestamp toDate)
     {
         String attemptErrorMessage = "Attempt of getting logs from "
@@ -128,7 +127,7 @@ public class LogsGetter
         Query query = session.createQuery(hql);
         query.setParameter("computer", computer);
 
-        List<LogBaseEntity> receivedLogs = MainDatabaseManager.ExecuteSelectQueryWithRetryPolicy(
+        List<LogBase> receivedLogs = MainDatabaseManager.ExecuteSelectQueryWithRetryPolicy(
                 session, query, "LogsGetter", attemptErrorMessage);
         session.close();
 
@@ -155,12 +154,6 @@ public class LogsGetter
     }
 
     // --- RAM LOGS  ---------------------------------------------------------------------------------------------------
-
-    public static List<Quartet<Timestamp, Long, Long, Long>> GetRamTimestampTotalUsedFreeQuartetList(List<RamLog> ramLogs)
-    {
-        return ramLogs.stream().map(s -> new Quartet<Timestamp, Long, Long, Long>(
-                s.Timestamp, s.RamInfo.Total, s.RamInfo.Used, s.RamInfo.Free)).collect(Collectors.toList());
-    }
 
     public static long GetRamTotal(List<RamLog> ramLogs)
     {
@@ -250,12 +243,12 @@ public class LogsGetter
                 c.CpuInfo.Last15MinutesAvgCpuUtil)).collect(Collectors.toList());
     }
 
-    public Map<Computer, List<LogBaseEntity>> GroupLogsByComputer(List<LogBaseEntity> logs)
+    public Map<Computer, List<LogBase>> GroupLogsByComputer(List<LogBase> logs)
     {
         return logs.stream().collect(Collectors.groupingBy(l -> l.Computer));
     }
 
-    public Map<Integer, List<CacheLogBaseEntity>> GroupCacheLogsByComputerId(List<CacheLogBaseEntity> logs)
+    public Map<Integer, List<CacheLogBase>> GroupCacheLogsByComputerId(List<CacheLogBase> logs)
     {
         return logs.stream().collect(Collectors.groupingBy(l -> l.ComputerId));
     }

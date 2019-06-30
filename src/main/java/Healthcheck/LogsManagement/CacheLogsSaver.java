@@ -4,9 +4,9 @@ import Healthcheck.AppLogging.AppLogger;
 import Healthcheck.AppLogging.LogType;
 import Healthcheck.DatabaseManagement.CacheDatabaseManager;
 import Healthcheck.DatabaseManagement.DatabaseException;
-import Healthcheck.Entities.CacheLogs.CacheLogBaseEntity;
+import Healthcheck.Entities.CacheLogs.CacheLogBase;
 import Healthcheck.Entities.Computer;
-import Healthcheck.Entities.Logs.LogBaseEntity;
+import Healthcheck.Entities.Logs.LogBase;
 import Healthcheck.Preferences.IPreference;
 import Healthcheck.Utilities;
 import org.hibernate.Session;
@@ -18,7 +18,7 @@ public class CacheLogsSaver
 {
     public final static String ModuleName = "CacheLogsSaver";
 
-    public static void CacheGivenTypeLogsForComputer(List<LogBaseEntity> logs, IPreference preference)
+    public static void CacheGivenTypeLogsForComputer(List<LogBase> logs, IPreference preference)
             throws DatabaseException
     {
         if(logs.size() == 0)
@@ -40,11 +40,11 @@ public class CacheLogsSaver
         Session session = CacheDatabaseManager.GetInstance().GetSession();
         try
         {
-            for (LogBaseEntity log : logs)
+            for (LogBase log : logs)
             {
-                CacheLogBaseEntity cacheLogBaseEntity = log.ToCacheLog();
+                CacheLogBase cacheLogBase = log.ToCacheLog();
                 boolean persistSucceed = PersistCacheLogWithRetryPolicy(
-                        session, cacheLogBaseEntity, preference, computer.GetUsernameAndHost());
+                        session, cacheLogBase, preference, computer.GetUsernameAndHost());
                 if(persistSucceed == false)
                 {
                     throw new DatabaseException("Caching logs for " + computer.GetUsernameAndHost() + " failed.");
@@ -86,7 +86,7 @@ public class CacheLogsSaver
     }
 
     private static boolean PersistCacheLogWithRetryPolicy(
-            Session session, CacheLogBaseEntity cacheLog, IPreference preference, String computerUsernameAndHost)
+            Session session, CacheLogBase cacheLog, IPreference preference, String computerUsernameAndHost)
     {
         String cacheLogClassName = preference.GetClassName().replace("Log", "CacheLog");
 

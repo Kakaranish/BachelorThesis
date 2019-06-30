@@ -3,7 +3,7 @@ package Healthcheck.Entities.Logs;
 import GUI.TableViewEntries.LogEntry;
 import GUI.TableViewEntries.SwapEntry;
 import Healthcheck.ComputersAndSshConfigsManager;
-import Healthcheck.Entities.CacheLogs.CacheLogBaseEntity;
+import Healthcheck.Entities.CacheLogs.CacheLogBase;
 import Healthcheck.Entities.CacheLogs.SwapCacheLog;
 import Healthcheck.Entities.Computer;
 import Healthcheck.Models.Info.SwapInfo;
@@ -15,7 +15,7 @@ import java.text.SimpleDateFormat;
 
 @Entity
 @Table(name = "SwapLogs")
-public class SwapLog extends LogBaseEntity
+public class SwapLog extends LogBase
 {
     @Embedded
     public SwapInfo SwapInfo;
@@ -58,7 +58,7 @@ public class SwapLog extends LogBaseEntity
     }
 
     @Override
-    public CacheLogBaseEntity ToCacheLog()
+    public CacheLogBase ToCacheLog()
     {
         return new SwapCacheLog(this);
     }

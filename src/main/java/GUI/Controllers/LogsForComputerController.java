@@ -2,7 +2,7 @@ package GUI.Controllers;
 
 import GUI.TableViewEntries.*;
 import Healthcheck.Entities.Computer;
-import Healthcheck.Entities.Logs.LogBaseEntity;
+import Healthcheck.Entities.Logs.LogBase;
 import Healthcheck.LogsManagement.LogsGetter;
 import Healthcheck.Preferences.Preferences;
 import javafx.collections.FXCollections;
@@ -75,7 +75,7 @@ public class LogsForComputerController implements Initializable
 
         List<UserEntry> logEntries = LogsGetter.GetGivenTypeLogsForComputer(
                 _computer, Preferences.PreferenceNameMap.get("UsersInfoPreference"), from, now)
-                .stream().map(LogBaseEntity::ToEntry).map(u -> (UserEntry) u).collect(Collectors.toList());
+                .stream().map(LogBase::ToEntry).map(u -> (UserEntry) u).collect(Collectors.toList());
 
         usersEntries.clear();
         usersEntries.addAll(logEntries);
@@ -136,7 +136,7 @@ public class LogsForComputerController implements Initializable
 
         List<CpuEntry> logEntries = LogsGetter.GetGivenTypeLogsForComputer(
                 _computer, Preferences.PreferenceNameMap.get("CpuInfoPreference"), from, now)
-                .stream().map(LogBaseEntity::ToEntry).map(u -> (CpuEntry) u).collect(Collectors.toList());
+                .stream().map(LogBase::ToEntry).map(u -> (CpuEntry) u).collect(Collectors.toList());
 
         cpuEntries.clear();
         cpuEntries.addAll(logEntries);
@@ -190,7 +190,7 @@ public class LogsForComputerController implements Initializable
 
         List<RamEntry> logEntries = LogsGetter.GetGivenTypeLogsForComputer(
                 _computer, Preferences.PreferenceNameMap.get("RamInfoPreference"), from, now)
-                .stream().map(LogBaseEntity::ToEntry).map(u -> (RamEntry) u).collect(Collectors.toList());
+                .stream().map(LogBase::ToEntry).map(u -> (RamEntry) u).collect(Collectors.toList());
 
         ramEntries.clear();
         ramEntries.addAll(logEntries);
@@ -232,7 +232,7 @@ public class LogsForComputerController implements Initializable
 
         List<SwapEntry> logEntries = LogsGetter.GetGivenTypeLogsForComputer(
                 _computer, Preferences.PreferenceNameMap.get("SwapInfoPreference"), from, now)
-                .stream().map(LogBaseEntity::ToEntry).map(u -> (SwapEntry) u).collect(Collectors.toList());
+                .stream().map(LogBase::ToEntry).map(u -> (SwapEntry) u).collect(Collectors.toList());
 
         swapEntries.clear();
         swapEntries.addAll(logEntries);
@@ -286,7 +286,7 @@ public class LogsForComputerController implements Initializable
 
         List<DiskEntry> logEntries = LogsGetter.GetGivenTypeLogsForComputer(
                 _computer, Preferences.PreferenceNameMap.get("DisksInfoPreference"), from, now)
-                .stream().map(LogBaseEntity::ToEntry).map(u -> (DiskEntry) u).collect(Collectors.toList());
+                .stream().map(LogBase::ToEntry).map(u -> (DiskEntry) u).collect(Collectors.toList());
 
         disksEntries.clear();
         disksEntries.addAll(logEntries);
@@ -360,7 +360,7 @@ public class LogsForComputerController implements Initializable
 
         List<ProcessEntry> logEntries = LogsGetter.GetGivenTypeLogsForComputer(
                 _computer, Preferences.PreferenceNameMap.get("ProcessesInfoPreference"), from, now)
-                .stream().map(LogBaseEntity::ToEntry).map(u -> (ProcessEntry) u).collect(Collectors.toList());
+                .stream().map(LogBase::ToEntry).map(u -> (ProcessEntry) u).collect(Collectors.toList());
 
         processesEntries.clear();
         processesEntries.addAll(logEntries);

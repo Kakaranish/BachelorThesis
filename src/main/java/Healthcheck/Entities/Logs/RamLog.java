@@ -3,7 +3,7 @@ package Healthcheck.Entities.Logs;
 import GUI.TableViewEntries.LogEntry;
 import GUI.TableViewEntries.RamEntry;
 import Healthcheck.ComputersAndSshConfigsManager;
-import Healthcheck.Entities.CacheLogs.CacheLogBaseEntity;
+import Healthcheck.Entities.CacheLogs.CacheLogBase;
 import Healthcheck.Entities.CacheLogs.RamCacheLog;
 import Healthcheck.Entities.Computer;
 import Healthcheck.Models.Info.RamInfo;
@@ -17,7 +17,7 @@ import java.text.SimpleDateFormat;
 
 @Entity
 @Table(name = "RamLogs")
-public class RamLog extends LogBaseEntity
+public class RamLog extends LogBase
 {
     @Embedded
     public RamInfo RamInfo;
@@ -63,7 +63,7 @@ public class RamLog extends LogBaseEntity
     }
 
     @Override
-    public CacheLogBaseEntity ToCacheLog()
+    public CacheLogBase ToCacheLog()
     {
         return new RamCacheLog(this);
     }
