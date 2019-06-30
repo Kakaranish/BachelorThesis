@@ -101,9 +101,9 @@ public class ComputerLogger extends Thread
     {
         Timestamp now = new Timestamp (System.currentTimeMillis());
 
-        for (IPreference computerPreference : _iPreferences)
+        for (IPreference preference : _iPreferences)
         {
-            List<LogBaseEntity> logsToSave = GatherLogsForGivenPreferenceTypeWithRetryPolicy(computerPreference, now);
+            List<LogBaseEntity> logsToSave = GatherLogsForGivenPreferenceTypeWithRetryPolicy(preference, now);
             if(logsToSave == null)
             {
                 _sshConnection.CloseConnection();
@@ -139,6 +139,8 @@ public class ComputerLogger extends Thread
 
                 session.close();
             }
+
+            CacheLogsSaver.CacheGivenTypeLogsForComputer(logsToSave, preference);
         }
 
         return true;
@@ -208,7 +210,6 @@ public class ComputerLogger extends Thread
                     ++retryNum;
                 }
             }
-
 
             if(ThreadInterrupted() == false)
             {
