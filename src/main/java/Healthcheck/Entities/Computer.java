@@ -419,7 +419,6 @@ public class Computer
         }
         else
         {
-            // TODO: UNEXPECTED BEHAVIOR - USAGE OF CONNECTION WITH DB
             if(Utilities.AreEqual(_prevState.DisplayedName, this.DisplayedName) == false
                     && _computersAndSshConfigsManager.OtherComputerWithDisplayedNameExists(this, DisplayedName))
             {

@@ -235,7 +235,7 @@ public class LogsMaintainer
         catch (DatabaseException e)
         {
             ComputerLogger computerLogger = _logsManager.GetComputerLoggerForComputer(computer);
-            _logsManager.Callback_Maintainer_StopWorkForComputerLogger(computerLogger); // TODO: ??????????????????????
+            _logsManager.Callback_Maintainer_StopWorkForComputerLogger(computerLogger);
 
             Platform.runLater(() -> AppLogger.Log(LogType.FATAL_ERROR, ModuleName,
                     "Setting last maintenance time for '" + usernameAndHost + "' failed.")
