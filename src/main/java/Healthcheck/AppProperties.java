@@ -1,7 +1,6 @@
 package Healthcheck;
 
 import java.io.FileInputStream;
-import java.net.URL;
 import java.util.Properties;
 
 public class AppProperties
@@ -16,8 +15,10 @@ public class AppProperties
         Properties = new Properties();
         try
         {
-            URL path = AppProperties.class.getClassLoader().getResource(_appPropertiesFileName);
-            Properties.load(new FileInputStream(path.getPath()));
+            String path = "./" + _appPropertiesFileName;
+            FileInputStream fileInputStream = new FileInputStream(path);
+            Properties.load(fileInputStream);
+            fileInputStream.close();
         }
         catch (Exception e)
         {
