@@ -105,7 +105,6 @@ public class CacheLogsSaver
 
             AppLogger.Log(LogType.INFO, ModuleName, "Attempt of caching logs of " + cacheLogClassName
                     + " type for '" +computerUsernameAndHost + "' failed.");
-            e.printStackTrace(System.out);
 
             // Retries
             int retryNum = 1;

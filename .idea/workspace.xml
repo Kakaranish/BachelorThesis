@@ -2,20 +2,14 @@
 <project version="4">
   <component name="ArtifactsWorkspaceSettings">
     <artifacts-to-build>
-      <artifact name="JSCHtest" />
+      <artifact name="Healthcheck" />
     </artifacts-to-build>
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8cfffe7f-53da-4319-8d7e-b4cc618e7528" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/Healthcheck/META-INF/MANIFEST.MF" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Healthcheck/App.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Healthcheck/App.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Healthcheck/AppProperties.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Healthcheck/AppProperties.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/hibernate-cache.cfg.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/hibernate-cache.cfg.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/hibernate.cfg.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/hibernate.cfg.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/CacheLogsSaver.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/CacheLogsSaver.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsManager.java" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <ignored path="$PROJECT_DIR$/target/" />
@@ -48,11 +42,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/App.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="440">
-              <caret line="20" column="26" lean-forward="true" selection-start-line="20" selection-start-column="26" selection-end-line="20" selection-end-column="26" />
+            <state relative-caret-position="364">
+              <caret line="22" lean-forward="true" selection-start-line="22" selection-end-line="22" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#358#359#0" expanded="true" />
@@ -93,8 +87,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/resources/hibernate.cfg.xml">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="374">
-              <caret line="17" column="59" selection-start-line="17" selection-start-column="59" selection-end-line="17" selection-end-column="59" />
+            <state relative-caret-position="242">
+              <caret line="11" column="48" lean-forward="true" selection-start-line="11" selection-start-column="48" selection-end-line="11" selection-end-column="48" />
             </state>
           </provider>
         </entry>
@@ -104,6 +98,24 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="44">
               <caret line="2" lean-forward="true" selection-start-line="2" selection-end-line="2" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/CacheLogsSaver.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="299">
+              <caret line="107" lean-forward="true" selection-start-line="107" selection-end-line="107" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsManager.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="422">
+              <caret line="232" lean-forward="true" selection-start-line="232" selection-end-line="232" />
             </state>
           </provider>
         </entry>
@@ -124,9 +136,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>ic</find>
-      <find>Refresh</find>
-      <find>Re</find>
       <find>for</find>
       <find>GenerateLatestAvgOfAvgCpuUtilForComputers</find>
       <find>Uable to stop</find>
@@ -154,6 +163,9 @@
       <find>t.Timestamp</find>
       <find>Logs</find>
       <find>TODO:</find>
+      <find>e.pri</find>
+      <find>e.prints</find>
+      <find>e.printstacktrace</find>
     </findStrings>
     <replaceStrings>
       <replace>username</replace>
@@ -185,7 +197,6 @@
         <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Preferences/IPreference.java" />
         <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/CacheLogs/IConvertableToCacheLog.java" />
         <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/CacheLogs/DiskLog.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/CacheLogsSaver.java" />
         <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/CacheLogs/CacheLogBaseEntity.java" />
         <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/CacheLogs/CpuCacheLog.java" />
         <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Entities/CacheLogs/DiskCacheLog.java" />
@@ -216,7 +227,6 @@
         <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Encryption/Encrypter.java" />
         <option value="$PROJECT_DIR$/src/main/java/Healthcheck/Utilities.java" />
         <option value="$PROJECT_DIR$/src/main/java/Healthcheck/AppLogging/AppLogger.java" />
-        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsManager.java" />
         <option value="$PROJECT_DIR$/src/main/resources/app.properties" />
         <option value="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsGatherer.java" />
         <option value="$PROJECT_DIR$/src/main/java/Main.java" />
@@ -229,6 +239,8 @@
         <option value="$PROJECT_DIR$/src/main/resources/hibernate.cfg.xml" />
         <option value="$PROJECT_DIR$/src/main/java/Healthcheck/META-INF/MANIFEST.MF" />
         <option value="$PROJECT_DIR$/src/main/java/Healthcheck/App.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/CacheLogsSaver.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsManager.java" />
       </list>
     </option>
   </component>
@@ -280,23 +292,6 @@
               <item name="src" type="462c0819:PsiDirectoryNode" />
               <item name="main" type="462c0819:PsiDirectoryNode" />
               <item name="java" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="JSCHtest" type="b2602c69:ProjectViewProjectNode" />
-              <item name="JSCHtest" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="main" type="462c0819:PsiDirectoryNode" />
-              <item name="java" type="462c0819:PsiDirectoryNode" />
-              <item name="Healthcheck" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="JSCHtest" type="b2602c69:ProjectViewProjectNode" />
-              <item name="JSCHtest" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="main" type="462c0819:PsiDirectoryNode" />
-              <item name="java" type="462c0819:PsiDirectoryNode" />
-              <item name="Healthcheck" type="462c0819:PsiDirectoryNode" />
-              <item name="META-INF" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="JSCHtest" type="b2602c69:ProjectViewProjectNode" />
@@ -436,7 +431,7 @@
       <window_info id="Favorites" order="4" side_tool="true" weight="0.32916668" />
       <window_info id="Structure" order="5" side_tool="true" weight="0.24947916" />
       <window_info anchor="bottom" id="Version Control" order="0" weight="0.32923833" />
-      <window_info anchor="bottom" id="Terminal" order="1" visible="true" weight="0.32831" />
+      <window_info anchor="bottom" id="Terminal" order="1" weight="0.32831" />
       <window_info anchor="bottom" id="Event Log" order="2" sideWeight="0.5005208" side_tool="true" weight="0.32615715" />
       <window_info anchor="bottom" id="Messages" order="3" weight="0.32831" />
       <window_info anchor="bottom" id="Message" order="4" />
@@ -560,26 +555,6 @@
     </expressions>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/main/Healthcheck/ComputersAndSshConfigsManager.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4202">
-          <caret line="209" lean-forward="true" selection-start-line="209" selection-end-line="209" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/Healthcheck/Models/Info/SwapInfo.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="44">
-          <caret line="2" column="7" selection-start-line="2" selection-start-column="7" selection-end-line="2" selection-end-column="7" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/Healthcheck/Models/Info/UserInfo.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="44">
@@ -971,13 +946,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/resources/hibernate.cfg.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="374">
-          <caret line="17" column="59" selection-start-line="17" selection-start-column="59" selection-end-line="17" selection-end-column="59" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/META-INF/MANIFEST.MF">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="44">
@@ -987,8 +955,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/App.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="440">
-          <caret line="20" column="26" lean-forward="true" selection-start-line="20" selection-start-column="26" selection-end-line="20" selection-end-column="26" />
+        <state relative-caret-position="364">
+          <caret line="22" lean-forward="true" selection-start-line="22" selection-end-line="22" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#358#359#0" expanded="true" />
@@ -996,6 +964,27 @@
             <element signature="e#449#450#0" expanded="true" />
             <element signature="e#482#483#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/resources/hibernate.cfg.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="242">
+          <caret line="11" column="48" lean-forward="true" selection-start-line="11" selection-start-column="48" selection-end-line="11" selection-end-column="48" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/CacheLogsSaver.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="299">
+          <caret line="107" lean-forward="true" selection-start-line="107" selection-end-line="107" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/Healthcheck/LogsManagement/LogsManager.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="422">
+          <caret line="232" lean-forward="true" selection-start-line="232" selection-end-line="232" />
         </state>
       </provider>
     </entry>
@@ -1009,7 +998,7 @@
               <type id="artifact" />
             </show-content>
           </artifact-editor>
-          <last-edited>JSCHtest</last-edited>
+          <last-edited>Healthcheck</last-edited>
           <splitter-proportions>
             <option name="proportions">
               <list>

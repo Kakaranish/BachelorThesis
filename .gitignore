@@ -5,3 +5,4 @@ my*.db
 out
 /CacheDatabase.db
 /MainDatabase.db
+README.md

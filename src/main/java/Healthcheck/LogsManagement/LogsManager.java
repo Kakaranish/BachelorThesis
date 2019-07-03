@@ -105,7 +105,6 @@ public class LogsManager
         }
         catch(LogsException e)
         {
-            e.printStackTrace(System.out);
             AppLogger.Log(LogType.FATAL_ERROR, ModuleName, e.getMessage());
         }
     }
@@ -118,7 +117,6 @@ public class LogsManager
         }
         catch(LogsException e)
         {
-            e.printStackTrace(System.out);
             AppLogger.Log(LogType.FATAL_ERROR, ModuleName, e.getMessage());
         }
     }
@@ -226,7 +224,7 @@ public class LogsManager
             }
             catch (Exception e)
             {
-                e.printStackTrace(System.out);
+                e.printStackTrace();
             }
         });
     }
