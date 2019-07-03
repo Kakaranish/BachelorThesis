@@ -8,7 +8,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import java.io.IOException;
 
-public class Main extends javafx.application.Application
+public class App extends Application
 {
     public static void main(String[] args)
     {
@@ -37,7 +37,7 @@ public class Main extends javafx.application.Application
             stage.setOnCloseRequest(mainWindowController::OnCloseAction);
             stage.setResizable(false);
             stage.setScene(scene);
-            stage.setTitle("Healthcheck application");
+            stage.setTitle("Healthcheck Application");
 
             stage.show();
         }
