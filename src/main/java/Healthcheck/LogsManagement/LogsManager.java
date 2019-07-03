@@ -241,7 +241,7 @@ public class LogsManager
         }
         catch (LogsException e)
         {
-            Platform.runLater(() -> AppLogger.Log(LogType.FATAL_ERROR, e.getMessage()));
+            Platform.runLater(() -> AppLogger.Log(LogType.FATAL_ERROR, ModuleName, e.getMessage()));
             return;
         }
 

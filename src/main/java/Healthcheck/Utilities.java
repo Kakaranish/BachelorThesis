@@ -56,6 +56,8 @@ public class Utilities
             Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("DefaultMaintainPeriod"));
     public static final int DefaultLogExpiration =
             Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("DefaultLogExpiration"));
+    public static final int MaxLogsNum =
+            Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("MaxLogsNum"));
 
     public static final List<Preference> AvailablePreferences = GetAvailablePreferencesFromDb();
 

@@ -1,5 +1,6 @@
 package Healthcheck.AppLogging;
 
+import Healthcheck.Utilities;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TableView;
@@ -10,7 +11,6 @@ public class AppLogger
 {
     private static SimpleDateFormat _formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
     private static AppLogger _appLogger = new AppLogger();
-    private final static int _maxLogsNum = 100;
 
     private ObservableList<AppLoggerEntry> _targetObservableList;
     private TableView<AppLoggerEntry> _targetTableView;
@@ -35,43 +35,13 @@ public class AppLogger
         _appLogger._enabledOutputToConsole = enabled;
     }
 
-    public static void Log(LogType logType, String content)
-    {
-        Date now = new Date();
-
-        if(_appLogger._targetObservableList != null)
-        {
-            if(_appLogger._targetObservableList.size() == _maxLogsNum)
-            {
-                _appLogger._targetObservableList.remove(_maxLogsNum-1);
-            }
-
-            _appLogger._targetObservableList.add(new AppLoggerEntry()
-            {{
-                DateTime = new SimpleStringProperty(_formatter.format(now));
-                LogType = new SimpleStringProperty(logType.name());
-                Content = new SimpleStringProperty(content);
-            }});
-
-            if(_appLogger._targetTableView != null)
-            {
-                _appLogger._targetTableView.refresh();
-            }
-        }
-
-        if(_appLogger._enabledOutputToConsole)
-        {
-            System.out.println(_formatter.format(now) + "\t[" + logType.name() + "] " + content);
-        }
-    }
-
     public static void Log(LogType logType, String moduleName, String content)
     {
         Date now = new Date();
 
         if(_appLogger._targetObservableList != null)
         {
-            if(_appLogger._targetObservableList.size() == _maxLogsNum)
+            if(_appLogger._targetObservableList.size() == Utilities.MaxLogsNum)
             {
                 _appLogger._targetObservableList.remove(0);
             }

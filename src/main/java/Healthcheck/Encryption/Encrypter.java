@@ -1,7 +1,6 @@
 package Healthcheck.Encryption;
 
 import Healthcheck.AppProperties;
-
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.UnsupportedEncodingException;
