@@ -8,7 +8,7 @@
         <property name="format_sql">false</property>
         <property name="dialect">org.hibernate.dialect.SQLiteDialect</property>
         <property name="connection.driver_class">org.sqlite.JDBC</property>
-        <property name="connection.url">jdbc:sqlite:mydb.db</property>
+        <property name="connection.url">jdbc:sqlite:./MainDatabase.db</property>
         <property name="connection.username"></property>
         <property name="connection.password"></property>
         <property name="hibernate.hbm2ddl.auto">update</property>
