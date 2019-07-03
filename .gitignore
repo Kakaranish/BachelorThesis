@@ -1,3 +1,7 @@
-
+target/*
 .idea/*
 my*.db
+.idea/workspace.xml
+out
+/CacheDatabase.db
+/MainDatabase.db
