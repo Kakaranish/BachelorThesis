@@ -110,7 +110,6 @@ public class AddOrUpdateComputerController implements Initializable
     // -----------------------------------------------------------------------------------------------------------------
 
     private final static String ModuleName = "AddOrUpdateComputerController";
-    private static Image questionIcon = new Image(ComputerListCell.class.getResource("/pics/question.png").toString());
     private final static int preferencesGridColsNum = 2;
 
     private MainWindowController _parentController;
@@ -342,7 +341,7 @@ public class AddOrUpdateComputerController implements Initializable
 
     private void InitializeHelperButtons()
     {
-        ImageView gatheringIntervalHelperImageView = new ImageView(questionIcon);
+        ImageView gatheringIntervalHelperImageView = new ImageView(MainWindowController.questionIcon);
         gatheringIntervalHelperImageView.setFitHeight(16);
         gatheringIntervalHelperImageView.setFitWidth(16);
         gatheringIntervalHelperImageView.setSmooth(true);
@@ -352,7 +351,7 @@ public class AddOrUpdateComputerController implements Initializable
         gatheringIntervalTooltip.setShowDelay(new javafx.util.Duration(0));
         gatheringIntervalHelperButton.setTooltip(gatheringIntervalTooltip);
 
-        ImageView maintenancePeriodHelperImageView = new ImageView(questionIcon);
+        ImageView maintenancePeriodHelperImageView = new ImageView(MainWindowController.questionIcon);
         maintenancePeriodHelperImageView.setFitHeight(16);
         maintenancePeriodHelperImageView.setFitWidth(16);
         maintenancePeriodHelperImageView.setSmooth(true);
