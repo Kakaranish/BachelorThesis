@@ -46,7 +46,6 @@ public class ComputerListCell extends ListCell<ComputerItem>
         IsSelected = new CheckBox();
         IsSelected.setPrefSize(6,6);
         IsSelected.setPadding(new Insets(0,7,0,7));
-        IsSelected.setDisable(true);
         DisplayedName = new Text();
         DisplayedName.setFont(new Font(17.5));
         Host = new Text();
@@ -105,6 +104,17 @@ public class ComputerListCell extends ListCell<ComputerItem>
         InitStatsButton(statsButton);
         InitLogButton(logButton);
         InitEditButtonAction(editButton);
+        InitIsSelectedCheckbox();
+    }
+
+    private void InitIsSelectedCheckbox()
+    {
+        IsSelected.setOnAction(event ->
+        {
+            Computer computer = _computersAndSshConfigsManager.GetComputerByDisplayedName(DisplayedName.getText());
+            computer.SetSelected(IsSelected.isSelected());
+            computer.UpdateInDb();
+        });
     }
 
     private void InitRemoveButton(Button removeButton)
