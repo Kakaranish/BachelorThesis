@@ -65,11 +65,11 @@ public class StatsForComputerController implements Initializable
                 .map(l -> (DiskLog) l).collect(Collectors.toList())
         );
 
-        CreateDisksChart(_computer, _from, now);
+        CreateDisksCharts(_computer, _from, now);
         CreateCpuCharts(_computer, _from, now);
-        CreateRamChart(_computer, _from, now);
+        CreateRamCharts(_computer, _from, now);
         CreateSwapCharts(_computer, _from, now);
-        CreateUsersChart(_computer, _from, now);
+        CreateUsersCharts(_computer, _from, now);
     }
 
     private void CreateCpuCharts(Computer computer, Timestamp from, Timestamp now)
@@ -190,7 +190,7 @@ public class StatsForComputerController implements Initializable
         }
     }
 
-    public void CreateDisksChart(Computer computer, Timestamp from, Timestamp now)
+    public void CreateDisksCharts(Computer computer, Timestamp from, Timestamp now)
     {
         List<DiskLog> diskLogs = LogsGetter.GetGivenTypeLogsForComputer(
                 computer, Preferences.PreferenceNameMap.get("DisksInfoPreference"), from, now)
@@ -259,7 +259,7 @@ public class StatsForComputerController implements Initializable
         }
     }
 
-    private void CreateRamChart(Computer computer, Timestamp from, Timestamp now)
+    private void CreateRamCharts(Computer computer, Timestamp from, Timestamp now)
     {
         HBox pieChartHBox = new HBox();
         pieChartHBox.setAlignment(Pos.CENTER);
@@ -447,7 +447,7 @@ public class StatsForComputerController implements Initializable
         swapVBox.getChildren().add(stackedBarChart);
     }
 
-    private void CreateUsersChart(Computer computer, Timestamp from, Timestamp now)
+    private void CreateUsersCharts(Computer computer, Timestamp from, Timestamp now)
     {
         List<UserLog> usersLogs = LogsGetter.GetGivenTypeLogsForComputer(
                 computer, Preferences.UsersInfoPreference, from, now)
