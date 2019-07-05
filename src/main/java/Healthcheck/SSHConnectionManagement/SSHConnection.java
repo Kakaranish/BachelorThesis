@@ -161,7 +161,7 @@ public class SSHConnection
 
         return channel;
     }
-    private boolean IsConnectionEstablished()
+    public boolean IsConnectionEstablished()
     {
         return _session.isConnected();
     }

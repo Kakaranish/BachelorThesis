@@ -1,6 +1,8 @@
 package Healthcheck.LogsManagement;
 
 import Healthcheck.*;
+import Healthcheck.AppLogging.AppLogger;
+import Healthcheck.AppLogging.LogType;
 import Healthcheck.DatabaseManagement.MainDatabaseManager;
 import Healthcheck.Encryption.EncrypterException;
 import Healthcheck.Entities.Computer;
@@ -17,6 +19,8 @@ import java.util.Random;
 
 public class ComputerLogger extends Thread
 {
+    private static final String ModuleName = "ComputerLogger";
+
     private Computer _computer;
     private String _usernameAndHost;
     private List<IPreference> _iPreferences;
@@ -70,7 +74,25 @@ public class ComputerLogger extends Thread
             boolean gatheringLogsSucceed = GatherAndSaveLogsForAllPreferenceTypes();
             if(gatheringLogsSucceed == false)
             {
-                return; // Getting data through ssh connection or saving to db failed - end thread
+                if(_sshConnection != null && _sshConnection.IsConnectionEstablished())
+                {
+                    _sshConnection.CloseConnection();
+                    _sshConnection = null;
+                }
+
+                if(ThreadInterrupted() && InterruptionIntended())
+                {
+                    _logsGatherer.Callback_StoppedComputerLogger_InterruptionIntended(this);
+                    return;
+                }
+
+                _logsGatherer.Callback_StoppedComputerLogger_InterruptionNotIntended(this);
+
+                boolean renewSucceed = TryToRenewConnection();
+                if(renewSucceed == false)
+                {
+                    return;
+                }
             }
 
             _logsGatherer.Callback_InfoMessage("Logs for '" + _usernameAndHost + "' gathered. Next gathering in "
@@ -87,13 +109,20 @@ public class ComputerLogger extends Thread
                 if(InterruptionIntended())
                 {
                     _logsGatherer.Callback_StoppedComputerLogger_InterruptionIntended(this);
+                    return;
                 }
                 else // No need to check if internet connection is available
                 {
-                    _logsGatherer.Callback_StoppedComputerLogger_InterruptionNotIntended(this);
-                }
+                    _sshConnection.CloseConnection();
+                    _isGathering = false;
 
-                return;
+                    _logsGatherer.Callback_StoppedComputerLogger_InterruptionNotIntended(this);
+                    boolean renewSucceed = TryToRenewConnection();
+                    if(renewSucceed == false)
+                    {
+                        return;
+                    }
+                }
             }
         }
     }
@@ -107,7 +136,6 @@ public class ComputerLogger extends Thread
             List<LogBase> logsToSave = GatherLogsForGivenPreferenceTypeWithRetryPolicy(preference, now);
             if(logsToSave == null)
             {
-                _sshConnection.CloseConnection();
                 return false;
             }
 
@@ -116,10 +144,6 @@ public class ComputerLogger extends Thread
                 if(_logsGatherer.InterruptionIntended())
                 {
                     _logsGatherer.Callback_StoppedComputerLogger_InterruptionIntended(this);
-                }
-                else
-                {
-                    _logsGatherer.Callback_StoppedComputerLogger_InterruptionNotIntended(null);
                 }
 
                 return false;
@@ -132,7 +156,6 @@ public class ComputerLogger extends Thread
                 boolean logSaved = SaveLogToSessionWithRetryPolicy(session, log);
                 if (logSaved == false)
                 {
-                    _sshConnection.CloseConnection();
                     session.close();
 
                     return false;
@@ -176,14 +199,11 @@ public class ComputerLogger extends Thread
                 {
                     if(ThreadInterrupted())
                     {
-                        if(_logsGatherer.InterruptionIntended())
+                        if(InterruptionIntended())
                         {
                             _logsGatherer.Callback_StoppedComputerLogger_InterruptionIntended(this);
                         }
-                        else
-                        {
-                            _logsGatherer.Callback_StoppedComputerLogger_InterruptionNotIntended(this);
-                        }
+
                         return null;
                     }
 
@@ -206,10 +226,6 @@ public class ComputerLogger extends Thread
                     {
                         _logsGatherer.Callback_StoppedComputerLogger_InterruptionIntended(this);
                     }
-                    else
-                    {
-                        _logsGatherer.Callback_StoppedComputerLogger_InterruptionNotIntended(this);
-                    }
 
                     return null;
                 }
@@ -221,30 +237,15 @@ public class ComputerLogger extends Thread
                 }
             }
 
-            if(ThreadInterrupted() == false)
+            if(ThreadInterrupted() && InterruptionIntended())
             {
-                if(Utilities.InternetConnectionIsAvailable() == false)
-                {
-                    String fatalErrorMessage = "Getting logs for '"
-                            + _usernameAndHost + "' failed - internet connection lost.";
-                    _logsGatherer.Callback_StoppedComputerLogger_InternetConnectionLost(fatalErrorMessage);
-                }
-                else
-                {
-                    String fatalErrorMessage = "Getting logs for '" + _usernameAndHost + "' failed after retries.";
-                    _logsGatherer.Callback_StoppedComputer_SshConnectionFailed(this, fatalErrorMessage);
-                }
+                _logsGatherer.Callback_StoppedComputerLogger_InterruptionIntended(this);
             }
-            else
+            else if(ThreadInterrupted() == false && Utilities.InternetConnectionIsAvailable() == false)
             {
-                if(InterruptionIntended() == false)
-                {
-                    _logsGatherer.Callback_StoppedComputerLogger_InterruptionNotIntended(this);
-                }
-                else
-                {
-                    _logsGatherer.Callback_StoppedComputerLogger_InterruptionIntended(this);
-                }
+                String fatalErrorMessage = "Getting logs for '"
+                        + _usernameAndHost + "' failed - internet connection lost.";
+                _logsGatherer.Callback_StoppedComputerLogger_InternetConnectionLost(fatalErrorMessage);
             }
 
             return null;
@@ -280,14 +281,9 @@ public class ComputerLogger extends Thread
                         {
                             _logsGatherer.Callback_StoppedComputerLogger_InterruptionIntended(this);
                         }
-                        else
-                        {
-                            _logsGatherer.Callback_StoppedComputerLogger_InterruptionNotIntended(this);
-                        }
 
                         return false;
                     }
-
 
                     int perturbation = new Random().ints(0,100).findFirst().getAsInt();
                     Thread.sleep(Utilities.PersistCooldown +  perturbation);
@@ -304,10 +300,6 @@ public class ComputerLogger extends Thread
                     {
                         _logsGatherer.Callback_StoppedComputerLogger_InterruptionIntended(this);
                     }
-                    else
-                    {
-                        _logsGatherer.Callback_StoppedComputerLogger_InterruptionNotIntended(this);
-                    }
 
                     return false;
                 }
@@ -320,32 +312,44 @@ public class ComputerLogger extends Thread
                 }
             }
 
-            if(ThreadInterrupted() == false)
+            if(ThreadInterrupted() && InterruptionIntended())
+            {
+                _logsGatherer.Callback_StoppedComputerLogger_InterruptionIntended(this);
+            }
+            else
             {
                 if(Utilities.InternetConnectionIsAvailable() == false)
                 {
                     String fatalErrorMessage = "Saving logs for '" + _usernameAndHost + "' failed - internet connection lost.";
                     _logsGatherer.Callback_StoppedComputerLogger_InternetConnectionLost(fatalErrorMessage);
                 }
-                else
-                {
-                    String message = "Saving logs for '" + _usernameAndHost + "' failed after retries.";
-                    _logsGatherer.Callback_StoppedComputer_SshConnectionFailed(this, message);
-                }
-            }
-            else
-            {
-                if(InterruptionIntended() == false)
-                {
-                    _logsGatherer.Callback_StoppedComputerLogger_InterruptionNotIntended(this);
-                }
-                else
-                {
-                    _logsGatherer.Callback_StoppedComputerLogger_InterruptionIntended(this);
-                }
             }
 
             return false;
+        }
+    }
+
+    private boolean TryToRenewConnection()
+    {
+        while (true)
+        {
+            try
+            {
+                _sshConnection = GetSSHConnectionWithComputer();
+                if(_sshConnection != null)
+                {
+                    _logsGatherer.Callback_RenewedConnectionWithComputer(this);
+                    _isGathering = true;
+                    return true;
+                }
+
+                Thread.sleep(_computer.GetRequestInterval().toMillis());
+            }
+            catch (InterruptedException e)
+            {
+                AppLogger.Log(LogType.FATAL_ERROR, ModuleName, "Renewing connection thread interrupted.");
+                return false;
+            }
         }
     }
 

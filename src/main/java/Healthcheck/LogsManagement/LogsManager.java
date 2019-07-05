@@ -51,6 +51,8 @@ public class LogsManager
 
         AppLogger.Log(LogType.INFO, ModuleName, "Started work.");
 
+        _parentController.Callback_LogsManager_StartedWork();
+
         _connectedComputerLoggers = GetReachableComputerLoggers(_computersAndSshConfigsManager.GetSelectedComputers());
         if(_connectedComputerLoggers.isEmpty())
         {
@@ -74,7 +76,7 @@ public class LogsManager
             Utilities.ShowErrorDialog(e.getMessage());
         }
 
-        _parentController.Callback_LogsManager_StartedWork(GetConnectedComputers());
+        _parentController.Callback_LogsManager_ComputersConnected(GetConnectedComputers());
     }
 
     public void StopWork() throws LogsException
@@ -121,20 +123,6 @@ public class LogsManager
         }
     }
 
-    // ---  GENERAL CALLBACKS  -----------------------------------------------------------------------------------------
-
-    public void Callback_NothingToDo_StopWork()
-    {
-        StopMaintainingLogsSafely();
-        StopGatheringLogsSafely();
-
-        Platform.runLater(() ->
-        {
-            AppLogger.Log(LogType.INFO, ModuleName, "Stopped work. Nothing to do - no connected computer.");
-            _parentController.Callback_LogsManager_StoppedWork_NothingToDo();
-        });
-    }
-
     // ---  GATHERER CALLBACKS  -----------------------------------------------------------------------------------------
 
     public void Callback_Gatherer_StartGatheringLogsFailed()
@@ -149,56 +137,28 @@ public class LogsManager
         });
     }
 
+    public void Callback_Gatherer_ReconnectedWithComputerLogger(ComputerLogger computerLogger)
+    {
+        _connectedComputerLoggers.add(computerLogger);
+        _logsMaintainer.RestartMaintainingLogs();
+        _parentController.Callback_LogsManager_ReconnectedWithComputerLogger(computerLogger);
+    }
+
     public void Callback_Gatherer_StoppedComputerLogger_NotIntendedInterruption(ComputerLogger computerLogger)
     {
         String usernameAndHost = computerLogger.GetComputer().GetUsernameAndHost();
         if(_connectedComputerLoggers.contains(computerLogger))
         {
             _connectedComputerLoggers.remove(computerLogger);
+
             Platform.runLater(() -> AppLogger.Log(
                     LogType.INFO, ModuleName,"Stopped maintaining logs for '" + usernameAndHost + "'.")
             );
-
-            if(HasConnectedComputersLoggers() == false)
-            {
-                Callback_NothingToDo_StopWork();
-                return;
-            }
 
             _logsMaintainer.RestartMaintainingLogs();
 
             Platform.runLater(() ->
                     _parentController.Callback_LogsManager_ComputerDisconnected(computerLogger.GetComputer())
-            );
-        }
-        else
-        {
-            Platform.runLater(() -> AppLogger.Log(LogType.FATAL_ERROR, ModuleName,
-                    "Unable to stop gathering logs for '" + usernameAndHost + "'.")
-            );
-        }
-    }
-
-    public void Callback_Gatherer_StoppedComputerLogger_SshConnectionFailed(ComputerLogger computerLogger)
-    {
-        String usernameAndHost = computerLogger.GetComputer().GetUsernameAndHost();
-        if(_connectedComputerLoggers.contains(computerLogger))
-        {
-            _connectedComputerLoggers.remove(computerLogger);
-            Platform.runLater(() -> AppLogger.Log(LogType.INFO, ModuleName,
-                    "Stopped maintaining logs for '" + usernameAndHost + "'.")
-            );
-
-            if(HasConnectedComputersLoggers() == false)
-            {
-                Callback_NothingToDo_StopWork();
-                return;
-            }
-
-            _logsMaintainer.RestartMaintainingLogs();
-
-            Platform.runLater(() ->
-                _parentController.Callback_LogsManager_ComputerDisconnected(computerLogger.GetComputer())
             );
         }
         else

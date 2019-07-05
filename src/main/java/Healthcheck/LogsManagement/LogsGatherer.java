@@ -1,5 +1,6 @@
 package Healthcheck.LogsManagement;
 
+import Healthcheck.App;
 import Healthcheck.AppLogging.AppLogger;
 import Healthcheck.AppLogging.LogType;
 import Healthcheck.Utilities;
@@ -173,16 +174,21 @@ public class LogsGatherer
         _logsManager.Callback_Gatherer_StoppedComputerLogger_NotIntendedInterruption(computerLogger);
     }
 
-    public void Callback_StoppedComputer_SshConnectionFailed(ComputerLogger computerLogger, String message)
-    {
-        Platform.runLater(() -> AppLogger.Log(LogType.FATAL_ERROR, ModuleName, message));
-        _logsManager.Callback_Gatherer_StoppedComputerLogger_SshConnectionFailed(computerLogger);
-    }
-
     public void Callback_StoppedComputerLogger_InternetConnectionLost(String message)
     {
         Platform.runLater(() -> AppLogger.Log(LogType.FATAL_ERROR, ModuleName, message));
         _logsManager.Callback_Gatherer_StoppedComputerLogger_InternetConnectionLost();
+    }
+
+    // ---  OTHER CALLBACKS  -------------------------------------------------------------------------------------------
+
+    public void Callback_RenewedConnectionWithComputer(ComputerLogger computerLogger)
+    {
+        Platform.runLater(() -> AppLogger.Log(LogType.INFO, ModuleName, "Connection with '"
+                + computerLogger.GetComputer().GetUsernameAndHost() + "' has been renewed.")
+        );
+
+        _logsManager.Callback_Gatherer_ReconnectedWithComputerLogger(computerLogger);
     }
 
     // ---  MISC  ------------------------------------------------------------------------------------------------------

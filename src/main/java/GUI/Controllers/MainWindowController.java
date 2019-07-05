@@ -11,6 +11,7 @@ import Healthcheck.Entities.Logs.CpuLog;
 import Healthcheck.Entities.Logs.RamLog;
 import Healthcheck.Entities.Logs.SwapLog;
 import Healthcheck.Entities.SshConfig;
+import Healthcheck.LogsManagement.ComputerLogger;
 import Healthcheck.LogsManagement.LogsGetter;
 import Healthcheck.LogsManagement.LogsManager;
 import javafx.application.Platform;
@@ -662,13 +663,16 @@ public class MainWindowController implements Initializable
         connectedComputers.removeIf(c -> c.UsernameAndHost.get().equals(usernameAndHostToRemove));
     }
 
-    public void Callback_LogsManager_StartedWork(List<Computer> selectedComputers)
+    public void Callback_LogsManager_StartedWork()
     {
-        connectedComputers.clear();
-
         _logsManagerIsNotWorking = false;
         startOrStopGatheringLogsButton.setText("Stop Gathering Logs");
         startOrStopGatheringLogsButton.setOnAction(event -> _logsManager.StopWork());
+    }
+
+    public void Callback_LogsManager_ComputersConnected(List<Computer> selectedComputers)
+    {
+        connectedComputers.clear();
 
         for (Computer selectedComputer : selectedComputers)
         {
@@ -678,6 +682,17 @@ public class MainWindowController implements Initializable
                         selectedComputer.GetSshConfig().GetUsername() + "@" + selectedComputer.GetHost());
             }});
         }
+        connectedComputersTableView.refresh();
+    }
+
+    public void Callback_LogsManager_ReconnectedWithComputerLogger(ComputerLogger computerLogger)
+    {
+        connectedComputers.add(new ConnectedComputerEntry()
+        {{
+            UsernameAndHost = new SimpleStringProperty(
+                    computerLogger.GetComputer().GetSshConfig().GetUsername()
+                            + "@" + computerLogger.GetComputer().GetHost());
+        }});
         connectedComputersTableView.refresh();
     }
 
@@ -698,13 +713,6 @@ public class MainWindowController implements Initializable
         CleanUpGuiComponents();
 
         Utilities.ShowErrorDialog("LogsManager stopped work. Fatal error occurred.");
-    }
-
-    public void Callback_LogsManager_StoppedWork_NothingToDo()
-    {
-        CleanUpGuiComponents();
-
-        Utilities.ShowInfoDialog("LogsManager stopped work. No connected computers.");
     }
 
     // ---  MISC  ------------------------------------------------------------------------------------------------------
