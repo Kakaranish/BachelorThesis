@@ -715,6 +715,8 @@ public class MainWindowController implements Initializable
         {
             _logsManager.StopWork();
         }
+        Platform.exit();
+        System.exit(0);
     }
 
     public void NotifyChanged(ChangeEvent changeEvent)
