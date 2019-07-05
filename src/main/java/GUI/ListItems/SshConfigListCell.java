@@ -5,6 +5,7 @@ import GUI.ChangeEvent.ChangeEvent;
 import GUI.ChangeEvent.ChangeEventType;
 import GUI.Controllers.MainWindowController;
 import Healthcheck.ComputersAndSshConfigsManager;
+import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.SshConfig;
 import Healthcheck.Utilities;
 import javafx.fxml.FXMLLoader;
@@ -48,6 +49,16 @@ public class SshConfigListCell extends ListCell<SshConfigItem>
 
         VBox vBox = new VBox(DisplayedName, Username);
 
+        ImageView removeIconImageView = new ImageView(MainWindowController.removeIcon);
+        removeIconImageView.setFitHeight(16);
+        removeIconImageView.setFitWidth(16);
+        removeIconImageView.setSmooth(true);
+
+        Button removeButton = new Button();
+        removeButton.setGraphic(removeIconImageView);
+        removeButton.getStyleClass().add("remove-button");
+        removeButton.setCursor(Cursor.HAND);
+
         ImageView editIconImageView = new ImageView(MainWindowController.editIcon);
         editIconImageView.setFitHeight(16);
         editIconImageView.setFitWidth(16);
@@ -67,11 +78,38 @@ public class SshConfigListCell extends ListCell<SshConfigItem>
         HBox.setHgrow(spacer, Priority.ALWAYS);
         spacer.setMinSize(10, 1);
 
-        content = new HBox(configIconImageView, vBox, spacer, editButton);
+        content = new HBox(configIconImageView, vBox, spacer, removeButton, editButton);
         content.setPadding(new Insets(0,0,0,7));
         content.setSpacing(10);
         content.setAlignment(Pos.CENTER_LEFT);
 
+        InitRemoveButton(removeButton);
+        InitEditButton(editButton);
+    }
+
+    private void InitRemoveButton(Button removeButton)
+    {
+        removeButton.setOnAction(event ->
+        {
+            boolean response = Utilities.ShowYesNoDialog("Discard changes?", "Do you want to discard changes?");
+            if(response == false)
+            {
+                return;
+            }
+
+            SshConfig sshConfigToRemove = _computersAndSshConfigsManager.GetGlobalSshConfigByName(DisplayedName.getText());
+            sshConfigToRemove.RemoveGlobalFromDb();
+
+            NotifyChanged(new ChangeEvent()
+            {{
+                ChangeType = ChangeEventType.REMOVED;
+                SshConfig = sshConfigToRemove;
+            }});
+        });
+    }
+
+    private void InitEditButton(Button editButton)
+    {
         editButton.setOnAction(event ->
         {
             try

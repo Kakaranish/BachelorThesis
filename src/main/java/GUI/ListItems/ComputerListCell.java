@@ -60,7 +60,7 @@ public class ComputerListCell extends ListCell<ComputerItem>
 
         Button removeButton = new Button();
         removeButton.setGraphic(removeIconImageView);
-        removeButton.getStyleClass().add("edit-button");
+        removeButton.getStyleClass().add("remove-button");
         removeButton.setCursor(Cursor.HAND);
 
         ImageView statsIconImageView = new ImageView(MainWindowController.statsIcon);

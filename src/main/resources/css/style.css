@@ -40,3 +40,12 @@
 .stats-button:hover {
     -fx-opacity: 1;
 }
+
+.remove-button {
+    -fx-background-color: transparent;
+    -fx-opacity: 0.5;
+}
+
+.remove-button:hover {
+    -fx-opacity: 1;
+}
