@@ -53,6 +53,16 @@ public class ComputerListCell extends ListCell<ComputerItem>
 
         VBox vBox = new VBox(DisplayedName, Host);
 
+        ImageView removeIconImageView = new ImageView(MainWindowController.removeIcon);
+        removeIconImageView.setFitHeight(16);
+        removeIconImageView.setFitWidth(16);
+        removeIconImageView.setSmooth(true);
+
+        Button removeButton = new Button();
+        removeButton.setGraphic(removeIconImageView);
+        removeButton.getStyleClass().add("edit-button");
+        removeButton.setCursor(Cursor.HAND);
+
         ImageView statsIconImageView = new ImageView(MainWindowController.statsIcon);
         statsIconImageView.setFitHeight(16);
         statsIconImageView.setFitWidth(16);
@@ -87,13 +97,36 @@ public class ComputerListCell extends ListCell<ComputerItem>
         HBox.setHgrow(spacer, Priority.ALWAYS);
         spacer.setMinSize(10, 1);
 
-        content = new HBox(IsSelected, vBox, spacer, statsButton, logButton, editButton);
+        content = new HBox(IsSelected, vBox, spacer, removeButton, statsButton, logButton, editButton);
         content.setSpacing(10);
         content.setAlignment(Pos.CENTER_LEFT);
 
+        InitRemoveButton(removeButton);
         InitStatsButton(statsButton);
         InitLogButton(logButton);
         InitEditButtonAction(editButton);
+    }
+
+    private void InitRemoveButton(Button removeButton)
+    {
+        removeButton.setOnAction(event ->
+        {
+            boolean response = Utilities.ShowYesNoDialog("Discard changes?", "Do you want to discard changes?");
+            if(response == false)
+            {
+                return;
+            }
+
+            Computer computerToRemove =
+                    _computersAndSshConfigsManager.GetComputerByDisplayedName(DisplayedName.getText());
+
+            computerToRemove.RemoveFromDb();
+            NotifyChanged(new ChangeEvent()
+            {{
+                ChangeType = ChangeEventType.REMOVED;
+                Computer = computerToRemove;
+            }});
+        });
     }
 
     private void InitStatsButton(Button statsButton)

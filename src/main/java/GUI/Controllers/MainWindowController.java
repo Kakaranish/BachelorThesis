@@ -46,6 +46,7 @@ public class MainWindowController implements Initializable
 {
     public final static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy' 'HH:mm:ss");
 
+    public static Image removeIcon = new Image(ComputerListCell.class.getResource("/pics/remove.png").toString());
     public static Image editIcon = new Image(ComputerListCell.class.getResource("/pics/edit.png").toString());
     public static Image logIcon = new Image(ComputerListCell.class.getResource("/pics/log.png").toString());
     public static Image statsIcon = new Image(ComputerListCell.class.getResource("/pics/stats.png").toString());
