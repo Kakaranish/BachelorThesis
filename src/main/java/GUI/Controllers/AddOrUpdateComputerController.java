@@ -23,9 +23,12 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -96,11 +99,18 @@ public class AddOrUpdateComputerController implements Initializable
     @FXML
     private Button removeButton;
 
+    @FXML
+    private Button gatheringIntervalHelperButton;
+
+    @FXML
+    private Button maintenancePeriodHelperButton;
+
     private ObservableList<SshConfig> sshConfigObservableList = FXCollections.observableArrayList();
 
     // -----------------------------------------------------------------------------------------------------------------
 
     private final static String ModuleName = "AddOrUpdateComputerController";
+    private static Image questionIcon = new Image(ComputerListCell.class.getResource("/pics/question.png").toString());
     private final static int preferencesGridColsNum = 2;
 
     private MainWindowController _parentController;
@@ -290,6 +300,7 @@ public class AddOrUpdateComputerController implements Initializable
         InitializeChooseFileButton();
         InitializeAuthMethodRadioButtons();
         InitializeSshConfigChoiceBox();
+        InitializeHelperButtons();
 
         if(IsInEditMode())
         {
@@ -307,7 +318,6 @@ public class AddOrUpdateComputerController implements Initializable
         }
         else
         {
-
             if(Utilities.UseDefaultValues)
             {
                 sshPortTextField.setText(String.valueOf(Utilities.DefaultPort));
@@ -323,7 +333,34 @@ public class AddOrUpdateComputerController implements Initializable
         }
 
         InitializePreferencesCheckboxes();
+        if(StartedInSaveMode())
+        {
+            selectedCheckboxesBeforeChanges = preferenceCheckboxes;
+        }
         DiscardChangesInPreferenceCheckboxes();
+    }
+
+    private void InitializeHelperButtons()
+    {
+        ImageView gatheringIntervalHelperImageView = new ImageView(questionIcon);
+        gatheringIntervalHelperImageView.setFitHeight(16);
+        gatheringIntervalHelperImageView.setFitWidth(16);
+        gatheringIntervalHelperImageView.setSmooth(true);
+        gatheringIntervalHelperButton.setGraphic(gatheringIntervalHelperImageView);
+        gatheringIntervalHelperButton.getStyleClass().add("remove-button");
+        Tooltip gatheringIntervalTooltip = new Tooltip("Select time interval every which logs will be gathered.");
+        gatheringIntervalTooltip.setShowDelay(new javafx.util.Duration(0));
+        gatheringIntervalHelperButton.setTooltip(gatheringIntervalTooltip);
+
+        ImageView maintenancePeriodHelperImageView = new ImageView(questionIcon);
+        maintenancePeriodHelperImageView.setFitHeight(16);
+        maintenancePeriodHelperImageView.setFitWidth(16);
+        maintenancePeriodHelperImageView.setSmooth(true);
+        maintenancePeriodHelperButton.setGraphic(maintenancePeriodHelperImageView);
+        maintenancePeriodHelperButton.getStyleClass().add("remove-button");
+        Tooltip maintenancePeriodTooltip = new Tooltip("Select time interval every which expired logs will be removed.");
+        maintenancePeriodTooltip.setShowDelay(new javafx.util.Duration(0));
+        maintenancePeriodHelperButton.setTooltip(maintenancePeriodTooltip);
     }
 
     private void InitializeChooseFileButton()

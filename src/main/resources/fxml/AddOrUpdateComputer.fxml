@@ -20,8 +20,18 @@
                   <Label text="Ssh Password" GridPane.rowIndex="7" />
                   <Label layoutX="10.0" layoutY="194.0" nodeOrientation="LEFT_TO_RIGHT" prefHeight="20.0" prefWidth="155.0" text="Ssh Private Key Path" GridPane.rowIndex="8" />
                   <Label nodeOrientation="LEFT_TO_RIGHT" prefHeight="20.0" prefWidth="155.0" text="Ssh Port" GridPane.rowIndex="9" />
-                  <Label nodeOrientation="LEFT_TO_RIGHT" prefHeight="20.0" prefWidth="155.0" text="Gathering interval (s)" GridPane.rowIndex="10" />
-                  <Label nodeOrientation="LEFT_TO_RIGHT" prefHeight="20.0" prefWidth="155.0" text="Maintenance period (s)" GridPane.rowIndex="11" />
+                  <HBox alignment="CENTER_LEFT" GridPane.rowIndex="10">
+                     <children>
+                        <Label nodeOrientation="LEFT_TO_RIGHT" prefHeight="20.0" prefWidth="155.0" text="Gathering interval (s)" GridPane.rowIndex="10" />
+                        <Button fx:id="gatheringIntervalHelperButton" alignment="CENTER_RIGHT" contentDisplay="CENTER" mnemonicParsing="false" prefHeight="30.0" prefWidth="31.0" />
+                     </children>
+                  </HBox>
+                  <HBox alignment="CENTER_LEFT" GridPane.rowIndex="11">
+                     <children>
+                        <Label nodeOrientation="LEFT_TO_RIGHT" prefHeight="20.0" prefWidth="155.0" text="Maintenance period (s)" GridPane.rowIndex="11" />
+                        <Button fx:id="maintenancePeriodHelperButton" alignment="CENTER_RIGHT" contentDisplay="CENTER" mnemonicParsing="false" prefHeight="30.0" prefWidth="31.0" />
+                     </children>
+                  </HBox>
                   <Label nodeOrientation="LEFT_TO_RIGHT" prefHeight="20.0" prefWidth="155.0" text="Log Expiration (s)" GridPane.rowIndex="12" />
                   <CheckBox fx:id="isSelectedCheckBox" mnemonicParsing="false" text="Gather logs for this computer" />
                   <TextField fx:id="displayedNameTextField" prefHeight="28.0" prefWidth="381.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
