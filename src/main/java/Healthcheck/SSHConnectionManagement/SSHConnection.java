@@ -85,7 +85,7 @@ public class SSHConnection
     {
         if (IsConnectionEstablished() == false)
         {
-            throw new SSHConnectionException("[FATAL ERROR] SSHConnection: Unable to execute command. " +
+            throw new SSHConnectionException("[FATAL WARNING] SSHConnection: Unable to execute command. " +
                     "Connection is not established.");
         }
 
@@ -123,7 +123,7 @@ public class SSHConnection
                 }
                 catch (InterruptedException e)
                 {
-                    throw new SSHConnectionException("[FATAL ERROR] SSHConnection: Unable to execute command. " +
+                    throw new SSHConnectionException("[FATAL WARNING] SSHConnection: Unable to execute command. " +
                             "Thread sleep interrupted.");
                 }
             }
@@ -131,17 +131,17 @@ public class SSHConnection
         }
         catch (JSchException ex)
         {
-            throw new SSHConnectionException("[FATAL ERROR] SSHConnection: Unable to execute command. " +
+            throw new SSHConnectionException("[FATAL WARNING] SSHConnection: Unable to execute command. " +
                     "Channel can't be opened.");
         }
         catch (IOException ex)
         {
-            throw new SSHConnectionException("[FATAL ERROR] SSHConnection: Unable to execute command. " +
+            throw new SSHConnectionException("[FATAL WARNING] SSHConnection: Unable to execute command. " +
                     "InputStream can't be get from channel.");
         }
         catch (Exception ex)
         {
-            throw new SSHConnectionException("[FATAL ERROR] SSHConnection: Some problem occured.");
+            throw new SSHConnectionException("[FATAL WARNING] SSHConnection: Some problem occured.");
         }
 
         return result;
@@ -156,7 +156,7 @@ public class SSHConnection
         }
         catch (Exception ex)
         {
-            throw new SSHConnectionException("[FATAL ERROR] SSHConnection: Unable to get channel.");
+            throw new SSHConnectionException("[FATAL WARNING] SSHConnection: Unable to get channel.");
         }
 
         return channel;

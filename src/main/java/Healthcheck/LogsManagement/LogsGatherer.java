@@ -132,7 +132,7 @@ public class LogsGatherer
 
     public void Callback_ErrorMessage(String message)
     {
-        Platform.runLater(() -> AppLogger.Log(LogType.ERROR, ModuleName, message));
+        Platform.runLater(() -> AppLogger.Log(LogType.WARNING, ModuleName, message));
     }
 
     public void Callback_FatalErrorWithoutAction(String message)

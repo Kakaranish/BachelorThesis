@@ -36,7 +36,7 @@ public class LogsManager
     {
         if(_isWorking)
         {
-            AppLogger.Log(LogType.ERROR, ModuleName, "Unable to start work. LogsManager is currently working.");
+            AppLogger.Log(LogType.WARNING, ModuleName, "Unable to start work. LogsManager is currently working.");
             Utilities.ShowErrorDialog("LogsManager is currently working.");
 
             return;
@@ -56,7 +56,7 @@ public class LogsManager
         {
             _isWorking = false;
 
-            AppLogger.Log(LogType.ERROR, ModuleName, "No computer is ready for maintenance & logs gathering.");
+            AppLogger.Log(LogType.WARNING, ModuleName, "No computer is ready for maintenance & logs gathering.");
             AppLogger.Log(LogType.INFO, ModuleName, "Stopped work.");
             Utilities.ShowErrorDialog("No computer is ready for maintenance & logs gathering.");
 
@@ -70,7 +70,7 @@ public class LogsManager
         }
         catch(LogsException e)
         {
-            AppLogger.Log(LogType.ERROR, ModuleName, e.getMessage());
+            AppLogger.Log(LogType.WARNING, ModuleName, e.getMessage());
             Utilities.ShowErrorDialog(e.getMessage());
         }
 
@@ -81,7 +81,7 @@ public class LogsManager
     {
         if(_isWorking == false)
         {
-            AppLogger.Log(LogType.ERROR, ModuleName, "Unable to stop work. No LogsManager is currently working.");
+            AppLogger.Log(LogType.WARNING, ModuleName, "Unable to stop work. No LogsManager is currently working.");
             Utilities.ShowErrorDialog("No computer is working.");
 
             return;
@@ -283,7 +283,7 @@ public class LogsManager
         catch (InterruptedException e)
         {
             EndWorkCleanup();
-            throw new LogsException("[FATAL ERROR] Thread sleep was interrupted in LogsManager.");
+            throw new LogsException("[FATAL WARNING] Thread sleep was interrupted in LogsManager.");
         }
 
         reachableComputerLoggers = reachableComputerLoggers.stream()

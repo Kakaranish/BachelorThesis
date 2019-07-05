@@ -31,7 +31,7 @@ public abstract class DatabaseManager
         {
             session.getTransaction().rollback();
 
-            AppLogger.Log(LogType.ERROR, moduleName, attemptErrorMessage);
+            AppLogger.Log(LogType.WARNING, moduleName, attemptErrorMessage);
 
             // Retries
             int retryNum = 1;
@@ -57,7 +57,7 @@ public abstract class DatabaseManager
                     session.getTransaction().rollback();
                     ++retryNum;
 
-                    AppLogger.Log(LogType.ERROR, moduleName, attemptErrorMessage);
+                    AppLogger.Log(LogType.WARNING, moduleName, attemptErrorMessage);
                 }
             }
 
@@ -84,7 +84,7 @@ public abstract class DatabaseManager
         {
             session.getTransaction().rollback();
 
-            Platform.runLater(() -> AppLogger.Log(LogType.ERROR, moduleName, attemptErrorMessage));
+            Platform.runLater(() -> AppLogger.Log(LogType.WARNING, moduleName, attemptErrorMessage));
 
             // Retries
             int retryNum = 1;
@@ -110,7 +110,7 @@ public abstract class DatabaseManager
                     session.getTransaction().rollback();
                     ++retryNum;
 
-                    Platform.runLater(() -> AppLogger.Log(LogType.ERROR, moduleName, attemptErrorMessage));
+                    Platform.runLater(() -> AppLogger.Log(LogType.WARNING, moduleName, attemptErrorMessage));
                 }
             }
 
@@ -137,7 +137,7 @@ public abstract class DatabaseManager
         {
             session.getTransaction().rollback();
 
-            Platform.runLater(() -> AppLogger.Log(LogType.ERROR, moduleName, attemptErrorMessage));
+            Platform.runLater(() -> AppLogger.Log(LogType.WARNING, moduleName, attemptErrorMessage));
 
             // Retries
             int retryNum = 1;
@@ -163,7 +163,7 @@ public abstract class DatabaseManager
                     session.getTransaction().rollback();
                     ++retryNum;
 
-                    Platform.runLater(() -> AppLogger.Log(LogType.ERROR, moduleName, attemptErrorMessage));
+                    Platform.runLater(() -> AppLogger.Log(LogType.WARNING, moduleName, attemptErrorMessage));
                 }
             }
 
@@ -190,7 +190,7 @@ public abstract class DatabaseManager
         {
             session.getTransaction().rollback();
 
-            Platform.runLater(() -> AppLogger.Log(LogType.ERROR, moduleName, attemptErrorMessage));
+            Platform.runLater(() -> AppLogger.Log(LogType.WARNING, moduleName, attemptErrorMessage));
 
             // Retries
             int retryNum = 1;
@@ -216,7 +216,7 @@ public abstract class DatabaseManager
                     session.getTransaction().rollback();
                     ++retryNum;
 
-                    Platform.runLater(() -> AppLogger.Log(LogType.ERROR, moduleName, attemptErrorMessage));
+                    Platform.runLater(() -> AppLogger.Log(LogType.WARNING, moduleName, attemptErrorMessage));
                 }
             }
 
@@ -250,7 +250,7 @@ public abstract class DatabaseManager
         {
             session.getTransaction().rollback();
 
-            Platform.runLater(() -> AppLogger.Log(LogType.ERROR, moduleName, attemptErrorMessage));
+            Platform.runLater(() -> AppLogger.Log(LogType.WARNING, moduleName, attemptErrorMessage));
 
             // Retries
             int retryNum = 1;
@@ -283,7 +283,7 @@ public abstract class DatabaseManager
                     session.getTransaction().rollback();
                     ++retryNum;
 
-                    Platform.runLater(() -> AppLogger.Log(LogType.ERROR, moduleName, attemptErrorMessage));
+                    Platform.runLater(() -> AppLogger.Log(LogType.WARNING, moduleName, attemptErrorMessage));
                 }
             }
 
@@ -310,7 +310,7 @@ public abstract class DatabaseManager
         {
             session.getTransaction().rollback();
 
-            Platform.runLater(() -> AppLogger.Log(LogType.ERROR, moduleName, attemptErrorMessage));
+            Platform.runLater(() -> AppLogger.Log(LogType.WARNING, moduleName, attemptErrorMessage));
 
             // Retries
             int retryNum = 1;
@@ -336,7 +336,7 @@ public abstract class DatabaseManager
                     session.getTransaction().rollback();
                     ++retryNum;
 
-                    Platform.runLater(() -> AppLogger.Log(LogType.ERROR, moduleName, attemptErrorMessage));
+                    Platform.runLater(() -> AppLogger.Log(LogType.WARNING, moduleName, attemptErrorMessage));
                 }
             }
 

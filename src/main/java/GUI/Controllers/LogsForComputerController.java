@@ -518,7 +518,7 @@ public class LogsForComputerController implements Initializable
             }
             catch(Exception e)
             {
-                Platform.runLater(() -> AppLogger.Log(LogType.ERROR, ModuleName,
+                Platform.runLater(() -> AppLogger.Log(LogType.WARNING, ModuleName,
                         "Removing " + logType + " logs from db failed."));
             }
         });
