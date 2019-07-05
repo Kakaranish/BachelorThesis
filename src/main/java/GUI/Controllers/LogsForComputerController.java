@@ -412,30 +412,12 @@ public class LogsForComputerController implements Initializable
         }
         Timestamp fromTimestamp = Timestamp.valueOf(from.atStartOfDay());
 
-        if(usersTab.isSelected())
-        {
-            GetUsersLogsAndPopulateTableView(fromTimestamp);
-        }
-        else if(cpuTab.isSelected())
-        {
-            GetCpuLogsAndPopulateTableView(fromTimestamp);
-        }
-        else if(ramTab.isSelected())
-        {
-            GetRamLogsAndPopulateTableView(fromTimestamp);
-        }
-        else if(swapTab.isSelected())
-        {
-            GetSwapLogsAndPopulateTableView(fromTimestamp);
-        }
-        else if(disksTab.isSelected())
-        {
-            GetDisksLogsAndPopulateTableView(fromTimestamp);
-        }
-        else if(processesTab.isSelected())
-        {
-            GetProcessesLogsAndPopulateTableView(fromTimestamp);
-        }
+        GetUsersLogsAndPopulateTableView(fromTimestamp);
+        GetCpuLogsAndPopulateTableView(fromTimestamp);
+        GetRamLogsAndPopulateTableView(fromTimestamp);
+        GetSwapLogsAndPopulateTableView(fromTimestamp);
+        GetDisksLogsAndPopulateTableView(fromTimestamp);
+        GetProcessesLogsAndPopulateTableView(fromTimestamp);
     }
 
     @FXML
