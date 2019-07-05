@@ -13,6 +13,7 @@ import Healthcheck.Entities.Logs.SwapLog;
 import Healthcheck.Entities.SshConfig;
 import Healthcheck.LogsManagement.LogsGetter;
 import Healthcheck.LogsManagement.LogsManager;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -36,6 +37,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 import javafx.util.Callback;
+import javafx.util.Duration;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -46,6 +48,7 @@ public class MainWindowController implements Initializable
 {
     public final static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy' 'HH:mm:ss");
 
+    public static Image questionIcon = new Image(ComputerListCell.class.getResource("/pics/question.png").toString());
     public static Image removeIcon = new Image(ComputerListCell.class.getResource("/pics/remove.png").toString());
     public static Image editIcon = new Image(ComputerListCell.class.getResource("/pics/edit.png").toString());
     public static Image logIcon = new Image(ComputerListCell.class.getResource("/pics/log.png").toString());
@@ -112,6 +115,9 @@ public class MainWindowController implements Initializable
     @FXML
     private Button groupSettingsButton;
 
+    @FXML
+    private Button generateChartsHelperButton;
+
     private MainWindowController thisController = this;
     private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
     private LogsManager _logsManager;
@@ -141,6 +147,7 @@ public class MainWindowController implements Initializable
         InitializeTabPaneSelectionListener();
         InitializeGenerateChartsButton();
         InitializeGroupSettingsButton();
+        InitializeGenerateChartsHelperButton();
 
         statsScopeChoiceBox.setItems(statsScopeObservableList);
         RefreshStatsChoiceBox();
@@ -208,6 +215,21 @@ public class MainWindowController implements Initializable
             // TODO:
         });
         groupSettingsButton.setVisible(false);
+    }
+
+    private void InitializeGenerateChartsHelperButton()
+    {
+        ImageView imageView = new ImageView(questionIcon);
+        imageView.setFitHeight(16);
+        imageView.setFitWidth(16);
+        imageView.setSmooth(true);
+        generateChartsHelperButton.setGraphic(imageView);
+        generateChartsHelperButton.getStyleClass().add("edit-button");
+        generateChartsHelperButton.setCursor(Cursor.HAND);
+        Tooltip generateChartsTooltip =
+                new Tooltip("Generate logs for selected scope of computers: All Computers/Selected Computers/Classroom.");
+        generateChartsTooltip.setShowDelay(new Duration(0));
+        generateChartsHelperButton.setTooltip(generateChartsTooltip);
     }
 
     private void InitializeTabPaneSelectionListener()
