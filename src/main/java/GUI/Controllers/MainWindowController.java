@@ -52,6 +52,7 @@ public class MainWindowController implements Initializable
     public static Image statsIcon = new Image(ComputerListCell.class.getResource("/pics/stats.png").toString());
     private static Image addIcon = new Image(ComputerListCell.class.getResource("/pics/add.png").toString());
     private static Image refreshIcon = new Image(ComputerListCell.class.getResource("/pics/refresh.png").toString());
+    private static Image controlsIcon = new Image(ComputerListCell.class.getResource("/pics/controls.png").toString());
 
     private ObservableList<AppLoggerEntry> appLoggerEntries = FXCollections.observableArrayList();
 
@@ -108,6 +109,9 @@ public class MainWindowController implements Initializable
     @FXML
     private VBox generalStatsVBox;
 
+    @FXML
+    private Button groupSettingsButton;
+
     private MainWindowController thisController = this;
     private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
     private LogsManager _logsManager;
@@ -136,6 +140,7 @@ public class MainWindowController implements Initializable
         InitializeClearAppLogsButton();
         InitializeTabPaneSelectionListener();
         InitializeGenerateChartsButton();
+        InitializeGroupSettingsButton();
 
         statsScopeChoiceBox.setItems(statsScopeObservableList);
         RefreshStatsChoiceBox();
@@ -189,6 +194,22 @@ public class MainWindowController implements Initializable
         addComputerOrSshConfigButton.setVisible(false);
     }
 
+    private void InitializeGroupSettingsButton()
+    {
+        ImageView imageView = new ImageView(controlsIcon);
+        imageView.setFitHeight(16);
+        imageView.setFitWidth(16);
+        imageView.setSmooth(true);
+        groupSettingsButton.setGraphic(imageView);
+        groupSettingsButton.getStyleClass().add("edit-button");
+        groupSettingsButton.setCursor(Cursor.HAND);
+        groupSettingsButton.setOnAction(event ->
+        {
+            // TODO:
+        });
+        groupSettingsButton.setVisible(false);
+    }
+
     private void InitializeTabPaneSelectionListener()
     {
         tabPane.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) ->
@@ -197,16 +218,19 @@ public class MainWindowController implements Initializable
             {
                 addComputerOrSshConfigButton.setOnAction(event -> AddComputer(this, _computersAndSshConfigsManager));
                 addComputerOrSshConfigButton.setVisible(true);
+                groupSettingsButton.setVisible(true);
             }
             else if(IsInAddSshConfigMode(newValue.intValue()))
             {
                 addComputerOrSshConfigButton.setOnAction(event -> AddSshConfig(this, _computersAndSshConfigsManager));
                 addComputerOrSshConfigButton.setVisible(true);
+                groupSettingsButton.setVisible(false);
             }
             else
             {
                 addComputerOrSshConfigButton.setOnAction(event -> {});
                 addComputerOrSshConfigButton.setVisible(false);
+                groupSettingsButton.setVisible(false);
             }
         });
     }
