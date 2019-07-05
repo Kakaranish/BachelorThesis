@@ -126,6 +126,8 @@ public class ComputerListCell extends ListCell<ComputerItem>
                 ChangeType = ChangeEventType.REMOVED;
                 Computer = computerToRemove;
             }});
+
+            _controller.RefreshStatsChoiceBox();
         });
     }
 
@@ -237,11 +239,13 @@ public class ComputerListCell extends ListCell<ComputerItem>
 
             _controller.computerItemsObservableList.set(getIndex(), computerItemToUpdate);
             _controller.RefreshComputersListView();
+            _controller.RefreshStatsChoiceBox();
         }
         else if(changeEvent.ChangeType == ChangeEventType.REMOVED)
         {
             _controller.computerItemsObservableList.remove(getIndex());
             _controller.RefreshComputersListView();
+            _controller.RefreshStatsChoiceBox();
         }
     }
 

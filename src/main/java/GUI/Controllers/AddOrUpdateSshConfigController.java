@@ -3,6 +3,8 @@ package GUI.Controllers;
 import GUI.ChangeEvent.ChangeEvent;
 import GUI.ChangeEvent.ChangeEventType;
 import GUI.ListItems.SshConfigListCell;
+import Healthcheck.AppLogging.AppLogger;
+import Healthcheck.AppLogging.LogType;
 import Healthcheck.ComputersAndSshConfigsManager;
 import Healthcheck.DatabaseManagement.DatabaseException;
 import Healthcheck.Encryption.Encrypter;
@@ -70,6 +72,8 @@ public class AddOrUpdateSshConfigController implements Initializable
     private Button removeButton;
 
     // -----------------------------------------------------------------------------------------------------------------
+
+    public final static String ModuleName = "AddOrUpdateSshConfigController";
 
     private MainWindowController _parentController;
     private SshConfigListCell _cellCaller;
@@ -507,7 +511,7 @@ public class AddOrUpdateSshConfigController implements Initializable
         catch(Exception e)
         {
             _sshConfig = null;
-            e.printStackTrace();
+            AppLogger.Log(LogType.FATAL_ERROR , ModuleName, "Unknown error has occurred while saving ssh config.");
             Utilities.ShowErrorDialog("Unknown error has occurred while saving.");
 
             return false;
@@ -547,7 +551,7 @@ public class AddOrUpdateSshConfigController implements Initializable
         catch(Exception e)
         {
             RestoreSshConfigChanges();
-            e.printStackTrace();
+            AppLogger.Log(LogType.FATAL_ERROR , ModuleName, "Unknown error has occurred while updating ssh config.");
             Utilities.ShowErrorDialog("Unknown error has occurred while updating ssh config.");
 
             return false;
@@ -597,7 +601,7 @@ public class AddOrUpdateSshConfigController implements Initializable
         }
         catch(Exception e)
         {
-            e.printStackTrace();
+            AppLogger.Log(LogType.FATAL_ERROR , ModuleName, "Unknown error has occurred while removing ssh config.");
             Utilities.ShowErrorDialog("Removing ssh config from db has failed - unknown error.");
         }
     }

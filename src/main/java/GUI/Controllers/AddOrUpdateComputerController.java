@@ -3,6 +3,8 @@ package GUI.Controllers;
 import GUI.ChangeEvent.ChangeEvent;
 import GUI.ChangeEvent.ChangeEventType;
 import GUI.ListItems.ComputerListCell;
+import Healthcheck.AppLogging.AppLogger;
+import Healthcheck.AppLogging.LogType;
 import Healthcheck.ComputersAndSshConfigsManager;
 import Healthcheck.DatabaseManagement.DatabaseException;
 import Healthcheck.Encryption.Encrypter;
@@ -98,6 +100,7 @@ public class AddOrUpdateComputerController implements Initializable
 
     // -----------------------------------------------------------------------------------------------------------------
 
+    private final static String ModuleName = "AddOrUpdateComputerController";
     private final static int preferencesGridColsNum = 2;
 
     private MainWindowController _parentController;
@@ -823,7 +826,6 @@ public class AddOrUpdateComputerController implements Initializable
 
     // ---  BUTTONS LOGIC  ---------------------------------------------------------------------------------------------
 
-    // TODO: Restoring changes in observable list when exception thrown
     @FXML
     void SaveOrUpdateComputer(ActionEvent event)
     {
@@ -865,6 +867,7 @@ public class AddOrUpdateComputerController implements Initializable
             {
                 saveOrUpdateButton.setText("Update");
                 removeButton.setDisable(false);
+                _parentController.RefreshStatsChoiceBox();
             }
         }
         else
@@ -880,13 +883,13 @@ public class AddOrUpdateComputerController implements Initializable
                 {
                     _cellCaller.NotifyChanged(changeEvent);
                 }
+                else
+                {
+                    _parentController.RefreshStatsChoiceBox();
+                }
             }
         }
-    }
 
-    private void RestoreSave(SshConfig backupConfig)
-    {
-        // TODO:
     }
 
     private boolean SaveComputer()
@@ -930,7 +933,8 @@ public class AddOrUpdateComputerController implements Initializable
         catch(Exception e)
         {
             _computer = null;
-            e.printStackTrace();
+
+            AppLogger.Log(LogType.FATAL_ERROR , ModuleName, "Unknown error has occurred while saving computer.");
             Utilities.ShowErrorDialog("Unknown error has occurred while saving computer.");
 
             return false;
@@ -989,7 +993,7 @@ public class AddOrUpdateComputerController implements Initializable
         catch(Exception e)
         {
             RestoreComputerChanges();
-            e.printStackTrace();
+            AppLogger.Log(LogType.FATAL_ERROR , ModuleName, "Unknown error has occurred while updating computer.");
             Utilities.ShowErrorDialog("Unknown error has occurred while updating computer.");
 
             return false;
@@ -1033,7 +1037,12 @@ public class AddOrUpdateComputerController implements Initializable
            {
                _cellCaller.NotifyChanged(changeEvent);
            }
-           ((Stage) removeButton.getScene().getWindow()).close();
+           else
+           {
+               _parentController.RefreshStatsChoiceBox();
+           }
+
+            ((Stage) removeButton.getScene().getWindow()).close();
         }
         catch (DatabaseException e)
         {
@@ -1045,8 +1054,8 @@ public class AddOrUpdateComputerController implements Initializable
         }
         catch (Exception e)
         {
-           e.printStackTrace();
-           Utilities.ShowErrorDialog("Removing computer from db has failed - unknown error.");
+            AppLogger.Log(LogType.FATAL_ERROR , ModuleName, "Unknown error has occurred while removing computer.");
+            Utilities.ShowErrorDialog("Removing computer from db has failed - unknown error.");
         }
     }
 

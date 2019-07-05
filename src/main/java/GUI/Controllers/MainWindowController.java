@@ -100,9 +100,6 @@ public class MainWindowController implements Initializable
     private Button clearAppLogsButton;
 
     @FXML
-    private Button refreshButton;
-
-    @FXML
     private ChoiceBox statsScopeChoiceBox;
 
     @FXML
@@ -138,7 +135,6 @@ public class MainWindowController implements Initializable
         InitializeAddComputerOrSshConfigButton();
         InitializeClearAppLogsButton();
         InitializeTabPaneSelectionListener();
-        InitializeRefreshButton();
         InitializeGenerateChartsButton();
 
         statsScopeChoiceBox.setItems(statsScopeObservableList);
@@ -258,20 +254,6 @@ public class MainWindowController implements Initializable
                 return new SshConfigListCell(_computersAndSshConfigsManager, thisController);
             }
         });
-    }
-
-    private void InitializeRefreshButton()
-    {
-        ImageView statsIconImageView = new ImageView(MainWindowController.refreshIcon);
-        statsIconImageView.setFitHeight(16);
-        statsIconImageView.setFitWidth(16);
-        statsIconImageView.setSmooth(true);
-
-        refreshButton.setGraphic(statsIconImageView);
-        refreshButton.getStyleClass().add("stats-button");
-        refreshButton.setCursor(Cursor.HAND);
-
-        refreshButton.setOnAction(event -> RefreshStatsChoiceBox());
     }
 
     private void InitializeGenerateChartsButton()
@@ -681,7 +663,7 @@ public class MainWindowController implements Initializable
 
     // ---  MISC  ------------------------------------------------------------------------------------------------------
 
-    private void RefreshStatsChoiceBox()
+    public void RefreshStatsChoiceBox()
     {
         List<String> classroomNames = _computersAndSshConfigsManager.GetAvailableClassrooms();
 
