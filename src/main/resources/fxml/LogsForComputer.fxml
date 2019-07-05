@@ -13,13 +13,13 @@
                   <TableView fx:id="usersTableView" prefHeight="633.0" prefWidth="1311.0">
                     <columns>
                       <TableColumn fx:id="users_datetimeColumn" prefWidth="150.0" text="Datetime" />
+                        <TableColumn fx:id="users_userColumn" prefWidth="200.0" text="User" />
                       <TableColumn fx:id="users_fromWhereColumn" minWidth="0.0" prefWidth="200.0" text="From Where" />
                         <TableColumn fx:id="users_idleColumn" minWidth="100.0" prefWidth="31.0" text="Idle" />
                         <TableColumn fx:id="users_jcpuColumn" prefWidth="100.0" text="JCPU" />
                         <TableColumn fx:id="users_pcpuColumn" prefWidth="100.0" text="PCPU" />
                         <TableColumn fx:id="users_sat15Column" prefWidth="100.0" text="SAT15" />
                         <TableColumn fx:id="users_ttyColumn" prefWidth="150.0" text="TTY" />
-                        <TableColumn fx:id="users_userColumn" prefWidth="200.0" text="User" />
                         <TableColumn fx:id="users_whatColumn" prefWidth="210.0" text="What" />
                     </columns>
                   </TableView>
