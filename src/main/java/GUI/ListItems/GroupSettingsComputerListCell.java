@@ -54,9 +54,9 @@ public class GroupSettingsComputerListCell extends ListCell<ComputerItem>
                 IsSelectedValue = item.IsSelected;
             }
 
-            IsSelected.setSelected(IsSelectedValue);
             DisplayedName.setText(item.DisplayedName);
             Host.setText(item.Host);
+            IsSelected.setSelected(IsSelectedValue);
 
             setGraphic(content);
         }

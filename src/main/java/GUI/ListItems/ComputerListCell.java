@@ -113,11 +113,14 @@ public class ComputerListCell extends ListCell<ComputerItem>
     {
         IsSelected.selectedProperty().addListener((observable, oldValue, newValue) ->
         {
-            IsSelectedValue = newValue;
+            if(IsSelectedValue != newValue)
+            {
+                IsSelectedValue = newValue;
 
-            Computer computer = _computersAndSshConfigsManager.GetComputerByDisplayedName(DisplayedName.getText());
-            computer.SetSelected(IsSelectedValue);
-            computer.UpdateInDb();
+                Computer computer = _computersAndSshConfigsManager.GetComputerByDisplayedName(DisplayedName.getText());
+                computer.SetSelected(IsSelectedValue);
+                computer.UpdateInDb();
+            }
         });
     }
 
@@ -276,9 +279,9 @@ public class ComputerListCell extends ListCell<ComputerItem>
                 IsSelectedValue = item.IsSelected;
             }
 
-            IsSelected.setSelected(IsSelectedValue);
             DisplayedName.setText(item.DisplayedName);
             Host.setText(item.Host);
+            IsSelected.setSelected(IsSelectedValue);
 
             setGraphic(content);
         }
