@@ -603,7 +603,9 @@ public class MainWindowController implements Initializable
 
     private PieChart GenerateLatestAvgOfRamUsageForComputers(List<Computer> computers)
     {
-        List<Double> percentageUsages = new ArrayList<>();
+        List<Double> usedPercentages = new ArrayList<>();
+        List<Double> freePercentages = new ArrayList<>();
+        List<Double> buffersCachedPercentages = new ArrayList<>();
 
         for (Computer computer : computers)
         {
@@ -613,37 +615,49 @@ public class MainWindowController implements Initializable
                 continue;
             }
 
-            double used = latestRamLogsForComputer.get(0).RamInfo.Used;
-            double free = latestRamLogsForComputer.get(0).RamInfo.Free;
-            if(used == 0 && free == 0)
+            long used = latestRamLogsForComputer.get(0).RamInfo.Used;
+            long free = latestRamLogsForComputer.get(0).RamInfo.Free;
+            long buffersCached = latestRamLogsForComputer.get(0).RamInfo.BuffersCached != null ?
+                    latestRamLogsForComputer.get(0).RamInfo.BuffersCached : 0;
+            long total = used + free + buffersCached;
+
+            if(used == 0 && free == 0 && buffersCached == 0)
             {
                 continue;
             }
 
-            double percentageUsage = used / (used + free) * 100;
-            percentageUsages.add(percentageUsage);
+            double usedPercentage = (double) used / total * 100;
+            double freePercentage = (double) free / total * 100;
+            double buffersCachedPercentage = (double) buffersCached / total * 100;
+
+            usedPercentages.add(usedPercentage);
+            freePercentages.add(freePercentage);
+            buffersCachedPercentages.add(buffersCachedPercentage);
         }
 
-        if(percentageUsages.isEmpty())
+        if(usedPercentages.isEmpty() && freePercentages.isEmpty() && buffersCachedPercentages.isEmpty())
         {
             return null;
         }
 
-        double avgPercentageUsage =
-                percentageUsages.stream().mapToDouble(Double::doubleValue).sum() / percentageUsages.size();
-        if(avgPercentageUsage > 100)
-        {
-            avgPercentageUsage = 100;
-        }
+        double usedPercentagesAvg = usedPercentages.stream()
+                .mapToDouble(Double::doubleValue).sum() / usedPercentages.size();
+        double freePercentagesAvg = freePercentages.stream()
+                .mapToDouble(Double::doubleValue).sum() / freePercentages.size();
+        double buffersCachedPercentagesAvg = buffersCachedPercentages.stream()
+                .mapToDouble(Double::doubleValue).sum() / buffersCachedPercentages.size();
 
         PieChart chart = new PieChart();
         chart.setTitle("Latest average RAM usage for computers");
+        chart.setMinSize(300, 300);
         ObservableList<PieChart.Data> pieChartData =
                 FXCollections.observableArrayList(
                         new PieChart.Data("Free RAM - "
-                                + String.format("%.2f", 100 - avgPercentageUsage) + "%", 100 - avgPercentageUsage),
+                                + String.format("%.2f", freePercentagesAvg) + "%", freePercentagesAvg),
                         new PieChart.Data("Used RAM - "
-                                + String.format("%.2f", avgPercentageUsage) + "%", avgPercentageUsage));
+                                + String.format("%.2f", usedPercentagesAvg) + "%", usedPercentagesAvg),
+                        new PieChart.Data("Buffers/Cached- "
+                                + String.format("%.2f", buffersCachedPercentagesAvg) + "%", buffersCachedPercentagesAvg));
         chart.setData(pieChartData);
 
         return chart;
