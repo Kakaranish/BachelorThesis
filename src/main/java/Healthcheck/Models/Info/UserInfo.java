@@ -9,7 +9,7 @@ public class UserInfo
     public String User;
     public String TTY;
     public String FromWhere;
-    public String SAT15;
+    public String LoginAt;
     public String Idle;
     public String JCPU;
     public String PCPU;
@@ -50,7 +50,7 @@ public class UserInfo
         User = commandExecutionResultSplit.get(0);
         TTY = commandExecutionResultSplit.get(1);
         FromWhere = commandExecutionResultSplit.get(2);
-        SAT15 = commandExecutionResultSplit.get(3);
+        LoginAt = commandExecutionResultSplit.get(3);
         Idle = commandExecutionResultSplit.get(4);
         JCPU = commandExecutionResultSplit.get(5);
         PCPU = commandExecutionResultSplit.get(6);

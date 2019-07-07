@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS "UsersLogs" (
 	"Idle"	varchar(255),
 	"JCPU"	varchar(255),
 	"PCPU"	varchar(255),
-	"SAT15"	varchar(255),
+	"LoginAt"	varchar(255),
 	"TTY"	varchar(255),
 	"User"	varchar(255),
 	"What"	varchar(255),

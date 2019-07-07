@@ -8,7 +8,7 @@ public class UserEntry extends LogEntry
     public SimpleStringProperty Idle;
     public SimpleStringProperty JCPU;
     public SimpleStringProperty PCPU;
-    public SimpleStringProperty SAT15;
+    public SimpleStringProperty LoginAt;
     public SimpleStringProperty TTY;
     public SimpleStringProperty User;
     public SimpleStringProperty What;
@@ -73,19 +73,19 @@ public class UserEntry extends LogEntry
         this.PCPU.set(PCPU);
     }
 
-    public String getSAT15()
+    public String getLoginAt()
     {
-        return SAT15.get();
+        return LoginAt.get();
     }
 
-    public SimpleStringProperty SAT15Property()
+    public SimpleStringProperty loginAtProperty()
     {
-        return SAT15;
+        return LoginAt;
     }
 
-    public void setSAT15(String SAT15)
+    public void setLoginAt(String loginAt)
     {
-        this.SAT15.set(SAT15);
+        this.LoginAt.set(loginAt);
     }
 
     public String getTTY()

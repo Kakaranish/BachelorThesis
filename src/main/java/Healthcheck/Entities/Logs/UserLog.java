@@ -66,7 +66,7 @@ public class UserLog extends LogBase
                 Idle = new SimpleStringProperty(UserInfo.Idle);
                 JCPU = new SimpleStringProperty(UserInfo.JCPU);
                 PCPU = new SimpleStringProperty(UserInfo.PCPU);
-                SAT15 = new SimpleStringProperty(UserInfo.SAT15);
+                LoginAt = new SimpleStringProperty(UserInfo.LoginAt);
                 TTY = new SimpleStringProperty(UserInfo.TTY);
                 User = new SimpleStringProperty(UserInfo.User);
                 What = new SimpleStringProperty(UserInfo.What);
@@ -77,7 +77,7 @@ public class UserLog extends LogBase
                 Idle = new SimpleStringProperty("");
                 JCPU = new SimpleStringProperty("");
                 PCPU = new SimpleStringProperty("");
-                SAT15 = new SimpleStringProperty("");
+                LoginAt = new SimpleStringProperty("");
                 TTY = new SimpleStringProperty("");
                 User = new SimpleStringProperty("");
                 What = new SimpleStringProperty("");

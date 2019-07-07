@@ -53,7 +53,7 @@ public class LogsForComputerController implements Initializable
     private TableColumn<UserEntry, String> users_pcpuColumn;
 
     @FXML
-    private TableColumn<UserEntry, String> users_sat15Column;
+    private TableColumn<UserEntry, String> users_loginAtColumn;
 
     @FXML
     private TableColumn<UserEntry, String> users_ttyColumn;
@@ -71,7 +71,7 @@ public class LogsForComputerController implements Initializable
         users_idleColumn.setCellValueFactory(new PropertyValueFactory<UserEntry, String>("Idle"));
         users_jcpuColumn.setCellValueFactory(new PropertyValueFactory<UserEntry, String>("JCPU"));
         users_pcpuColumn.setCellValueFactory(new PropertyValueFactory<UserEntry, String>("PCPU"));
-        users_sat15Column.setCellValueFactory(new PropertyValueFactory<UserEntry, String>("SAT15"));
+        users_loginAtColumn.setCellValueFactory(new PropertyValueFactory<UserEntry, String>("LoginAt"));
         users_ttyColumn.setCellValueFactory(new PropertyValueFactory<UserEntry, String>("TTY"));
         users_userColumn.setCellValueFactory(new PropertyValueFactory<UserEntry, String>("User"));
         users_whatColumn.setCellValueFactory(new PropertyValueFactory<UserEntry, String>("What"));
