@@ -128,7 +128,13 @@ public class ComputerListCell extends ListCell<ComputerItem>
     {
         removeButton.setOnAction(event ->
         {
-            boolean response = Utilities.ShowYesNoDialog("Discard changes?", "Do you want to discard changes?");
+            if(_controller.IsRemovingAllowed() == false)
+            {
+                Utilities.ShowErrorDialog("Removing computer is illegal when logs are gathered and maintained.");
+                return;
+            }
+
+            boolean response = Utilities.ShowYesNoDialog("Remove computer?", "Do you want to remove computer?");
             if(response == false)
             {
                 return;
