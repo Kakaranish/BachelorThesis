@@ -2,6 +2,8 @@ package GUI.ListItems;
 
 import GUI.Controllers.*;
 import Healthcheck.ComputersAndSshConfigsManager;
+import Healthcheck.Entities.Computer;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ListCell;
@@ -29,8 +31,8 @@ public class GroupSettingsComputerListCell extends ListCell<ComputerItem>
         _controller = controller;
 
         IsSelected = new CheckBox();
-        IsSelected.setSelected(true);
         IsSelected.selectedProperty().addListener((observable, oldValue, newValue) -> IsSelectedValue = newValue);
+        IsSelected.setPadding(new Insets(0, 10, 0, 10));
 
         DisplayedName = new Text();
         DisplayedName.setFont(new Font(17.5));
@@ -52,6 +54,7 @@ public class GroupSettingsComputerListCell extends ListCell<ComputerItem>
             if(IsSelectedValue == null)
             {
                 IsSelectedValue = item.IsSelected;
+                _controller.AddGroupSettingsListCell(this);
             }
 
             DisplayedName.setText(item.DisplayedName);
@@ -64,6 +67,25 @@ public class GroupSettingsComputerListCell extends ListCell<ComputerItem>
         {
             setGraphic(null);
         }
+    }
+
+    public void SetSelected(boolean selected)
+    {
+        if(IsSelectedValue != selected)
+        {
+            IsSelectedValue = selected;
+            IsSelected.setSelected(selected);
+        }
+    }
+
+    public boolean IsSelected()
+    {
+        return IsSelectedValue;
+    }
+
+    public Computer GetComputer()
+    {
+        return _computersAndSshConfigsManager.GetComputerByDisplayedName(DisplayedName.getText());
     }
 
     public GroupSettingsController GetController()

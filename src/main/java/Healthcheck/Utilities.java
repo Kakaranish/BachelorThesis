@@ -113,13 +113,13 @@ public class Utilities
         List<Preference> preferences = new ArrayList<>();
         for (IPreference iPreference : iPreferences)
         {
-            preferences.add(ConvertIPreferenceToEntityPreference(iPreference));
+            preferences.add(ConvertIPreferenceToPreference(iPreference));
         }
 
         return preferences;
     }
 
-    public static Preference ConvertIPreferenceToEntityPreference(IPreference iPreference)
+    public static Preference ConvertIPreferenceToPreference(IPreference iPreference)
     {
         String className = iPreference.getClass().getName();
         List<Preference> preferences =
