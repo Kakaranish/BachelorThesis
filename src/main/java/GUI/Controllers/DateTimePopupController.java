@@ -25,10 +25,16 @@ import java.util.regex.Pattern;
 public class DateTimePopupController implements Initializable
 {
     @FXML
-    private DatePicker datePicker;
+    private DatePicker dateFromPicker;
 
     @FXML
-    private TextField timeTextField;
+    private DatePicker dateToPicker;
+
+    @FXML
+    private TextField timeFromTextField;
+
+    @FXML
+    private TextField timeToTextField;
 
     @FXML
     private Button submitButton;
@@ -36,6 +42,8 @@ public class DateTimePopupController implements Initializable
     private Computer _computer;
     private static final Pattern TimePattern = Pattern.compile("[0-9]{2}:[0-9]{2}");
     private static final DateTimeFormatter DateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyy hh:mm");
+
 
     public DateTimePopupController(Computer computer)
     {
@@ -45,29 +53,37 @@ public class DateTimePopupController implements Initializable
     @Override
     public void initialize(URL location, ResourceBundle resources)
     {
-        InitDatePicker();
-        SetUpTimeValidator();
+        InitDatePickers();
+        SetUpTimeValidators();
         InitSubmitButton();
     }
 
-    private void InitDatePicker()
+    private void InitDatePickers()
     {
-        datePicker.setValue(LocalDate.now());
-        datePicker.setEditable(false);
+        dateFromPicker.setValue(LocalDate.now());
+        dateFromPicker.setEditable(false);
+
+        dateToPicker.setValue(LocalDate.now());
+        dateToPicker.setEditable(false);
     }
 
-    private void SetUpTimeValidator()
+    private void SetUpTimeValidators()
     {
-        timeTextField.textProperty().addListener((observable, oldValue, newValue) ->
-        {
+        SetUpTimeValidator(timeFromTextField);
+        SetUpTimeValidator(timeToTextField);
+    }
 
+    private void SetUpTimeValidator(TextField textField)
+    {
+        textField.textProperty().addListener((observable, oldValue, newValue) ->
+        {
             if(TimePattern.matcher(newValue).matches())
             {
-                timeTextField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
+                textField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
             }
             else
             {
-                timeTextField.getStyleClass().add("validation-error");
+                textField.getStyleClass().add("validation-error");
             }
         });
     }
@@ -76,9 +92,10 @@ public class DateTimePopupController implements Initializable
     {
         submitButton.setOnAction(event ->
         {
-            if(TimePattern.matcher(timeTextField.getText()).matches() == false)
+            if(TimePattern.matcher(timeFromTextField.getText()).matches() == false ||
+                    TimePattern.matcher(timeToTextField.getText()).matches() == false)
             {
-                Utilities.ShowErrorDialog("Provided time has wrong format.");
+                Utilities.ShowErrorDialog("Provided time(s) has/have wrong format.");
                 return;
             }
 
@@ -93,7 +110,9 @@ public class DateTimePopupController implements Initializable
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/StatsForComputer.fxml"));
 
             StatsForComputerController statsForComputerController =
-                    new StatsForComputerController(_computer, ConvertDateAndTimeToTimestamp());
+                    new StatsForComputerController(_computer,
+                            ConvertDateAndTimeToTimestamp(dateFromPicker.getValue(), timeFromTextField.getText()),
+                            ConvertDateAndTimeToTimestamp(dateToPicker.getValue(), timeToTextField.getText()));
 
             fxmlLoader.setController(statsForComputerController);
 
@@ -113,14 +132,12 @@ public class DateTimePopupController implements Initializable
         }
     }
 
-    private Timestamp ConvertDateAndTimeToTimestamp()
+    private Timestamp ConvertDateAndTimeToTimestamp(LocalDate date, String time)
     {
         try
         {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyy hh:mm");
-            String date = DateFormatter.format(datePicker.getValue());
-            String time = timeTextField.getText();
-            String dateAndTime = date + " " + time;
+            String dateStr = DateFormatter.format(date);
+            String dateAndTime = dateStr + " " + time;
 
             Date parsedDate = dateFormat.parse(dateAndTime);
             return new Timestamp(parsedDate.getTime());

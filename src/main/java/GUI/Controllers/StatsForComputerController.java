@@ -49,32 +49,32 @@ public class StatsForComputerController implements Initializable
 
     private Computer _computer;
     private Timestamp _from;
+    private Timestamp _to;
 
-    public StatsForComputerController(Computer computer, Timestamp from)
+    public StatsForComputerController(Computer computer, Timestamp from, Timestamp to)
     {
         _computer = computer;
         _from = from;
+        _to = to; // AFRICA
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources)
     {
-        Timestamp now = new Timestamp(new Date().getTime());
-
         Map<String, List<DiskLog>> groupedDisksLogs = LogsGetter.GroupDisksLogsByFileSystem(
                 LogsGetter.GetGivenTypeLogsForComputer(
-                _computer, Preferences.PreferenceNameMap.get("DisksInfoPreference"), _from, now).stream()
+                _computer, Preferences.PreferenceNameMap.get("DisksInfoPreference"), _from, _to).stream()
                 .map(l -> (DiskLog) l).collect(Collectors.toList())
         );
 
-        CreateDisksCharts(_computer, _from, now);
-        CreateCpuCharts(_computer, _from, now);
-        CreateRamCharts(_computer, _from, now);
-        CreateSwapCharts(_computer, _from, now);
-        CreateUsersCharts(_computer, _from, now);
+        CreateDisksCharts(_computer, _from, _to);
+        CreateCpuCharts(_computer, _from, _to);
+        CreateRamCharts(_computer, _from, _to);
+        CreateSwapCharts(_computer, _from, _to);
+        CreateUsersCharts(_computer, _from, _to);
     }
 
-    private void CreateCpuCharts(Computer computer, Timestamp from, Timestamp now)
+    private void CreateCpuCharts(Computer computer, Timestamp from, Timestamp to)
     {
         HBox pieChartsHBox = new HBox();
         List<CpuLog> latestCpuLogs = LogsGetter.GetLatestGivenTypeLogsForComputer(
@@ -134,7 +134,7 @@ public class StatsForComputerController implements Initializable
         cpuVBox.getChildren().add(pieChartsHBox);
 
         List<CpuLog> cpuLogs = LogsGetter.GetGivenTypeLogsForComputer(
-                computer, Preferences.PreferenceNameMap.get("CpuInfoPreference"), from, now)
+                computer, Preferences.PreferenceNameMap.get("CpuInfoPreference"), from, to)
                 .stream().map(l -> (CpuLog) l).collect(Collectors.toList());
 
         for(int i = 1; i <= 3; ++i)
@@ -192,10 +192,10 @@ public class StatsForComputerController implements Initializable
         }
     }
 
-    public void CreateDisksCharts(Computer computer, Timestamp from, Timestamp now)
+    public void CreateDisksCharts(Computer computer, Timestamp from, Timestamp to)
     {
         List<DiskLog> diskLogs = LogsGetter.GetGivenTypeLogsForComputer(
-                computer, Preferences.PreferenceNameMap.get("DisksInfoPreference"), from, now)
+                computer, Preferences.PreferenceNameMap.get("DisksInfoPreference"), from, to)
                 .stream().map(l -> (DiskLog) l).collect(Collectors.toList());
         if(diskLogs.isEmpty())
         {
@@ -261,7 +261,7 @@ public class StatsForComputerController implements Initializable
         }
     }
 
-    private void CreateRamCharts(Computer computer, Timestamp from, Timestamp now)
+    private void CreateRamCharts(Computer computer, Timestamp from, Timestamp to)
     {
         HBox pieChartHBox = new HBox();
         pieChartHBox.setAlignment(Pos.CENTER);
@@ -308,7 +308,7 @@ public class StatsForComputerController implements Initializable
             pieChartObservableList.add(new PieChart.Data("Buffers/Cached - "
                     + String.format("%.2f", buffersCachedPercentage) + "%", buffersCachedPercentage));
         }
-        
+
         final PieChart chart = new PieChart(pieChartObservableList);
         chart.setTitle("Latest Ram usage - " + simpleDateFormat.format(latestRamLogs.get(0).Timestamp));
         chart.setMinSize(300, 300);
@@ -317,7 +317,7 @@ public class StatsForComputerController implements Initializable
         ramVBox.getChildren().add(pieChartHBox);
 
         List<RamLog> ramLogs = LogsGetter.GetGivenTypeLogsForComputer(
-                computer, Preferences.PreferenceNameMap.get("RamInfoPreference"),from, now)
+                computer, Preferences.PreferenceNameMap.get("RamInfoPreference"),from, to)
                 .stream().map(l -> (RamLog) l).collect(Collectors.toList());
         var quartetsTimestampUsedFreeBuffersCached = LogsGetter.GetRamTimestampUsedFreeBuffersCachedQuartetList(ramLogs);
 
@@ -370,7 +370,7 @@ public class StatsForComputerController implements Initializable
         ramVBox.getChildren().add(stackedBarChart);
     }
 
-    private void CreateSwapCharts(Computer computer, Timestamp from, Timestamp now)
+    private void CreateSwapCharts(Computer computer, Timestamp from, Timestamp to)
     {
         HBox pieChartHBox = new HBox();
         pieChartHBox.setAlignment(Pos.CENTER);
@@ -434,7 +434,7 @@ public class StatsForComputerController implements Initializable
         swapVBox.getChildren().add(pieChartHBox);
 
         List<SwapLog> swapLogs = LogsGetter.GetGivenTypeLogsForComputer(
-                computer, Preferences.PreferenceNameMap.get("SwapInfoPreference"),from, now)
+                computer, Preferences.PreferenceNameMap.get("SwapInfoPreference"),from, to)
                 .stream().map(l -> (SwapLog) l).collect(Collectors.toList());
         var tripletsTimestampUsedFree = LogsGetter.GetSwapTimestampUsedFreeTripletList(swapLogs);
 
@@ -473,10 +473,10 @@ public class StatsForComputerController implements Initializable
         swapVBox.getChildren().add(stackedBarChart);
     }
 
-    private void CreateUsersCharts(Computer computer, Timestamp from, Timestamp now)
+    private void CreateUsersCharts(Computer computer, Timestamp from, Timestamp to)
     {
         List<UserLog> usersLogs = LogsGetter.GetGivenTypeLogsForComputer(
-                computer, Preferences.UsersInfoPreference, from, now)
+                computer, Preferences.UsersInfoPreference, from, to)
                 .stream().map(l -> (UserLog) l).collect(Collectors.toList());
 
         if(usersLogs.isEmpty())
