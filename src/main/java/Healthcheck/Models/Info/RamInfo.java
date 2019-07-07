@@ -3,6 +3,7 @@ package Healthcheck.Models.Info;
 import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.Logs.LogBase;
 import Healthcheck.Entities.Logs.RamLog;
+import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -15,8 +16,18 @@ public class RamInfo implements IInfo
     public long Used;
     public long Free;
     public long Shared;
-    public long Buffers;
-    public long Cached;
+
+    @Column(nullable = true)
+    public Long Buffers;
+
+    @Column(nullable = true)
+    public Long Cached;
+
+    @Column(nullable = true)
+    public Long BuffersCached;
+
+    @Column(nullable = true)
+    public Long Available;
 
     /*
         commandExecutionResult looks like:
@@ -40,7 +51,8 @@ public class RamInfo implements IInfo
 
     public RamInfo(String commandExecutionResult)
     {
-        int numOfLinesInResult = commandExecutionResult.split("\n").length;
+        String header = commandExecutionResult.split("\n")[0].trim();
+        String[] headerSplit = header.replaceAll("\\s+", "\t").split("\t");
         commandExecutionResult = commandExecutionResult.split("\n")[1];
         commandExecutionResult = commandExecutionResult.trim();
         commandExecutionResult = commandExecutionResult.replaceAll("\\s+", "\t");
@@ -50,8 +62,17 @@ public class RamInfo implements IInfo
         Used = Long.parseLong(commandExecutionResultSplit[2]);
         Free = Long.parseLong(commandExecutionResultSplit[3]);
         Shared = Long.parseLong(commandExecutionResultSplit[4]);
-        Buffers = Long.parseLong(commandExecutionResultSplit[5]);
-        Cached = Long.parseLong(commandExecutionResultSplit[6]);
+
+        if(headerSplit[5].equals("dostępne") || headerSplit[5].equals("available"))
+        {
+            BuffersCached = Long.parseLong(commandExecutionResultSplit[5]);
+            Available = Long.parseLong(commandExecutionResultSplit[6]);
+        }
+        else
+        {
+            Buffers = Long.parseLong(commandExecutionResultSplit[5]);
+            Cached = Long.parseLong(commandExecutionResultSplit[6]);
+        }
     }
 
     public List<LogBase> ToLogList(Computer computer, Timestamp timestamp)

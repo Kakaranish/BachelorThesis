@@ -57,8 +57,22 @@ public class RamLog extends LogBase
             Used = new SimpleLongProperty(RamInfo.Used);
             Free = new SimpleLongProperty(RamInfo.Free);
             Shared = new SimpleLongProperty(RamInfo.Shared);
-            Buffers = new SimpleLongProperty(RamInfo.Buffers);
-            Cached = new SimpleLongProperty(RamInfo.Cached);
+
+            Buffers = new SimpleStringProperty("");
+            Cached = new SimpleStringProperty("");
+            BuffersCached = new SimpleStringProperty("");
+            Available = new SimpleStringProperty("");
+
+            if(RamInfo.Buffers == null && RamInfo.Cached == null)
+            {
+                BuffersCached = new SimpleStringProperty(String.valueOf(RamInfo.BuffersCached));
+                Available = new SimpleStringProperty(String.valueOf(RamInfo.Available));
+            }
+            else
+            {
+                Buffers = new SimpleStringProperty(String.valueOf(RamInfo.Buffers));
+                Cached = new SimpleStringProperty(String.valueOf(RamInfo.Cached));
+            }
         }};
     }
 

@@ -11,12 +11,14 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.chart.*;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.util.Pair;
+import org.javatuples.Quartet;
 import org.javatuples.Triplet;
 import java.net.URL;
 import java.sql.Timestamp;
@@ -287,19 +289,29 @@ public class StatsForComputerController implements Initializable
             return;
         }
 
-        double used = latestRamLogs.get(0).RamInfo.Used;
-        double free = latestRamLogs.get(0).RamInfo.Free;
+        long used = latestRamLogs.get(0).RamInfo.Used;
+        long free = latestRamLogs.get(0).RamInfo.Free;
+        Long buffersCached = latestRamLogs.get(0).RamInfo.BuffersCached;
 
-        double freePercentage = free / (used + free) * 100;
+        long total = free + used + (buffersCached != null ? buffersCached : 0);
+        double freePercentage = (double) free / total * 100;
+        double usedPercentage = (double) used / total * 100;
+        double buffersCachedPercentage = (buffersCached != null ? (double) buffersCached / total : 0)* 100;
 
-        ObservableList<PieChart.Data> pieChartData =
-                FXCollections.observableArrayList(
-                        new PieChart.Data("Free Ram - "
-                                + String.format("%.2f", freePercentage)+ "%", freePercentage),
-                        new PieChart.Data("Used Ram - "
-                                + String.format("%.2f", 100 - freePercentage) + "%", 100 - freePercentage));
-        final PieChart chart = new PieChart(pieChartData);
+        var pieChartObservableList = FXCollections.observableArrayList(
+                new PieChart.Data("Free Ram - "
+                        + String.format("%.2f", freePercentage)+ "%", freePercentage),
+                new PieChart.Data("Used Ram - "
+                        + String.format("%.2f", usedPercentage) + "%", usedPercentage));
+        if(buffersCached != null)
+        {
+            pieChartObservableList.add(new PieChart.Data("Buffers/Cached - "
+                    + String.format("%.2f", buffersCachedPercentage) + "%", buffersCachedPercentage));
+        }
+        
+        final PieChart chart = new PieChart(pieChartObservableList);
         chart.setTitle("Latest Ram usage - " + simpleDateFormat.format(latestRamLogs.get(0).Timestamp));
+        chart.setMinSize(300, 300);
 
         pieChartHBox.getChildren().add(chart);
         ramVBox.getChildren().add(pieChartHBox);
@@ -307,7 +319,7 @@ public class StatsForComputerController implements Initializable
         List<RamLog> ramLogs = LogsGetter.GetGivenTypeLogsForComputer(
                 computer, Preferences.PreferenceNameMap.get("RamInfoPreference"),from, now)
                 .stream().map(l -> (RamLog) l).collect(Collectors.toList());
-        var tripletsTimestampUsedFree = LogsGetter.GetRamTimestampUsedFreeTripletList(ramLogs);
+        var quartetsTimestampUsedFreeBuffersCached = LogsGetter.GetRamTimestampUsedFreeBuffersCachedQuartetList(ramLogs);
 
         CategoryAxis xAxis = new CategoryAxis();
         xAxis.setLabel("Timestamp");
@@ -316,30 +328,44 @@ public class StatsForComputerController implements Initializable
 
         StackedBarChart stackedBarChart = new StackedBarChart(xAxis, yAxis);
         stackedBarChart.setMinHeight(WindowHeight);
-        stackedBarChart.setStyle("CHART_COLOR_1: #000FFF;");
+        stackedBarChart.setLegendSide(Side.LEFT);
 
         XYChart.Series usedDataSeries = new XYChart.Series();
         usedDataSeries.setName("Used");
-        for (Triplet<Timestamp, Long, Long> tripletTimestampUsedFree : tripletsTimestampUsedFree)
+        for (Quartet<Timestamp, Long, Long, Long> quartetTimestampUsedFreeBuffersCached : quartetsTimestampUsedFreeBuffersCached)
         {
             usedDataSeries.getData().add(new XYChart.Data(
-                    simpleDateFormat.format(tripletTimestampUsedFree.getValue0()),
-                    tripletTimestampUsedFree.getValue1())
+                    simpleDateFormat.format(quartetTimestampUsedFreeBuffersCached.getValue0()),
+                    quartetTimestampUsedFreeBuffersCached.getValue1())
             );
         }
 
         XYChart.Series freeDataSeries = new XYChart.Series();
         freeDataSeries.setName("Free");
-        for (Triplet<Timestamp, Long, Long> tripletTimestampUsedFree : tripletsTimestampUsedFree)
+        for (Quartet<Timestamp, Long, Long, Long> quartetTimestampUsedFreeBuffersCached : quartetsTimestampUsedFreeBuffersCached)
         {
             freeDataSeries.getData().add(new XYChart.Data(
-                    simpleDateFormat.format(tripletTimestampUsedFree.getValue0()),
-                    tripletTimestampUsedFree.getValue2())
+                    simpleDateFormat.format(quartetTimestampUsedFreeBuffersCached.getValue0()),
+                    quartetTimestampUsedFreeBuffersCached.getValue2())
             );
+        }
+
+        XYChart.Series buffersCachedDataSeries = new XYChart.Series();
+        buffersCachedDataSeries.setName("Buffers/Cached");
+        for (Quartet<Timestamp, Long, Long, Long> quartetTimestampUsedFreeBuffersCached : quartetsTimestampUsedFreeBuffersCached)
+        {
+            if(quartetTimestampUsedFreeBuffersCached.getValue3() != null)
+            {
+                buffersCachedDataSeries.getData().add(new XYChart.Data(
+                        simpleDateFormat.format(quartetTimestampUsedFreeBuffersCached.getValue0()),
+                        quartetTimestampUsedFreeBuffersCached.getValue3())
+                );
+            }
         }
 
         stackedBarChart.getData().add(freeDataSeries);
         stackedBarChart.getData().add(usedDataSeries);
+        stackedBarChart.getData().add(buffersCachedDataSeries);
 
         ramVBox.getChildren().add(stackedBarChart);
     }

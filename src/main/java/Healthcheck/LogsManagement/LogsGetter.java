@@ -10,6 +10,7 @@ import Healthcheck.Preferences.IPreference;
 import Healthcheck.Preferences.Preferences;
 import javafx.util.Pair;
 import org.hibernate.Session;
+import org.javatuples.Quartet;
 import org.javatuples.Triplet;
 import javax.persistence.Query;
 import java.sql.Timestamp;
@@ -154,6 +155,12 @@ public class LogsGetter
     {
         return ramLogs.stream().map(s -> new Triplet<Timestamp, Long, Long>(
                 s.Timestamp, s.RamInfo.Used, s.RamInfo.Free)).collect(Collectors.toList());
+    }
+
+    public static List<Quartet<Timestamp, Long, Long, Long>> GetRamTimestampUsedFreeBuffersCachedQuartetList(List<RamLog> ramLogs)
+    {
+        return ramLogs.stream().map(s -> new Quartet<Timestamp, Long, Long, Long>(
+                s.Timestamp, s.RamInfo.Used, s.RamInfo.Free, s.RamInfo.BuffersCached)).collect(Collectors.toList());
     }
 
     public static List<RamLog> GetLatestRamLogsForComputer(Computer computer)

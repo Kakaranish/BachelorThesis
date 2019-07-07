@@ -45,12 +45,14 @@
                   <TableView fx:id="ramTableView" prefHeight="632.0" prefWidth="1311.0">
                     <columns>
                       <TableColumn fx:id="ram_datetimeColumn" prefWidth="178.0" text="Datetime" />
-                      <TableColumn fx:id="ram_totalColumn" prefWidth="184.0" text="Total" />
-                        <TableColumn fx:id="ram_usedColumn" prefWidth="179.0" text="Used" />
-                        <TableColumn fx:id="ram_freeColumn" prefWidth="187.0" text="Free" />
-                        <TableColumn fx:id="ram_sharedColumn" prefWidth="195.0" text="Shared" />
-                        <TableColumn fx:id="ram_buffersColumn" prefWidth="190.0" text="Buffers" />
-                        <TableColumn fx:id="ram_cachedColumn" prefWidth="197.0" text="Cached" />
+                      <TableColumn fx:id="ram_totalColumn" prefWidth="144.0" text="Total" />
+                        <TableColumn fx:id="ram_usedColumn" prefWidth="142.0" text="Used" />
+                        <TableColumn fx:id="ram_freeColumn" prefWidth="136.0" text="Free" />
+                        <TableColumn fx:id="ram_sharedColumn" prefWidth="150.0" text="Shared" />
+                        <TableColumn fx:id="ram_buffersColumn" prefWidth="147.0" text="Buffers" />
+                        <TableColumn fx:id="ram_cachedColumn" prefWidth="147.0" text="Cached" />
+                        <TableColumn fx:id="ram_bufferscachedColumn" prefWidth="144.0" text="Buffers/Cache" />
+                        <TableColumn fx:id="ram_availableColumn" prefWidth="144.0" text="Available" />
                     </columns>
                   </TableView>
               </content>

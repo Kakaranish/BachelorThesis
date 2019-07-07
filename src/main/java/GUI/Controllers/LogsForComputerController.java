@@ -181,6 +181,12 @@ public class LogsForComputerController implements Initializable
     @FXML
     private TableColumn<RamEntry, Long> ram_cachedColumn;
 
+    @FXML
+    private TableColumn<RamEntry, Long> ram_bufferscachedColumn;
+
+    @FXML
+    private TableColumn<RamEntry, Long> ram_availableColumn;
+
     private void InitializeRamLogsTableView()
     {
         ram_datetimeColumn.setCellValueFactory(new PropertyValueFactory<RamEntry, Long>("Datetime"));
@@ -190,6 +196,8 @@ public class LogsForComputerController implements Initializable
         ram_sharedColumn.setCellValueFactory(new PropertyValueFactory<RamEntry, Long>("Shared"));
         ram_buffersColumn.setCellValueFactory(new PropertyValueFactory<RamEntry, Long>("Buffers"));
         ram_cachedColumn.setCellValueFactory(new PropertyValueFactory<RamEntry, Long>("Cached"));
+        ram_bufferscachedColumn.setCellValueFactory(new PropertyValueFactory<RamEntry, Long>("BuffersCached"));
+        ram_availableColumn.setCellValueFactory(new PropertyValueFactory<RamEntry, Long>("Available"));
 
         ramTableView.setItems(ramEntries);
     }
