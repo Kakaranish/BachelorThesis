@@ -408,12 +408,21 @@ public class LogsForComputerController implements Initializable
     // ---  OTHER FXML COMPONENTS  -------------------------------------------------------------------------------------
 
     @FXML
-    private DatePicker datePicker;
+    private DatePicker fromDatePicker;
+
+    @FXML
+    private TextField fromTimeTextField;
+
+    @FXML
+    private DatePicker toDatePicker;
+
+    @FXML
+    private TextField toTimeTextField;
 
     @FXML
     void GetLogs(ActionEvent event)
     {
-        LocalDate from = datePicker.getValue();
+        LocalDate from = fromDatePicker.getValue();
         if(from == null)
         {
             return;
@@ -431,7 +440,7 @@ public class LogsForComputerController implements Initializable
     @FXML
     void Clear(ActionEvent event)
     {
-        datePicker.setValue(null);
+        fromDatePicker.setValue(null);
 
         usersEntries.clear();
         cpuEntries.clear();
@@ -457,7 +466,7 @@ public class LogsForComputerController implements Initializable
     {
         removeCurrentTabLogsButton.setOnAction(event ->
         {
-            LocalDate fromLocalDate = datePicker.getValue();
+            LocalDate fromLocalDate = fromDatePicker.getValue();
             if(fromLocalDate == null)
             {
                 return;
@@ -489,7 +498,7 @@ public class LogsForComputerController implements Initializable
                 preference = Preferences.ProcessesInfoPreference;
             }
 
-            Timestamp from = Timestamp.valueOf(datePicker.getValue().atStartOfDay());
+            Timestamp from = Timestamp.valueOf(fromDatePicker.getValue().atStartOfDay());
             String logType = preference.GetClassName().replace("Log", "");
             boolean response = Utilities.ShowYesNoDialog("Remove " + logType + " logs?",
                     "Do you want remove " + logType + " logs from db \nfrom "

@@ -111,9 +111,16 @@
       <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
         <items>
           <Button mnemonicParsing="false" onAction="#GetLogs" text="Get Logs" />
-            <Button fx:id="clearButton" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" onAction="#Clear" text="Clear screen" />
-            <DatePicker fx:id="datePicker" promptText="From Date" />
             <Button fx:id="removeCurrentTabLogsButton" mnemonicParsing="false" text="Remove current tab logs" />
+            <Button fx:id="clearButton" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" onAction="#Clear" text="Clear screen" />
+            <Separator orientation="VERTICAL" prefHeight="30.0" prefWidth="25.0" />
+            <Label text="Logs from" />
+            <DatePicker fx:id="fromDatePicker" prefHeight="30.0" prefWidth="151.0" promptText="From Date" />
+            <TextField fx:id="fromTimeTextField" prefHeight="30.0" prefWidth="151.0" promptText="HH:MM" text="00:00" />
+            <Separator orientation="VERTICAL" prefHeight="30.0" prefWidth="39.0" />
+            <Label text="Logs to" />
+            <DatePicker fx:id="toDatePicker" prefHeight="30.0" prefWidth="151.0" promptText="To Date" />
+            <TextField fx:id="toTimeTextField" layoutX="622.0" layoutY="10.0" prefHeight="30.0" prefWidth="151.0" promptText="HH:MM" text="23:59" />
         </items>
       </ToolBar>
    </bottom>
