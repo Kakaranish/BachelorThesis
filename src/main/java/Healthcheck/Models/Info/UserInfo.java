@@ -17,10 +17,11 @@ public class UserInfo
 
     /*
         commandExecutionResult looks like:
-        root     tty1                      Sat15    3days  0.12s  0.09s -bash
-
-        or like this:
         root     pts/0    89-75-75-172.dyn 18:38    1.00s  0.02s  0.00s w
+        or like this:
+        root     pts/0    89-75-75-172.dyn 18:38    1.00s  0.02s  0.00s
+        or like this:
+        root     pts/0                     18:38    1.00s  0.02s  0.00s
     */
 
     private UserInfo()
@@ -35,16 +36,33 @@ public class UserInfo
 
     public UserInfo(String commandExecutionResult)
     {
-        commandExecutionResult = commandExecutionResult.trim();
+        boolean whatIsEmpty = false;
+        if(commandExecutionResult.charAt(commandExecutionResult.length() - 1) == ' ')
+        {
+            whatIsEmpty = true;
+        }
+        commandExecutionResult.trim();
         commandExecutionResult = commandExecutionResult.replaceAll("\\s+","\t");
         ArrayList<String> commandExecutionResultSplit =
                 new ArrayList<String>(Arrays.asList(commandExecutionResult.split("\t")));
 
-        // 'FROM' field may be empty
-        final int fieldsNum = 8;
-        if (commandExecutionResultSplit.size() != fieldsNum)
+        // 'FROM' and/or 'WHAT' field may be empty
+        final int maxFieldsNum = 8;
+        if(commandExecutionResultSplit.size() == 6)
         {
-            commandExecutionResultSplit.add(2, " ");
+            commandExecutionResultSplit.add(2, "");
+            commandExecutionResultSplit.add("");
+        }
+        else if (commandExecutionResultSplit.size() == 7)
+        {
+            if(whatIsEmpty)
+            {
+                commandExecutionResultSplit.add("");
+            }
+            else
+            {
+                commandExecutionResultSplit.add(2, "");
+            }
         }
 
         User = commandExecutionResultSplit.get(0);

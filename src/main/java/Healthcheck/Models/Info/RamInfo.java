@@ -20,13 +20,13 @@ public class RamInfo implements IInfo
 
     /*
         commandExecutionResult looks like:
-        razem       użyte       wolne    dzielone   buf/cache    dostępne
+                    razem       użyte       wolne    dzielone   buf/cache    dostępne
         Pamięć:     6139256      168259     5049176        1073      921821     5703008
         Wymiana:      998240           0      998240
 
         OR
 
-        total       used       free     shared    buffers     cached
+                    total       used       free     shared       buffers     cached
         Mem:       2011984     100832    1911152          0      11012      43928
         -/+ buffers/cache:      45892    1966092
         Swap:            0          0          0
