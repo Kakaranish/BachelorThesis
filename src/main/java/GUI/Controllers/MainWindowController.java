@@ -225,7 +225,6 @@ public class MainWindowController implements Initializable
                 scene.getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());
 
                 Stage stage = new Stage(StageStyle.DECORATED);
-//                stage.setOnCloseRequest(addOrUpdateSshConfigController::OnCloseAction);
                 stage.setResizable(false);
                 stage.initModality(Modality.APPLICATION_MODAL);
                 stage.setScene(scene);
