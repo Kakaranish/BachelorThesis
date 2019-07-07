@@ -213,7 +213,30 @@ public class MainWindowController implements Initializable
         groupSettingsButton.setCursor(Cursor.HAND);
         groupSettingsButton.setOnAction(event ->
         {
-            // TODO:
+            try
+            {
+                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/GroupSettings.fxml"));
+
+                GroupSettingsController groupSettingsController =
+                        new GroupSettingsController(_computersAndSshConfigsManager, thisController);
+                fxmlLoader.setController(groupSettingsController);
+
+                final Scene scene = new Scene(fxmlLoader.load());
+                scene.getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());
+
+                Stage stage = new Stage(StageStyle.DECORATED);
+//                stage.setOnCloseRequest(addOrUpdateSshConfigController::OnCloseAction);
+                stage.setResizable(false);
+                stage.initModality(Modality.APPLICATION_MODAL);
+                stage.setScene(scene);
+
+                stage.show();
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+                Utilities.ShowErrorDialog("Unable to edit computer.");
+            }
         });
         groupSettingsButton.setVisible(false);
     }
@@ -271,14 +294,8 @@ public class MainWindowController implements Initializable
         }
 
         computerItemsListView.setItems(computerItemsObservableList);
-        computerItemsListView.setCellFactory(new Callback<ListView<ComputerItem>, ListCell<ComputerItem>>()
-        {
-            @Override
-            public ListCell<ComputerItem> call(ListView<ComputerItem> listView)
-            {
-                return new ComputerListCell(_computersAndSshConfigsManager, thisController);
-            }
-        });
+        computerItemsListView.setCellFactory(
+                listCell -> new ComputerListCell(_computersAndSshConfigsManager, thisController));
     }
 
     private void LoadSshConfigsToListView()

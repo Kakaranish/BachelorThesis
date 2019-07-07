@@ -36,6 +36,8 @@ public class ComputerListCell extends ListCell<ComputerItem>
     private Text DisplayedName;
     private Text Host;
 
+    private Boolean IsSelectedValue = null;
+
     public ComputerListCell(ComputersAndSshConfigsManager computersAndSshConfigsManager, MainWindowController controller)
     {
         super();
@@ -109,10 +111,12 @@ public class ComputerListCell extends ListCell<ComputerItem>
 
     private void InitIsSelectedCheckbox()
     {
-        IsSelected.setOnAction(event ->
+        IsSelected.selectedProperty().addListener((observable, oldValue, newValue) ->
         {
+            IsSelectedValue = newValue;
+
             Computer computer = _computersAndSshConfigsManager.GetComputerByDisplayedName(DisplayedName.getText());
-            computer.SetSelected(IsSelected.isSelected());
+            computer.SetSelected(IsSelectedValue);
             computer.UpdateInDb();
         });
     }
@@ -240,9 +244,11 @@ public class ComputerListCell extends ListCell<ComputerItem>
     {
         if(changeEvent.ChangeType == ChangeEventType.UPDATED)
         {
+            IsSelectedValue = changeEvent.Computer.IsSelected();
+
             ComputerItem computerItemToUpdate = new ComputerItem()
             {{
-                IsSelected= changeEvent.Computer.IsSelected();
+                IsSelected = IsSelectedValue;
                 DisplayedName = changeEvent.Computer.GetDisplayedName();
                 Host = changeEvent.Computer.GetHost();
             }};
@@ -265,9 +271,15 @@ public class ComputerListCell extends ListCell<ComputerItem>
         super.updateItem(item, empty);
         if (item != null && !empty)
         {
+            if(IsSelectedValue == null)
+            {
+                IsSelectedValue = item.IsSelected;
+            }
+
+            IsSelected.setSelected(IsSelectedValue);
             DisplayedName.setText(item.DisplayedName);
             Host.setText(item.Host);
-            IsSelected.setSelected(item.IsSelected);
+
             setGraphic(content);
         }
         else

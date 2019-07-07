@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.shape.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <VBox layoutY="237.0">
+         <children>
+            <ListView fx:id="computersListView" layoutY="237.0" prefHeight="515.0" prefWidth="1088.0" />
+            <ToolBar prefHeight="40.0" prefWidth="200.0">
+              <items>
+                <Button fx:id="applyNewSettingsButton" mnemonicParsing="false" text="Apply new settings to selected computers" />
+              </items>
+            </ToolBar>
+         </children>
+      </VBox>
+      <HBox prefHeight="239.0" prefWidth="1088.0">
+         <children>
+            <VBox prefHeight="183.0" prefWidth="708.0">
+               <children>
+                  <Label prefHeight="97.0" prefWidth="673.0" text="Change General Settings">
+                     <font>
+                        <Font name="System Bold" size="18.0" />
+                     </font>
+                     <VBox.margin>
+                        <Insets left="20.0" />
+                     </VBox.margin>
+                  </Label>
+                  <GridPane prefHeight="196.0" prefWidth="705.0">
+                    <columnConstraints>
+                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                    </columnConstraints>
+                    <rowConstraints>
+                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                    </rowConstraints>
+                     <children>
+                        <GridPane prefHeight="98.0" prefWidth="432.0">
+                          <columnConstraints>
+                            <ColumnConstraints hgrow="SOMETIMES" maxWidth="230.0" minWidth="10.0" prefWidth="207.0" />
+                            <ColumnConstraints hgrow="SOMETIMES" maxWidth="203.0" minWidth="10.0" prefWidth="149.0" />
+                          </columnConstraints>
+                          <rowConstraints>
+                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                          </rowConstraints>
+                           <children>
+                              <CheckBox fx:id="gatheringIntervalCheckBox" mnemonicParsing="false" text="Gathering Interval (s)">
+                                 <GridPane.margin>
+                                    <Insets left="20.0" />
+                                 </GridPane.margin>
+                              </CheckBox>
+                              <TextField fx:id="gatheringIntervalTextField" maxWidth="150.0" minWidth="150.0" prefHeight="30.0" prefWidth="150.0" GridPane.columnIndex="1" />
+                           </children>
+                        </GridPane>
+                        <GridPane layoutX="10.0" layoutY="10.0" prefHeight="74.0" prefWidth="306.0" GridPane.columnIndex="1">
+                           <children>
+                              <CheckBox fx:id="logExpirationCheckBox" mnemonicParsing="false" text="Log Expiration (s)">
+                                 <GridPane.margin>
+                                    <Insets left="20.0" />
+                                 </GridPane.margin>
+                              </CheckBox>
+                              <TextField fx:id="logExpirationTextField" maxWidth="150.0" minWidth="150.0" prefHeight="30.0" prefWidth="0.0" GridPane.columnIndex="1" />
+                           </children>
+                           <columnConstraints>
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                           </columnConstraints>
+                           <rowConstraints>
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                           </rowConstraints>
+                        </GridPane>
+                        <GridPane layoutX="366.0" layoutY="10.0" GridPane.rowIndex="1">
+                           <children>
+                              <CheckBox fx:id="maintenancePeriodCheckBox" mnemonicParsing="false" text="Maintenance Period (s)">
+                                 <GridPane.margin>
+                                    <Insets left="20.0" />
+                                 </GridPane.margin>
+                              </CheckBox>
+                              <TextField fx:id="maintenancePeriodTextField" maxWidth="150.0" minWidth="150.0" prefHeight="30.0" prefWidth="0.0" GridPane.columnIndex="1" />
+                           </children>
+                           <columnConstraints>
+                              <ColumnConstraints hgrow="SOMETIMES" maxWidth="214.0" minWidth="10.0" prefWidth="206.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" maxWidth="173.0" minWidth="10.0" prefWidth="150.0" />
+                           </columnConstraints>
+                           <rowConstraints>
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                           </rowConstraints>
+                        </GridPane>
+                        <GridPane layoutX="10.0" layoutY="108.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                           <children>
+                              <CheckBox fx:id="portCheckBox" mnemonicParsing="false" prefHeight="20.0" prefWidth="153.0" text="Port">
+                                 <GridPane.margin>
+                                    <Insets left="20.0" />
+                                 </GridPane.margin>
+                              </CheckBox>
+                              <TextField fx:id="portTextField" maxWidth="150.0" minWidth="150.0" prefHeight="30.0" prefWidth="0.0" GridPane.columnIndex="1" />
+                           </children>
+                           <columnConstraints>
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                           </columnConstraints>
+                           <rowConstraints>
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                           </rowConstraints>
+                        </GridPane>
+                     </children>
+                  </GridPane>
+               </children>
+               <HBox.margin>
+                  <Insets />
+               </HBox.margin>
+            </VBox>
+            <Separator orientation="VERTICAL" prefHeight="200.0" />
+            <VBox prefHeight="224.0" prefWidth="402.0">
+               <children>
+                  <HBox alignment="CENTER_LEFT" prefHeight="66.0" prefWidth="384.0">
+                     <children>
+                        <CheckBox fx:id="changePreferencesCheckBox" mnemonicParsing="false">
+                           <HBox.margin>
+                              <Insets left="20.0" />
+                           </HBox.margin>
+                        </CheckBox>
+                        <Label text="Change Preferences">
+                           <font>
+                              <Font name="System Bold" size="18.0" />
+                           </font>
+                           <padding>
+                              <Insets left="10.0" />
+                           </padding>
+                        </Label>
+                     </children>
+                     <opaqueInsets>
+                        <Insets />
+                     </opaqueInsets>
+                  </HBox>
+                  <GridPane prefHeight="172.0" prefWidth="388.0">
+                    <columnConstraints>
+                      <ColumnConstraints hgrow="SOMETIMES" maxWidth="261.0" minWidth="10.0" prefWidth="231.0" />
+                      <ColumnConstraints hgrow="SOMETIMES" maxWidth="189.0" minWidth="10.0" prefWidth="157.0" />
+                    </columnConstraints>
+                    <rowConstraints>
+                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                    </rowConstraints>
+                     <children>
+                        <CheckBox fx:id="cpuInfoCheckBox" mnemonicParsing="false" text="Cpu Info">
+                           <GridPane.margin>
+                              <Insets left="20.0" />
+                           </GridPane.margin>
+                        </CheckBox>
+                        <CheckBox fx:id="ramInfoCheckBox" layoutX="10.0" layoutY="15.0" mnemonicParsing="false" text="Ram Info" GridPane.columnIndex="1" />
+                        <CheckBox fx:id="disksInfoCheckBox" layoutX="30.0" layoutY="25.0" mnemonicParsing="false" text="Disks Info" GridPane.rowIndex="1">
+                           <GridPane.margin>
+                              <Insets left="20.0" />
+                           </GridPane.margin>
+                        </CheckBox>
+                        <CheckBox fx:id="processesInfoCheckBox" mnemonicParsing="false" text="Processes Info" GridPane.rowIndex="2">
+                           <GridPane.margin>
+                              <Insets left="20.0" />
+                           </GridPane.margin>
+                        </CheckBox>
+                        <CheckBox fx:id="swapInfoCheckBox" mnemonicParsing="false" text="Swap Info" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <CheckBox fx:id="usersInfoCheckBox" mnemonicParsing="false" text="Users Info" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                     </children>
+                  </GridPane>
+               </children>
+            </VBox>
+         </children>
+         <padding>
+            <Insets bottom="10.0" top="10.0" />
+         </padding>
+      </HBox>
+   </children>
+</AnchorPane>
