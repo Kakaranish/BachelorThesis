@@ -110,9 +110,9 @@
    <bottom>
       <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
         <items>
-          <Button mnemonicParsing="false" onAction="#GetLogs" text="Get Logs" />
+          <Button fx:id="getLogsButton" mnemonicParsing="false" text="Get Logs" />
             <Button fx:id="removeCurrentTabLogsButton" mnemonicParsing="false" text="Remove current tab logs" />
-            <Button fx:id="clearButton" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" onAction="#Clear" text="Clear screen" />
+            <Button fx:id="clearButton" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" text="Clear screen" />
             <Separator orientation="VERTICAL" prefHeight="30.0" prefWidth="25.0" />
             <Label text="Logs from" />
             <DatePicker fx:id="fromDatePicker" prefHeight="30.0" prefWidth="151.0" promptText="From Date" />

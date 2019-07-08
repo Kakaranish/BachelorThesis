@@ -13,14 +13,8 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import java.io.IOException;
 import java.net.URL;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.Date;
 import java.util.ResourceBundle;
-import java.util.regex.Pattern;
 
 public class DateTimePopupController implements Initializable
 {
@@ -40,10 +34,6 @@ public class DateTimePopupController implements Initializable
     private Button submitButton;
 
     private Computer _computer;
-    private static final Pattern TimePattern = Pattern.compile("[0-9]{2}:[0-9]{2}");
-    private static final DateTimeFormatter DateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyy hh:mm");
-
 
     public DateTimePopupController(Computer computer)
     {
@@ -53,12 +43,12 @@ public class DateTimePopupController implements Initializable
     @Override
     public void initialize(URL location, ResourceBundle resources)
     {
-        InitDatePickers();
+        InitializeDatePickers();
         SetUpTimeValidators();
-        InitSubmitButton();
+        InitializeSubmitButton();
     }
 
-    private void InitDatePickers()
+    private void InitializeDatePickers()
     {
         dateFromPicker.setValue(LocalDate.now());
         dateFromPicker.setEditable(false);
@@ -69,31 +59,16 @@ public class DateTimePopupController implements Initializable
 
     private void SetUpTimeValidators()
     {
-        SetUpTimeValidator(timeFromTextField);
-        SetUpTimeValidator(timeToTextField);
+        Utilities.SetUpTimeValidator(timeFromTextField);
+        Utilities.SetUpTimeValidator(timeToTextField);
     }
 
-    private void SetUpTimeValidator(TextField textField)
-    {
-        textField.textProperty().addListener((observable, oldValue, newValue) ->
-        {
-            if(TimePattern.matcher(newValue).matches())
-            {
-                textField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
-            }
-            else
-            {
-                textField.getStyleClass().add("validation-error");
-            }
-        });
-    }
-
-    private void InitSubmitButton()
+    private void InitializeSubmitButton()
     {
         submitButton.setOnAction(event ->
         {
-            if(TimePattern.matcher(timeFromTextField.getText()).matches() == false ||
-                    TimePattern.matcher(timeToTextField.getText()).matches() == false)
+            if(Utilities.TimeMatchesToTimePattern(timeFromTextField.getText(), Utilities.TimePattern) == false ||
+                    Utilities.TimeMatchesToTimePattern(timeToTextField.getText(), Utilities.TimePattern) == false)
             {
                 Utilities.ShowErrorDialog("Provided time(s) has/have wrong format.");
                 return;
@@ -111,8 +86,10 @@ public class DateTimePopupController implements Initializable
 
             StatsForComputerController statsForComputerController =
                     new StatsForComputerController(_computer,
-                            ConvertDateAndTimeToTimestamp(dateFromPicker.getValue(), timeFromTextField.getText()),
-                            ConvertDateAndTimeToTimestamp(dateToPicker.getValue(), timeToTextField.getText()));
+                            Utilities.ConvertDateAndTimeToTimestamp(
+                                    Utilities.DateFormat, dateFromPicker.getValue(), timeFromTextField.getText()),
+                            Utilities.ConvertDateAndTimeToTimestamp(
+                                    Utilities.DateFormat, dateToPicker.getValue(), timeToTextField.getText()));
 
             fxmlLoader.setController(statsForComputerController);
 
@@ -131,22 +108,4 @@ public class DateTimePopupController implements Initializable
             e.printStackTrace();
         }
     }
-
-    private Timestamp ConvertDateAndTimeToTimestamp(LocalDate date, String time)
-    {
-        try
-        {
-            String dateStr = DateFormatter.format(date);
-            String dateAndTime = dateStr + " " + time;
-
-            Date parsedDate = dateFormat.parse(dateAndTime);
-            return new Timestamp(parsedDate.getTime());
-        }
-        catch(Exception e)
-        {
-            // This block is never entered
-        }
-        return null;
-    }
-
 }

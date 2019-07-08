@@ -7,17 +7,20 @@ import Healthcheck.Preferences.IPreference;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.TextField;
 import org.hibernate.Session;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Utilities
@@ -60,6 +63,9 @@ public class Utilities
             Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("MaxLogsNum"));
 
     public static final List<Preference> AvailablePreferences = GetAvailablePreferencesFromDb();
+
+    public static final SimpleDateFormat DateFormat = new SimpleDateFormat("dd/MM/yyy hh:mm");
+    public static final Pattern TimePattern = Pattern.compile("[0-9]{2}:[0-9]{2}");
 
     public static Map<String, List<Computer>> GetComputersGroupedByClassroom(List<Computer> computers)
     {
@@ -290,5 +296,43 @@ public class Utilities
     public static double KilobytesToMegabytes(long kilobytes)
     {
         return kilobytes/1024D;
+    }
+
+    public static Timestamp ConvertDateAndTimeToTimestamp(SimpleDateFormat dateFormat, LocalDate date, String time)
+    {
+        try
+        {
+            DateTimeFormatter DateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            String dateStr = DateFormatter.format(date);
+            String dateAndTime = dateStr + " " + time;
+
+            Date parsedDate = dateFormat.parse(dateAndTime);
+            return new Timestamp(parsedDate.getTime());
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static void SetUpTimeValidator(TextField textField)
+    {
+        textField.textProperty().addListener((observable, oldValue, newValue) ->
+        {
+            if(TimePattern.matcher(newValue).matches())
+            {
+                textField.getStyleClass().removeAll(Collections.singletonList("validation-error"));
+            }
+            else
+            {
+                textField.getStyleClass().add("validation-error");
+            }
+        });
+    }
+
+    public static boolean TimeMatchesToTimePattern(String timeStr, Pattern timePattern)
+    {
+        return timePattern.matcher(timeStr).matches();
     }
 }

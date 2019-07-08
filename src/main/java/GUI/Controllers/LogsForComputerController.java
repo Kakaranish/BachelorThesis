@@ -13,7 +13,6 @@ import Healthcheck.Utilities;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -79,12 +78,10 @@ public class LogsForComputerController implements Initializable
         usersTableView.setItems(usersEntries);
     }
 
-    private void GetUsersLogsAndPopulateTableView(Timestamp from)
+    private void GetUsersLogsAndPopulateTableView(Timestamp from, Timestamp to)
     {
-        Timestamp now = new Timestamp(new Date().getTime());
-
         List<UserEntry> logEntries = LogsGetter.GetGivenTypeLogsForComputer(
-                _computer, Preferences.PreferenceNameMap.get("UsersInfoPreference"), from, now)
+                _computer, Preferences.PreferenceNameMap.get("UsersInfoPreference"), from, to)
                 .stream().map(LogBase::ToEntry).map(u -> (UserEntry) u).collect(Collectors.toList());
 
         usersEntries.clear();
@@ -140,12 +137,10 @@ public class LogsForComputerController implements Initializable
         cpuTableView.setItems(cpuEntries);
     }
 
-    private void GetCpuLogsAndPopulateTableView(Timestamp from)
+    private void GetCpuLogsAndPopulateTableView(Timestamp from, Timestamp to)
     {
-        Timestamp now = new Timestamp(new Date().getTime());
-
         List<CpuEntry> logEntries = LogsGetter.GetGivenTypeLogsForComputer(
-                _computer, Preferences.PreferenceNameMap.get("CpuInfoPreference"), from, now)
+                _computer, Preferences.PreferenceNameMap.get("CpuInfoPreference"), from, to)
                 .stream().map(LogBase::ToEntry).map(u -> (CpuEntry) u).collect(Collectors.toList());
 
         cpuEntries.clear();
@@ -202,12 +197,10 @@ public class LogsForComputerController implements Initializable
         ramTableView.setItems(ramEntries);
     }
 
-    private void GetRamLogsAndPopulateTableView(Timestamp from)
+    private void GetRamLogsAndPopulateTableView(Timestamp from, Timestamp to)
     {
-        Timestamp now = new Timestamp(new Date().getTime());
-
         List<RamEntry> logEntries = LogsGetter.GetGivenTypeLogsForComputer(
-                _computer, Preferences.PreferenceNameMap.get("RamInfoPreference"), from, now)
+                _computer, Preferences.PreferenceNameMap.get("RamInfoPreference"), from, to)
                 .stream().map(LogBase::ToEntry).map(u -> (RamEntry) u).collect(Collectors.toList());
 
         ramEntries.clear();
@@ -244,12 +237,10 @@ public class LogsForComputerController implements Initializable
         swapTableView.setItems(swapEntries);
     }
 
-    private void GetSwapLogsAndPopulateTableView(Timestamp from)
+    private void GetSwapLogsAndPopulateTableView(Timestamp from, Timestamp to)
     {
-        Timestamp now = new Timestamp(new Date().getTime());
-
         List<SwapEntry> logEntries = LogsGetter.GetGivenTypeLogsForComputer(
-                _computer, Preferences.PreferenceNameMap.get("SwapInfoPreference"), from, now)
+                _computer, Preferences.PreferenceNameMap.get("SwapInfoPreference"), from, to)
                 .stream().map(LogBase::ToEntry).map(u -> (SwapEntry) u).collect(Collectors.toList());
 
         swapEntries.clear();
@@ -298,12 +289,10 @@ public class LogsForComputerController implements Initializable
         disksTableView.setItems(disksEntries);
     }
 
-    private void GetDisksLogsAndPopulateTableView(Timestamp from)
+    private void GetDisksLogsAndPopulateTableView(Timestamp from, Timestamp to)
     {
-        Timestamp now = new Timestamp(new Date().getTime());
-
         List<DiskEntry> logEntries = LogsGetter.GetGivenTypeLogsForComputer(
-                _computer, Preferences.PreferenceNameMap.get("DisksInfoPreference"), from, now)
+                _computer, Preferences.PreferenceNameMap.get("DisksInfoPreference"), from, to)
                 .stream().map(LogBase::ToEntry).map(u -> (DiskEntry) u).collect(Collectors.toList());
 
         disksEntries.clear();
@@ -372,12 +361,10 @@ public class LogsForComputerController implements Initializable
         processesTableView.setItems(processesEntries);
     }
 
-    private void GetProcessesLogsAndPopulateTableView(Timestamp from)
+    private void GetProcessesLogsAndPopulateTableView(Timestamp from, Timestamp to)
     {
-        Timestamp now = new Timestamp(new Date().getTime());
-
         List<ProcessEntry> logEntries = LogsGetter.GetGivenTypeLogsForComputer(
-                _computer, Preferences.PreferenceNameMap.get("ProcessesInfoPreference"), from, now)
+                _computer, Preferences.PreferenceNameMap.get("ProcessesInfoPreference"), from, to)
                 .stream().map(LogBase::ToEntry).map(u -> (ProcessEntry) u).collect(Collectors.toList());
 
         processesEntries.clear();
@@ -408,6 +395,15 @@ public class LogsForComputerController implements Initializable
     // ---  OTHER FXML COMPONENTS  -------------------------------------------------------------------------------------
 
     @FXML
+    private Button getLogsButton;
+
+    @FXML
+    private Button clearButton;
+
+    @FXML
+    private Button removeCurrentTabLogsButton;
+
+    @FXML
     private DatePicker fromDatePicker;
 
     @FXML
@@ -419,55 +415,97 @@ public class LogsForComputerController implements Initializable
     @FXML
     private TextField toTimeTextField;
 
-    @FXML
-    void GetLogs(ActionEvent event)
+    private Computer _computer;
+
+    @Override
+    public void initialize(URL location, ResourceBundle resources)
     {
-        LocalDate from = fromDatePicker.getValue();
-        if(from == null)
+        InitializeUsersLogsTableView();
+        InitializeCpuLogsTableView();
+        InitializeRamLogsTableView();
+        InitializeSwapLogsTableView();
+        InitializeDisksLogsTableView();
+        InitializeProcessesLogsTableView();
+
+        InitializeDatePickers();
+        SetUpTimeValidators();
+
+        InitializeGetLogsButton();
+        InitializeRemoveCurrentTabLogsButton();
+        InitializeClearButton();
+    }
+
+    private void InitializeDatePickers()
+    {
+        fromDatePicker.setValue(LocalDate.now());
+        fromDatePicker.setEditable(false);
+
+        toDatePicker.setValue(LocalDate.now());
+        toDatePicker.setEditable(false);
+    }
+
+    private void SetUpTimeValidators()
+    {
+        Utilities.SetUpTimeValidator(fromTimeTextField);
+        Utilities.SetUpTimeValidator(toTimeTextField);
+    }
+
+    private void InitializeGetLogsButton()
+    {
+        getLogsButton.setOnAction(event ->
         {
-            return;
-        }
-        Timestamp fromTimestamp = Timestamp.valueOf(from.atStartOfDay());
+            LocalDate fromDate = fromDatePicker.getValue();
+            LocalDate toDate = toDatePicker.getValue();
+            String fromTime = fromTimeTextField.getText();
+            String toTime = toTimeTextField.getText();
 
-        GetUsersLogsAndPopulateTableView(fromTimestamp);
-        GetCpuLogsAndPopulateTableView(fromTimestamp);
-        GetRamLogsAndPopulateTableView(fromTimestamp);
-        GetSwapLogsAndPopulateTableView(fromTimestamp);
-        GetDisksLogsAndPopulateTableView(fromTimestamp);
-        GetProcessesLogsAndPopulateTableView(fromTimestamp);
+            if(fromDate == null || toDate == null
+                    || Utilities.TimeMatchesToTimePattern(fromTime, Utilities.TimePattern) == false
+                    || Utilities.TimeMatchesToTimePattern(toTime, Utilities.TimePattern) == false)
+            {
+                return;
+            }
+
+            Timestamp fromTimestamp = Utilities.ConvertDateAndTimeToTimestamp(Utilities.DateFormat, fromDate, fromTime);
+            Timestamp toTimestamp = Utilities.ConvertDateAndTimeToTimestamp(Utilities.DateFormat, toDate, toTime);
+
+            GetUsersLogsAndPopulateTableView(fromTimestamp, toTimestamp);
+            GetCpuLogsAndPopulateTableView(fromTimestamp, toTimestamp);
+            GetRamLogsAndPopulateTableView(fromTimestamp, toTimestamp);
+            GetSwapLogsAndPopulateTableView(fromTimestamp, toTimestamp);
+            GetDisksLogsAndPopulateTableView(fromTimestamp, toTimestamp);
+            GetProcessesLogsAndPopulateTableView(fromTimestamp, toTimestamp);
+        });
     }
 
-    @FXML
-    void Clear(ActionEvent event)
+    private void InitializeClearButton()
     {
-        fromDatePicker.setValue(null);
+        clearButton.setOnAction(event ->
+        {
+            usersEntries.clear();
+            cpuEntries.clear();
+            ramEntries.clear();
+            swapEntries.clear();
+            disksEntries.clear();
+            processesEntries.clear();
 
-        usersEntries.clear();
-        cpuEntries.clear();
-        ramEntries.clear();
-        swapEntries.clear();
-        disksEntries.clear();
-        processesEntries.clear();
-
-        usersTableView.refresh();
-        cpuTableView.refresh();
-        ramTableView.refresh();
-        swapTableView.refresh();
-        disksTableView.refresh();
-        processesTableView.refresh();
+            usersTableView.refresh();
+            cpuTableView.refresh();
+            ramTableView.refresh();
+            swapTableView.refresh();
+            disksTableView.refresh();
+            processesTableView.refresh();
+        });
     }
-
-    // ---  REMOVE LOGS BUTTON  ----------------------------------------------------------------------------------------
-
-    @FXML
-    private Button removeCurrentTabLogsButton;
 
     private void InitializeRemoveCurrentTabLogsButton()
     {
         removeCurrentTabLogsButton.setOnAction(event ->
         {
             LocalDate fromLocalDate = fromDatePicker.getValue();
-            if(fromLocalDate == null)
+            LocalDate toLocalDate = toDatePicker.getValue();
+
+            if(fromLocalDate == null || toLocalDate == null)
             {
                 return;
             }
@@ -498,11 +536,16 @@ public class LogsForComputerController implements Initializable
                 preference = Preferences.ProcessesInfoPreference;
             }
 
-            Timestamp from = Timestamp.valueOf(fromDatePicker.getValue().atStartOfDay());
+            Timestamp from = Utilities.ConvertDateAndTimeToTimestamp(
+                    simpleDateFormat, fromLocalDate, fromTimeTextField.getText());
+            Timestamp to = Utilities.ConvertDateAndTimeToTimestamp(
+                    simpleDateFormat, toLocalDate, toTimeTextField.getText());
+
             String logType = preference.GetClassName().replace("Log", "");
             boolean response = Utilities.ShowYesNoDialog("Remove " + logType + " logs?",
-                    "Do you want remove " + logType + " logs from db \nfrom "
-                            + simpleDateFormat.format(from) + " to now?");
+                    "Do you want remove " + logType + " logs from db \n" +
+                            "from " + simpleDateFormat.format(from) +
+                            "to " + simpleDateFormat.format(to) + "?");
             if(response == false)
             {
                 return;
@@ -513,7 +556,7 @@ public class LogsForComputerController implements Initializable
             {
                 LogsMaintainer.RemoveGivenTypeLogsForComputer(_computer, preference, from, now);
 
-                Clear(null);
+                clearButton.fire();
             }
             catch(Exception e)
             {
@@ -523,27 +566,10 @@ public class LogsForComputerController implements Initializable
         });
     }
 
-    // ---  FIELDS  ----------------------------------------------------------------------------------------------------
-
-    private Computer _computer;
-
-    // ---  INITIALIZATION  --------------------------------------------------------------------------------------------
+    // ---  MISC  ------------------------------------------------------------------------------------------------------
 
     public LogsForComputerController(Computer computer)
     {
         _computer = computer;
-    }
-
-    @Override
-    public void initialize(URL location, ResourceBundle resources)
-    {
-        InitializeUsersLogsTableView();
-        InitializeCpuLogsTableView();
-        InitializeRamLogsTableView();
-        InitializeSwapLogsTableView();
-        InitializeDisksLogsTableView();
-        InitializeProcessesLogsTableView();
-
-        InitializeRemoveCurrentTabLogsButton();
     }
 }
