@@ -124,6 +124,7 @@ public class MainWindowController implements Initializable
     private LogsManager _logsManager;
     private final String AllComputersString = "All Computers";
     private final String SelectedComputersString = "Selected Computers";
+    private boolean _isGenerating = false;
 
     private boolean _logsManagerIsNotWorking = true;
 
@@ -319,86 +320,97 @@ public class MainWindowController implements Initializable
         });
     }
 
+    private void GenerateGeneralCharts()
+    {
+        if(_isGenerating)
+        {
+            return;
+        }
+
+        _isGenerating = true;
+
+        generalStatsVBox.getChildren().clear();
+        String selectedScope = (String) statsScopeChoiceBox.getSelectionModel().getSelectedItem();
+
+        List<Computer> computers;
+        if(selectedScope.equals(AllComputersString))
+        {
+            computers = _computersAndSshConfigsManager.GetComputers();
+            GenerateGeneralStatsTitleAndNumOfComputersLabels(computers, selectedScope);
+        }
+        else if(selectedScope.equals(SelectedComputersString))
+        {
+            computers = _computersAndSshConfigsManager.GetSelectedComputers();
+            GenerateGeneralStatsTitleAndNumOfComputersLabels(computers, selectedScope);
+        }
+        else
+        {
+            computers = _computersAndSshConfigsManager.GetComputersForClassroom(selectedScope);
+            GenerateGeneralStatsTitleAndNumOfComputersLabels(computers, "Classroom: " + selectedScope);
+        }
+
+        GenerateLatestAvgNumOfLoggedUsersForComputers(computers);
+        GenerateLatestAvgOfAvgCpuUtilForComputers(computers);
+
+        HBox swapAndRamHBox = new HBox();
+        swapAndRamHBox.setAlignment(Pos.CENTER);
+
+        PieChart latestAvgOfSwapUsageChart = GetLatestAvgOfSwapUsageForComputers(computers);
+        if(latestAvgOfSwapUsageChart != null)
+        {
+            swapAndRamHBox.getChildren().add(GetLatestAvgOfSwapUsageForComputers(computers));
+        }
+        else
+        {
+            VBox vBox = new VBox();
+            vBox.setAlignment(Pos.CENTER);
+            vBox.setPadding(new Insets(10, 0, 0, 0));
+
+            Label noChartsLabel = new Label();
+            noChartsLabel.setText("Average swap usage chart cannot be generated.");
+            noChartsLabel.setFont(new Font(20));
+
+            Label noLogsGatheredLabel = new Label();
+            noLogsGatheredLabel.setText("No logs gathered.");
+
+            vBox.getChildren().add(noChartsLabel);
+            vBox.getChildren().add(noLogsGatheredLabel);
+
+            swapAndRamHBox.getChildren().add(vBox);
+        }
+
+        PieChart latestAvgOfRamUsageChart = GenerateLatestAvgOfRamUsageForComputers(computers);
+        if(latestAvgOfRamUsageChart != null)
+        {
+            swapAndRamHBox.getChildren().add(GenerateLatestAvgOfRamUsageForComputers(computers));
+        }
+        else
+        {
+            VBox vBox = new VBox();
+            vBox.setAlignment(Pos.CENTER);
+            vBox.setPadding(new Insets(10, 0, 0, 0));
+
+            Label noChartsLabel = new Label();
+            noChartsLabel.setText("Average ram usage chart cannot be generated.");
+            noChartsLabel.setFont(new Font(20));
+
+            Label noLogsGatheredLabel = new Label();
+            noLogsGatheredLabel.setText("No logs gathered.");
+
+            vBox.getChildren().add(noChartsLabel);
+            vBox.getChildren().add(noLogsGatheredLabel);
+
+            swapAndRamHBox.getChildren().add(vBox);
+        }
+
+        generalStatsVBox.getChildren().add(swapAndRamHBox);
+
+        _isGenerating = false;
+    }
+
     private void InitializeGenerateChartsButton()
     {
-        generateChartsButton.setOnAction(event ->
-        {
-            generalStatsVBox.getChildren().clear();
-            String selectedScope = (String) statsScopeChoiceBox.getSelectionModel().getSelectedItem();
-
-            List<Computer> computers;
-            if(selectedScope.equals(AllComputersString))
-            {
-                computers = _computersAndSshConfigsManager.GetComputers();
-                GenerateGeneralStatsTitleAndNumOfComputersLabels(computers, selectedScope);
-            }
-            else if(selectedScope.equals(SelectedComputersString))
-            {
-                computers = _computersAndSshConfigsManager.GetSelectedComputers();
-                GenerateGeneralStatsTitleAndNumOfComputersLabels(computers, selectedScope);
-            }
-            else
-            {
-                computers = _computersAndSshConfigsManager.GetComputersForClassroom(selectedScope);
-                GenerateGeneralStatsTitleAndNumOfComputersLabels(computers, "Classroom: " + selectedScope);
-            }
-
-            GenerateLatestAvgNumOfLoggedUsersForComputers(computers);
-            GenerateLatestAvgOfAvgCpuUtilForComputers(computers);
-
-            HBox swapAndRamHBox = new HBox();
-            swapAndRamHBox.setAlignment(Pos.CENTER);
-
-            PieChart latestAvgOfSwapUsageChart = GetLatestAvgOfSwapUsageForComputers(computers);
-            if(latestAvgOfSwapUsageChart != null)
-            {
-                swapAndRamHBox.getChildren().add(GetLatestAvgOfSwapUsageForComputers(computers));
-            }
-            else
-            {
-                VBox vBox = new VBox();
-                vBox.setAlignment(Pos.CENTER);
-                vBox.setPadding(new Insets(10, 0, 0, 0));
-
-                Label noChartsLabel = new Label();
-                noChartsLabel.setText("Average swap usage chart cannot be generated.");
-                noChartsLabel.setFont(new Font(20));
-
-                Label noLogsGatheredLabel = new Label();
-                noLogsGatheredLabel.setText("No logs gathered.");
-
-                vBox.getChildren().add(noChartsLabel);
-                vBox.getChildren().add(noLogsGatheredLabel);
-
-                swapAndRamHBox.getChildren().add(vBox);
-            }
-
-            PieChart latestAvgOfRamUsageChart = GenerateLatestAvgOfRamUsageForComputers(computers);
-            if(latestAvgOfRamUsageChart != null)
-            {
-                swapAndRamHBox.getChildren().add(GenerateLatestAvgOfRamUsageForComputers(computers));
-            }
-            else
-            {
-                VBox vBox = new VBox();
-                vBox.setAlignment(Pos.CENTER);
-                vBox.setPadding(new Insets(10, 0, 0, 0));
-
-                Label noChartsLabel = new Label();
-                noChartsLabel.setText("Average ram usage chart cannot be generated.");
-                noChartsLabel.setFont(new Font(20));
-
-                Label noLogsGatheredLabel = new Label();
-                noLogsGatheredLabel.setText("No logs gathered.");
-
-                vBox.getChildren().add(noChartsLabel);
-                vBox.getChildren().add(noLogsGatheredLabel);
-
-                swapAndRamHBox.getChildren().add(vBox);
-            }
-
-            generalStatsVBox.getChildren().add(swapAndRamHBox);
-        });
+        generateChartsButton.setOnAction(event -> GenerateGeneralCharts());
     }
 
     // ---  ADD ACTIONS  -----------------------------------------------------------------------------------------------
@@ -698,6 +710,11 @@ public class MainWindowController implements Initializable
         _logsManagerIsNotWorking = false;
         startOrStopGatheringLogsButton.setText("Stop Gathering Logs");
         startOrStopGatheringLogsButton.setOnAction(event -> _logsManager.StopWork());
+    }
+
+    public void Callback_LogsManager_LogsGatheredSuccessfully()
+    {
+        Platform.runLater(this::GenerateGeneralCharts);
     }
 
     public void Callback_LogsManager_ComputersConnected(List<Computer> selectedComputers)

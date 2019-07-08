@@ -95,8 +95,7 @@ public class ComputerLogger extends Thread
                 }
             }
 
-            _logsGatherer.Callback_InfoMessage("Logs for '" + _usernameAndHost + "' gathered. Next gathering in "
-                    + _computer.GetRequestInterval().toSeconds() + "s.");
+            _logsGatherer.Callback_LogsGatheredSuccessfully(this);
 
             try
             {

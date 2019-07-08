@@ -143,6 +143,14 @@ public class LogsGatherer
 
     // ---  CALLBACKS TO LOGSMANAGER  ----------------------------------------------------------------------------------
 
+    public void Callback_LogsGatheredSuccessfully(ComputerLogger computerLogger)
+    {
+        Callback_InfoMessage("Logs for '" + computerLogger.GetComputer().GetUsernameAndHost() +
+                "' gathered. Next gathering in " + computerLogger.GetComputer().GetRequestInterval().toSeconds() + "s.");
+
+        _logsManager.Callback_Gatherer_LogsGatheredSuccessfully();
+    }
+
     public void Callback_StartGatheringLogsFailed(List<ComputerLogger> gatheredComputerLoggers)
     {
         for (ComputerLogger startedComputerLogger : gatheredComputerLoggers)

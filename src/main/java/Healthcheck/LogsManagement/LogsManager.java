@@ -156,6 +156,11 @@ public class LogsManager
         });
     }
 
+    public void Callback_Gatherer_LogsGatheredSuccessfully()
+    {
+        _parentController.Callback_LogsManager_LogsGatheredSuccessfully();
+    }
+
     public void Callback_Gatherer_ReconnectedWithComputerLogger(ComputerLogger computerLogger)
     {
         _connectedComputerLoggers.add(computerLogger);
