@@ -329,11 +329,17 @@ public class AddOrUpdateComputerController implements Initializable
             isSelectedCheckBox.setSelected(true);
         }
 
-        InitializePreferencesCheckboxes();
         if(StartedInSaveMode())
         {
             selectedCheckboxesBeforeChanges = preferenceCheckboxes;
         }
+
+        if(StartedInSaveMode() == false && _cellCaller.GetController().IsRemovingAllowed() == false)
+        {
+            removeButton.setDisable(true);
+        }
+
+        InitializePreferencesCheckboxes();
         DiscardChangesInPreferenceCheckboxes();
     }
 
@@ -863,12 +869,6 @@ public class AddOrUpdateComputerController implements Initializable
     @FXML
     void SaveOrUpdateComputer(ActionEvent event)
     {
-        if(GetParentController().IsEditionAllowed() == false)
-        {
-            Utilities.ShowErrorDialog("LogsManager is running. Stop it to edit computer.");
-            return;
-        }
-
         List<String> emptinessOrIntegerErrors = GetValidationErrorListBeforeSaveOrUpdate();
         if (emptinessOrIntegerErrors.size() > 0)
         {

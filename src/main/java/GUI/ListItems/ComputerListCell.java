@@ -220,12 +220,6 @@ public class ComputerListCell extends ListCell<ComputerItem>
     {
         editButton.setOnAction(event ->
         {
-            if(_controller.IsEditionAllowed() == false)
-            {
-                Utilities.ShowErrorDialog("LogsManager is working. Stop its work to do it.");
-                return;
-            }
-
             try
             {
                 FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/AddOrUpdateComputer.fxml"));
