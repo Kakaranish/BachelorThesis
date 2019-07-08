@@ -58,6 +58,8 @@ public class LogsManager
         {
             _isWorking = false;
 
+            _parentController.Callback_LogsManager_StoppedWork();
+
             AppLogger.Log(LogType.WARNING, ModuleName, "No computer is ready for maintenance & logs gathering.");
             AppLogger.Log(LogType.INFO, ModuleName, "Stopped work.");
             Utilities.ShowErrorDialog("No computer is ready for maintenance & logs gathering.");
