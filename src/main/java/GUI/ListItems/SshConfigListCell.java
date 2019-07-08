@@ -90,7 +90,14 @@ public class SshConfigListCell extends ListCell<SshConfigItem>
     {
         removeButton.setOnAction(event ->
         {
-            boolean response = Utilities.ShowYesNoDialog("Discard changes?", "Do you want to discard changes?");
+            if(_controller.IsRemovingAllowed() == false)
+            {
+                Utilities.ShowErrorDialog("Unable to remove SSH Config. LogsManager is working now.");
+                return;
+            }
+
+            boolean response = Utilities.ShowYesNoDialog("Remove SSH Config?",
+                    "Do you want to remove SSH Config?");
             if(response == false)
             {
                 return;
