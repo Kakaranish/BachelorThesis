@@ -10,42 +10,12 @@
     -fx-padding: 4px;
 }
 
-.edit-button {
-
-}
-
-.edit-button {
+.interactive-menu-button{
     -fx-background-color: transparent;
     -fx-opacity: 0.5;
 }
 
-.edit-button:hover {
-    -fx-opacity: 1;
-}
-
-.log-button {
+.interactive-menu-button:hover{
     -fx-background-color: transparent;
-    -fx-opacity: 0.5;
-}
-
-.log-button:hover {
-    -fx-opacity: 1;
-}
-
-.stats-button {
-    -fx-background-color: transparent;
-    -fx-opacity: 0.5;
-}
-
-.stats-button:hover {
-    -fx-opacity: 1;
-}
-
-.remove-button {
-    -fx-background-color: transparent;
-    -fx-opacity: 0.5;
-}
-
-.remove-button:hover {
     -fx-opacity: 1;
 }

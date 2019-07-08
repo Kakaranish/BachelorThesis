@@ -61,7 +61,7 @@ public class ComputerListCell extends ListCell<ComputerItem>
 
         Button removeButton = new Button();
         removeButton.setGraphic(removeIconImageView);
-        removeButton.getStyleClass().add("remove-button");
+        removeButton.getStyleClass().add("interactive-menu-button");
         removeButton.setCursor(Cursor.HAND);
 
         ImageView statsIconImageView = new ImageView(MainWindowController.statsIcon);
@@ -71,7 +71,7 @@ public class ComputerListCell extends ListCell<ComputerItem>
 
         Button statsButton = new Button();
         statsButton.setGraphic(statsIconImageView);
-        statsButton.getStyleClass().add("stats-button");
+        statsButton.getStyleClass().add("interactive-menu-button");
         statsButton.setCursor(Cursor.HAND);
 
         ImageView logIconImageView = new ImageView(MainWindowController.logIcon);
@@ -81,7 +81,7 @@ public class ComputerListCell extends ListCell<ComputerItem>
 
         Button logButton = new Button();
         logButton.setGraphic(logIconImageView);
-        logButton.getStyleClass().add("log-button");
+        logButton.getStyleClass().add("interactive-menu-button");
         logButton.setCursor(Cursor.HAND);
 
         ImageView editIconImageView = new ImageView(MainWindowController.editIcon);
@@ -91,7 +91,7 @@ public class ComputerListCell extends ListCell<ComputerItem>
 
         Button editButton = new Button();
         editButton.setGraphic(editIconImageView);
-        editButton.getStyleClass().add("edit-button");
+        editButton.getStyleClass().add("interactive-menu-button");
         editButton.setCursor(Cursor.HAND);
 
         final Pane spacer = new Pane();

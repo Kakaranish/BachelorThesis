@@ -196,7 +196,7 @@ public class MainWindowController implements Initializable
         imageView.setFitWidth(16);
         imageView.setSmooth(true);
         addComputerOrSshConfigButton.setGraphic(imageView);
-        addComputerOrSshConfigButton.getStyleClass().add("edit-button");
+        addComputerOrSshConfigButton.getStyleClass().add("interactive-menu-button");
         addComputerOrSshConfigButton.setCursor(Cursor.HAND);
         addComputerOrSshConfigButton.setOnAction(event -> AddComputer(this, _computersAndSshConfigsManager));
         addComputerOrSshConfigButton.setVisible(false);
@@ -209,7 +209,7 @@ public class MainWindowController implements Initializable
         imageView.setFitWidth(16);
         imageView.setSmooth(true);
         groupSettingsButton.setGraphic(imageView);
-        groupSettingsButton.getStyleClass().add("edit-button");
+        groupSettingsButton.getStyleClass().add("interactive-menu-button");
         groupSettingsButton.setCursor(Cursor.HAND);
         groupSettingsButton.setOnAction(event ->
         {
@@ -247,7 +247,7 @@ public class MainWindowController implements Initializable
         imageView.setFitWidth(16);
         imageView.setSmooth(true);
         generateChartsHelperButton.setGraphic(imageView);
-        generateChartsHelperButton.getStyleClass().add("edit-button");
+        generateChartsHelperButton.getStyleClass().add("interactive-menu-button");
         generateChartsHelperButton.setCursor(Cursor.HAND);
         Tooltip generateChartsTooltip =
                 new Tooltip("Generate logs for selected scope of computers: All Computers/Selected Computers/Classroom.");

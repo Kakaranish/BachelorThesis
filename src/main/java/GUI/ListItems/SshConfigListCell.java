@@ -5,7 +5,6 @@ import GUI.ChangeEvent.ChangeEvent;
 import GUI.ChangeEvent.ChangeEventType;
 import GUI.Controllers.MainWindowController;
 import Healthcheck.ComputersAndSshConfigsManager;
-import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.SshConfig;
 import Healthcheck.Utilities;
 import javafx.fxml.FXMLLoader;
@@ -56,7 +55,7 @@ public class SshConfigListCell extends ListCell<SshConfigItem>
 
         Button removeButton = new Button();
         removeButton.setGraphic(removeIconImageView);
-        removeButton.getStyleClass().add("remove-button");
+        removeButton.getStyleClass().add("interactive-menu-button");
         removeButton.setCursor(Cursor.HAND);
 
         ImageView editIconImageView = new ImageView(MainWindowController.editIcon);
@@ -66,7 +65,7 @@ public class SshConfigListCell extends ListCell<SshConfigItem>
 
         Button editButton = new Button();
         editButton.setGraphic(editIconImageView);
-        editButton.getStyleClass().add("edit-button");
+        editButton.getStyleClass().add("interactive-menu-button");
         editButton.setCursor(Cursor.HAND);
 
         ImageView configIconImageView = new ImageView(configIcon);
