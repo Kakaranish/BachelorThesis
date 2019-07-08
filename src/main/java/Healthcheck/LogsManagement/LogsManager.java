@@ -99,6 +99,25 @@ public class LogsManager
         _parentController.Callback_LogsManager_StoppedWork();
     }
 
+    public void RestartMaintainingLogs()
+    {
+        if(_isWorking == false)
+        {
+            AppLogger.Log(LogType.WARNING, ModuleName, "Unable to restart LogsMaintainer. " +
+                    "LogsManager is currently not working.");
+            return;
+        }
+
+        try
+        {
+            _logsMaintainer.RestartMaintainingLogs();
+        }
+        catch (Exception e)
+        {
+            AppLogger.Log(LogType.WARNING, ModuleName, "Unable to restart LogsMaintainer - " + e.getMessage());
+        }
+    }
+
     private void StopGatheringLogsSafely()
     {
         try

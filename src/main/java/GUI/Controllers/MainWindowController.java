@@ -108,7 +108,7 @@ public class MainWindowController implements Initializable
     private ChoiceBox statsScopeChoiceBox;
 
     @FXML
-    private Button generateChartsButton;
+    public Button generateChartsButton;
 
     @FXML
     private VBox generalStatsVBox;
@@ -775,6 +775,7 @@ public class MainWindowController implements Initializable
         {
             _logsManager.StopWork();
         }
+
         Platform.exit();
         System.exit(0);
     }
@@ -804,6 +805,11 @@ public class MainWindowController implements Initializable
             sshConfigItemsObservableList.add(sshConfigItemToAdd);
             sshConfigItemsListView.refresh();
         }
+    }
+
+    public void RestartMaintainingLogs()
+    {
+        _logsManager.RestartMaintainingLogs();
     }
 
     private boolean IsInAddComputerMode(int tabNum)

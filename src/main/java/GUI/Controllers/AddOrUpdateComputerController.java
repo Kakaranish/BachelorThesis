@@ -888,6 +888,7 @@ public class AddOrUpdateComputerController implements Initializable
                 add(hostError);
             }
         }};
+
         if(existenceErrors.size() > 0)
         {
             Utilities.ShowSaveErrorDialog(existenceErrors);
@@ -916,6 +917,11 @@ public class AddOrUpdateComputerController implements Initializable
                 if(StartedInSaveMode() == false)
                 {
                     _cellCaller.NotifyChanged(changeEvent);
+
+                    if(_cellCaller.GetController().IsRemovingAllowed() == false)
+                    {
+                        _cellCaller.GetController().RestartMaintainingLogs();
+                    }
                 }
                 else
                 {
@@ -923,7 +929,6 @@ public class AddOrUpdateComputerController implements Initializable
                 }
             }
         }
-
     }
 
     private boolean SaveComputer()
