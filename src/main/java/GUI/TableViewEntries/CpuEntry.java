@@ -1,104 +1,201 @@
 package GUI.TableViewEntries;
 
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleLongProperty;
+import javafx.beans.property.SimpleStringProperty;
 
 public class CpuEntry extends LogEntry
 {
-    public SimpleDoubleProperty Last1MinuteAvgCpuUtil;
-    public SimpleDoubleProperty Last5MinutesAvgCpuUtil;
-    public SimpleDoubleProperty Last15MinutesAvgCpuUtil;
-    public SimpleIntegerProperty ExecutingKernelSchedulingEntitiesNum;
-    public SimpleIntegerProperty ExistingKernelSchedulingEntitiesNum;
-    public SimpleIntegerProperty RecentlyCreatedProcessPID;
+    public SimpleStringProperty CpuName;
+    public SimpleLongProperty User;
+    public SimpleLongProperty Nice;
+    public SimpleLongProperty System;
+    public SimpleLongProperty Idle;
+    public SimpleLongProperty Iowait;
+    public SimpleLongProperty Irq;
+    public SimpleLongProperty Softirq;
+    public SimpleLongProperty Steal;
+    public SimpleLongProperty Quest;
+    public SimpleLongProperty QuestNice;
+    public SimpleBooleanProperty FirstBatch;
 
-    public double getLast1MinuteAvgCpuUtil()
+    public long getUser()
     {
-        return Last1MinuteAvgCpuUtil.get();
+        return User.get();
     }
 
-    public SimpleDoubleProperty last1MinuteAvgCpuUtilProperty()
+    public SimpleLongProperty userProperty()
     {
-        return Last1MinuteAvgCpuUtil;
+        return User;
     }
 
-    public void setLast1MinuteAvgCpuUtil(double last1MinuteAvgCpuUtil)
+    public void setUser(long user)
     {
-        this.Last1MinuteAvgCpuUtil.set(last1MinuteAvgCpuUtil);
+        this.User.set(user);
     }
 
-    public double getLast5MinutesAvgCpuUtil()
+    public long getNice()
     {
-        return Last5MinutesAvgCpuUtil.get();
+        return Nice.get();
     }
 
-    public SimpleDoubleProperty last5MinutesAvgCpuUtilProperty()
+    public SimpleLongProperty niceProperty()
     {
-        return Last5MinutesAvgCpuUtil;
+        return Nice;
     }
 
-    public void setLast5MinutesAvgCpuUtil(double last5MinutesAvgCpuUtil)
+    public void setNice(long nice)
     {
-        this.Last5MinutesAvgCpuUtil.set(last5MinutesAvgCpuUtil);
+        this.Nice.set(nice);
     }
 
-    public double getLast15MinutesAvgCpuUtil()
+    public long getSystem()
     {
-        return Last15MinutesAvgCpuUtil.get();
+        return System.get();
     }
 
-    public SimpleDoubleProperty last15MinutesAvgCpuUtilProperty()
+    public SimpleLongProperty systemProperty()
     {
-        return Last15MinutesAvgCpuUtil;
+        return System;
     }
 
-    public void setLast15MinutesAvgCpuUtil(double last15MinutesAvgCpuUtil)
+    public void setSystem(long system)
     {
-        this.Last15MinutesAvgCpuUtil.set(last15MinutesAvgCpuUtil);
+        this.System.set(system);
     }
 
-    public int getExecutingKernelSchedulingEntitiesNum()
+    public long getIdle()
     {
-        return ExecutingKernelSchedulingEntitiesNum.get();
+        return Idle.get();
     }
 
-    public SimpleIntegerProperty executingKernelSchedulingEntitiesNumProperty()
+    public SimpleLongProperty idleProperty()
     {
-        return ExecutingKernelSchedulingEntitiesNum;
+        return Idle;
     }
 
-    public void setExecutingKernelSchedulingEntitiesNum(int executingKernelSchedulingEntitiesNum)
+    public void setIdle(long idle)
     {
-        this.ExecutingKernelSchedulingEntitiesNum.set(executingKernelSchedulingEntitiesNum);
+        this.Idle.set(idle);
     }
 
-    public int getExistingKernelSchedulingEntitiesNum()
+    public long getIowait()
     {
-        return ExistingKernelSchedulingEntitiesNum.get();
+        return Iowait.get();
     }
 
-    public SimpleIntegerProperty existingKernelSchedulingEntitiesNumProperty()
+    public SimpleLongProperty iowaitProperty()
     {
-        return ExistingKernelSchedulingEntitiesNum;
+        return Iowait;
     }
 
-    public void setExistingKernelSchedulingEntitiesNum(int existingKernelSchedulingEntitiesNum)
+    public void setIowait(long iowait)
     {
-        this.ExistingKernelSchedulingEntitiesNum.set(existingKernelSchedulingEntitiesNum);
+        this.Iowait.set(iowait);
     }
 
-    public int getRecentlyCreatedProcessPID()
+    public long getIrq()
     {
-        return RecentlyCreatedProcessPID.get();
+        return Irq.get();
     }
 
-    public SimpleIntegerProperty recentlyCreatedProcessPIDProperty()
+    public SimpleLongProperty irqProperty()
     {
-        return RecentlyCreatedProcessPID;
+        return Irq;
     }
 
-    public void setRecentlyCreatedProcessPID(int recentlyCreatedProcessPID)
+    public void setIrq(long irq)
     {
-        this.RecentlyCreatedProcessPID.set(recentlyCreatedProcessPID);
+        this.Irq.set(irq);
+    }
+
+    public long getSoftirq()
+    {
+        return Softirq.get();
+    }
+
+    public SimpleLongProperty softirqProperty()
+    {
+        return Softirq;
+    }
+
+    public void setSoftirq(long softirq)
+    {
+        this.Softirq.set(softirq);
+    }
+
+    public long getSteal()
+    {
+        return Steal.get();
+    }
+
+    public SimpleLongProperty stealProperty()
+    {
+        return Steal;
+    }
+
+    public void setSteal(long steal)
+    {
+        this.Steal.set(steal);
+    }
+
+    public long getQuest()
+    {
+        return Quest.get();
+    }
+
+    public SimpleLongProperty questProperty()
+    {
+        return Quest;
+    }
+
+    public void setQuest(long quest)
+    {
+        this.Quest.set(quest);
+    }
+
+    public long getQuestNice()
+    {
+        return QuestNice.get();
+    }
+
+    public SimpleLongProperty questNiceProperty()
+    {
+        return QuestNice;
+    }
+
+    public void setQuestNice(long questNice)
+    {
+        this.QuestNice.set(questNice);
+    }
+
+    public String getCpuName()
+    {
+        return CpuName.get();
+    }
+
+    public SimpleStringProperty cpuNameProperty()
+    {
+        return CpuName;
+    }
+
+    public void setCpuName(String cpuName)
+    {
+        this.CpuName.set(cpuName);
+    }
+
+    public boolean isFirstBatch()
+    {
+        return FirstBatch.get();
+    }
+
+    public SimpleBooleanProperty firstBatchProperty()
+    {
+        return FirstBatch;
+    }
+
+    public void setFirstBatch(boolean firstBatch)
+    {
+        this.FirstBatch.set(firstBatch);
     }
 }

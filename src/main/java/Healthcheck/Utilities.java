@@ -61,6 +61,8 @@ public class Utilities
             Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("DefaultLogExpiration"));
     public static final int MaxLogsNum =
             Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("MaxLogsNum"));
+    public static final int ProcStatGapCooldown =
+            Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("ProcStatGapCooldown"));
 
     public static final List<Preference> AvailablePreferences = GetAvailablePreferencesFromDb();
 

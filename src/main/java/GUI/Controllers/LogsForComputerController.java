@@ -140,7 +140,7 @@ public class LogsForComputerController implements Initializable
     private void GetCpuLogsAndPopulateTableView(Timestamp from, Timestamp to)
     {
         List<CpuEntry> logEntries = LogsGetter.GetGivenTypeLogsForComputer(
-                _computer, Preferences.PreferenceNameMap.get("CpuInfoPreference"), from, to)
+                _computer, Preferences.PreferenceNameMap.get("CpusInfoPreference"), from, to)
                 .stream().map(LogBase::ToEntry).map(u -> (CpuEntry) u).collect(Collectors.toList());
 
         cpuEntries.clear();
@@ -517,7 +517,7 @@ public class LogsForComputerController implements Initializable
             }
             else if(cpuTab.isSelected())
             {
-                preference = Preferences.CpuInfoPreference;
+                preference = Preferences.CpusInfoPreference;
             }
             else if(ramTab.isSelected())
             {

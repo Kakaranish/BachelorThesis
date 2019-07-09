@@ -14,6 +14,7 @@ import org.javatuples.Quartet;
 import org.javatuples.Triplet;
 import javax.persistence.Query;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -210,27 +211,69 @@ public class LogsGetter
 
     // --- CPU LOGS  ---------------------------------------------------------------------------------------------------
 
-    public static List<Pair<Timestamp, Double>> GetCpuTimestamp1CpuUtilAvgList(List<CpuLog> cpuLogs)
-    {
-        return cpuLogs.stream().map(c -> new Pair<Timestamp, Double>(c.Timestamp,
-                c.CpuInfo.Last1MinuteAvgCpuUtil)).collect(Collectors.toList());
-    }
-
-    public static List<Pair<Timestamp, Double>> GetCpuTimestamp5CpuUtilAvgList(List<CpuLog> cpuLogs)
-    {
-        return cpuLogs.stream().map(c -> new Pair<Timestamp, Double>(c.Timestamp,
-                c.CpuInfo.Last5MinutesAvgCpuUtil)).collect(Collectors.toList());
-    }
-
-    public static List<Pair<Timestamp, Double>> GetCpuTimestamp15CpuUtilAvgList(List<CpuLog> cpuLogs)
-    {
-        return cpuLogs.stream().map(c -> new Pair<Timestamp, Double>(c.Timestamp,
-                c.CpuInfo.Last15MinutesAvgCpuUtil)).collect(Collectors.toList());
-    }
-
     public static List<CpuLog> GetLatestCpuLogsForComputer(Computer computer)
     {
-        return LogsGetter.GetLatestGivenTypeLogsForComputer(computer, Preferences.CpuInfoPreference)
-            .stream().map(l -> (CpuLog) l).collect(Collectors.toList());
+        return LogsGetter.GetLatestGivenTypeLogsForComputer(computer, Preferences.CpusInfoPreference)
+                .stream().map(l -> (CpuLog) l).collect(Collectors.toList());
+    }
+
+    public static List<Pair<Timestamp, Double>> GetAggregatedCpuUtilsForTimestampsFromCpuLogs(List<CpuLog> cpuLogs)
+    {
+        var aggregatedCpuUtilsForTimestamps = new ArrayList<Pair<Timestamp, Double>>();
+
+        var logsGroupedByTimestampAndCpuName = GetGroupedCpuLogsByTimestampAndCpuName(cpuLogs);
+        for (Timestamp timestamp : logsGroupedByTimestampAndCpuName.keySet())
+        {
+            var aggregatedCpuUtilForCpuNames
+                    = GetComputedCpuUtilsForCpuNames(logsGroupedByTimestampAndCpuName.get(timestamp));
+
+            double aggregatedCpuUtilForTimestamp = 0;
+            for (Pair<String, Double> aggregatedCpuUtilForCpuName : aggregatedCpuUtilForCpuNames)
+            {
+                aggregatedCpuUtilForTimestamp += aggregatedCpuUtilForCpuName.getValue();
+            }
+
+            aggregatedCpuUtilsForTimestamps.add(new Pair<Timestamp, Double>(timestamp, aggregatedCpuUtilForTimestamp));
+        }
+        return aggregatedCpuUtilsForTimestamps;
+    }
+
+    private static Map<Timestamp, Map<String, List<CpuLog>>> GetGroupedCpuLogsByTimestampAndCpuName(List<CpuLog> cpuLogs)
+    {
+        return cpuLogs.stream().collect(
+                Collectors.groupingBy(c -> c.Timestamp, Collectors.groupingBy(c -> c.CpuInfo.CpuName)));
+    }
+
+    private static List<Pair<String, Double>> GetComputedCpuUtilsForCpuNames(
+            Map<String, List<CpuLog>> cpuLogsGroupedByCpuName)
+    {
+        Map<String, Double> cpuNameCpuUtilMap = cpuLogsGroupedByCpuName.entrySet().stream().collect(Collectors.toMap(
+                e -> e.getKey(),
+                e -> GetComputedCpuUtil(e.getValue().get(0), e.getValue().get(1))
+        ));
+
+        return cpuNameCpuUtilMap.entrySet().stream()
+                .map(e -> new Pair<String, Double>(e.getKey(), e.getValue()))
+                .collect(Collectors.toList());
+    }
+
+    private static double GetComputedCpuUtil(CpuLog cpuLogFirstBatch, CpuLog cpuLogSecondBatch)
+    {
+        long cpuLogIdleFirstBatch = cpuLogFirstBatch.CpuInfo.Idle + cpuLogFirstBatch.CpuInfo.Iowait;
+        long cpuLogNonIdleFirstBatch = cpuLogFirstBatch.CpuInfo.User + cpuLogFirstBatch.CpuInfo.Nice
+                + cpuLogFirstBatch.CpuInfo.System + cpuLogFirstBatch.CpuInfo.Irq
+                + cpuLogFirstBatch.CpuInfo.Softirq + cpuLogFirstBatch.CpuInfo.Steal;
+        long cpuLogTotalFirstBatch = cpuLogIdleFirstBatch + cpuLogNonIdleFirstBatch;
+
+        long cpuLogIdleSecondBatch = cpuLogSecondBatch.CpuInfo.Idle + cpuLogSecondBatch.CpuInfo.Iowait;
+        long cpuLogNonIdleSecondBatch = cpuLogSecondBatch.CpuInfo.User + cpuLogSecondBatch.CpuInfo.Nice
+                + cpuLogSecondBatch.CpuInfo.System + cpuLogSecondBatch.CpuInfo.Irq
+                + cpuLogSecondBatch.CpuInfo.Softirq + cpuLogSecondBatch.CpuInfo.Steal;
+        long cpuLogTotalSecondBatch = cpuLogIdleSecondBatch + cpuLogNonIdleSecondBatch;
+
+        long totalDifference = cpuLogTotalSecondBatch - cpuLogTotalFirstBatch;
+        long idleDifference = cpuLogIdleSecondBatch - cpuLogIdleFirstBatch;
+
+        return (totalDifference - idleDifference) / (double) totalDifference * 100;
     }
 }

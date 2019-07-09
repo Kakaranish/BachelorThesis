@@ -221,7 +221,7 @@ public class GroupSettingsController implements Initializable
 
                     if(cpuInfoCheckBox.isSelected())
                     {
-                        preferences.add(Utilities.ConvertIPreferenceToPreference(Preferences.CpuInfoPreference));
+                        preferences.add(Utilities.ConvertIPreferenceToPreference(Preferences.CpusInfoPreference));
                     }
                     if(usersInfoCheckBox.isSelected())
                     {

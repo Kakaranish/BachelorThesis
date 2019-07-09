@@ -3,7 +3,6 @@ package Healthcheck.Models.Info;
 import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.Logs.LogBase;
 import Healthcheck.Entities.Logs.DiskLog;
-
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;

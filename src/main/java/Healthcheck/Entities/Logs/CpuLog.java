@@ -7,8 +7,8 @@ import Healthcheck.Entities.CacheLogs.CacheLogBase;
 import Healthcheck.Entities.CacheLogs.CpuCacheLog;
 import Healthcheck.Entities.Computer;
 import Healthcheck.Models.Info.CpuInfo;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -54,12 +54,18 @@ public class CpuLog extends LogBase
         return new CpuEntry()
         {{
             Datetime = new SimpleStringProperty(new SimpleDateFormat("dd/MM/yyyy' 'HH:mm:ss:S").format(Timestamp));
-            Last1MinuteAvgCpuUtil = new SimpleDoubleProperty(CpuInfo.Last1MinuteAvgCpuUtil);
-            Last5MinutesAvgCpuUtil = new SimpleDoubleProperty(CpuInfo.Last5MinutesAvgCpuUtil);
-            Last15MinutesAvgCpuUtil = new SimpleDoubleProperty(CpuInfo.Last15MinutesAvgCpuUtil);
-            ExecutingKernelSchedulingEntitiesNum = new SimpleIntegerProperty(CpuInfo.ExecutingKernelSchedulingEntitiesNum);
-            ExistingKernelSchedulingEntitiesNum = new SimpleIntegerProperty(CpuInfo.ExistingKernelSchedulingEntitiesNum);
-            RecentlyCreatedProcessPID = new SimpleIntegerProperty(CpuInfo.RecentlyCreatedProcessPID);
+            CpuName = new SimpleStringProperty(CpuInfo.CpuName);
+            User = new SimpleLongProperty(CpuInfo.User);
+            Nice = new SimpleLongProperty(CpuInfo.Nice);
+            System = new SimpleLongProperty(CpuInfo.System);
+            Idle = new SimpleLongProperty(CpuInfo.Idle);
+            Iowait = new SimpleLongProperty(CpuInfo.Iowait);
+            Irq = new SimpleLongProperty(CpuInfo.Irq);
+            Softirq = new SimpleLongProperty(CpuInfo.Softirq);
+            Steal = new SimpleLongProperty(CpuInfo.Steal);
+            Quest = new SimpleLongProperty(CpuInfo.Quest);
+            QuestNice = new SimpleLongProperty(CpuInfo.QuestNice);
+            FirstBatch = new SimpleBooleanProperty(CpuInfo.FirstBatch);
         }};
     }
 

@@ -6,16 +6,20 @@ import Healthcheck.AppLogging.LogType;
 import Healthcheck.DatabaseManagement.MainDatabaseManager;
 import Healthcheck.Encryption.EncrypterException;
 import Healthcheck.Entities.Computer;
+import Healthcheck.Entities.Logs.CpuLog;
 import Healthcheck.Entities.Logs.LogBase;
 import Healthcheck.Models.Info.IInfo;
+import Healthcheck.Preferences.CpusInfoPreference;
 import Healthcheck.Preferences.IPreference;
 import Healthcheck.SSHConnectionManagement.SSHConnection;
 import Healthcheck.SSHConnectionManagement.SSHConnectionException;
+import javafx.application.Platform;
 import org.hibernate.Session;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 public class ComputerLogger extends Thread
 {
@@ -132,10 +136,36 @@ public class ComputerLogger extends Thread
 
         for (IPreference preference : _iPreferences)
         {
-            List<LogBase> logsToSave = GatherLogsForGivenPreferenceTypeWithRetryPolicy(preference, now);
-            if(logsToSave == null)
+            List<LogBase> logsToSave;
+            if(preference instanceof CpusInfoPreference)
             {
-                return false;
+                List<CpuLog> cpuLogs = GatherLogsForGivenPreferenceTypeWithRetryPolicy(preference, now)
+                        .stream().map(l -> (CpuLog)l).collect(Collectors.toList());
+                cpuLogs.forEach(c -> c.CpuInfo.FirstBatch = true);
+
+                try
+                {
+                    Thread.sleep(Utilities.ProcStatGapCooldown);
+                }
+                catch(Exception e)
+                {
+                    Platform.runLater(() -> AppLogger.Log(LogType.FATAL_ERROR, ModuleName,
+                            "CpuLogs gathering sleep interrupted."));
+                    return false;
+                }
+
+                cpuLogs.addAll(GatherLogsForGivenPreferenceTypeWithRetryPolicy(preference, now)
+                        .stream().map(l -> (CpuLog) l).collect(Collectors.toList()));
+
+                logsToSave = cpuLogs.stream().map(c -> (LogBase) c).collect(Collectors.toList());
+            }
+            else
+            {
+                logsToSave = GatherLogsForGivenPreferenceTypeWithRetryPolicy(preference, now);
+                if(logsToSave == null)
+                {
+                    return false;
+                }
             }
 
             if(ThreadInterrupted())

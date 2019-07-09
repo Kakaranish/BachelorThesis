@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class Preferences
 {
-    public static final CpuInfoPreference CpuInfoPreference = new CpuInfoPreference();
+    public static final CpusInfoPreference CpusInfoPreference = new CpusInfoPreference();
     public static final DisksInfoPreference DisksInfoPreference = new DisksInfoPreference();
     public static final ProcessesInfoPreference ProcessesInfoPreference = new ProcessesInfoPreference();
     public static final RamInfoPreference RamInfoPreference = new RamInfoPreference();
@@ -15,7 +15,7 @@ public class Preferences
     public static final UsersInfoPreference UsersInfoPreference = new UsersInfoPreference();
 
     public static final List<IPreference> AllPreferencesList = new ArrayList<IPreference>(){{
-        add(CpuInfoPreference);
+        add(CpusInfoPreference);
         add(DisksInfoPreference);
         add(ProcessesInfoPreference);
         add(RamInfoPreference);
@@ -24,7 +24,7 @@ public class Preferences
     }};
 
     public static final Map<String, IPreference> PreferenceClassNameMap = new HashMap<String, IPreference>(){{
-        put("Healthcheck.Preferences.CpuInfoPreference", CpuInfoPreference);
+        put("Healthcheck.Preferences.CpusInfoPreference", CpusInfoPreference);
         put("Healthcheck.Preferences.DisksInfoPreference", DisksInfoPreference);
         put("Healthcheck.Preferences.ProcessesInfoPreference", ProcessesInfoPreference);
         put("Healthcheck.Preferences.RamInfoPreference", RamInfoPreference);
@@ -33,7 +33,7 @@ public class Preferences
     }};
 
     public static final Map<String, IPreference> PreferenceNameMap = new HashMap<String, IPreference>(){{
-        put("CpuInfoPreference", CpuInfoPreference);
+        put("CpusInfoPreference", CpusInfoPreference);
         put("DisksInfoPreference", DisksInfoPreference);
         put("ProcessesInfoPreference", ProcessesInfoPreference);
         put("RamInfoPreference", RamInfoPreference);
