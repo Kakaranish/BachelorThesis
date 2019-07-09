@@ -55,7 +55,7 @@ public class StatsForComputerController implements Initializable
     {
         _computer = computer;
         _from = from;
-        _to = to; // AFRICA
+        _to = to;
     }
 
     @Override
@@ -76,9 +76,8 @@ public class StatsForComputerController implements Initializable
 
     private void CreateCpuCharts(Computer computer, Timestamp from, Timestamp to)
     {
-        HBox pieChartsHBox = new HBox();
         List<CpuLog> latestCpuLogs = LogsGetter.GetLatestGivenTypeLogsForComputer(
-                computer, Preferences.CpuInfoPreference).stream().map(l -> (CpuLog) l).collect(Collectors.toList());
+                computer, Preferences.CpusInfoPreference).stream().map(l -> (CpuLog) l).collect(Collectors.toList());
 
         if(latestCpuLogs.isEmpty())
         {
@@ -100,96 +99,50 @@ public class StatsForComputerController implements Initializable
             return;
         }
 
-        for(int i = 1; i <= 3; ++i)
-        {
-            String title = null;
-            double latestCpuUtil = 0;
-            switch (i)
-            {
-                case 1:
-                    title = "Latest avg CPU util from 1m - " + simpleDateFormat.format(latestCpuLogs.get(0).Timestamp);
-                    latestCpuUtil = latestCpuLogs.get(0).CpuInfo.Last1MinuteAvgCpuUtil;
-                    break;
-                case 2:
-                    title = "Latest avg CPU util from 5m - " + simpleDateFormat.format(latestCpuLogs.get(0).Timestamp);
-                    latestCpuUtil = latestCpuLogs.get(0).CpuInfo.Last5MinutesAvgCpuUtil;
-                    break;
-                case 3:
-                    title = "Latest avg CPU util from 15m - " + simpleDateFormat.format(latestCpuLogs.get(0).Timestamp);
-                    latestCpuUtil = latestCpuLogs.get(0).CpuInfo.Last15MinutesAvgCpuUtil;
-                    break;
-            }
+        Pair<Timestamp, Double> latestCpuUtilization =
+                LogsGetter.GetAggregatedCpuUtilsForTimestampsFromCpuLogs(latestCpuLogs).get(0);
 
-            ObservableList<PieChart.Data> pieChartData =
-                    FXCollections.observableArrayList(
-                            new PieChart.Data("Free CPU - "
-                                    + String.format("%.2f", 100 - latestCpuUtil) + "%", 100 - latestCpuUtil),
-                            new PieChart.Data("Used CPU - "
-                                    + String.format("%.2f", latestCpuUtil) + "%", latestCpuUtil));
-            final PieChart chart = new PieChart(pieChartData);
-            chart.setTitle(title);
+        VBox latestCpuUtilVBox = new VBox();
+        latestCpuUtilVBox.setAlignment(Pos.CENTER);
+        latestCpuUtilVBox.setPadding(new Insets(10, 0, 0, 0));
 
-            pieChartsHBox.getChildren().add(chart);
-        }
-        cpuVBox.getChildren().add(pieChartsHBox);
+        Label latestCpuUtilLabel = new Label();
+        latestCpuUtilLabel.setText("Latest Cpu Utilization - "
+                + simpleDateFormat.format(latestCpuUtilization.getKey())
+                + " - " + latestCpuUtilization.getValue() + "%"
+        );
+        latestCpuUtilLabel.setFont(new Font(20));
+        latestCpuUtilVBox.getChildren().add(latestCpuUtilLabel);
+        cpuVBox.getChildren().add(latestCpuUtilVBox);
 
         List<CpuLog> cpuLogs = LogsGetter.GetGivenTypeLogsForComputer(
-                computer, Preferences.PreferenceNameMap.get("CpuInfoPreference"), from, to)
+                computer, Preferences.PreferenceNameMap.get("CpusInfoPreference"), from, to)
                 .stream().map(l -> (CpuLog) l).collect(Collectors.toList());
 
-        for(int i = 1; i <= 3; ++i)
+        List<Pair<Timestamp, Double>> aggregatedCpuUtilsForTimestamps =
+                LogsGetter.GetAggregatedCpuUtilsForTimestampsFromCpuLogs(cpuLogs);
+
+        CategoryAxis xAxis = new CategoryAxis();
+        xAxis.setLabel("Timestamp");
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("Cpu Utilization %");
+
+        final LineChart<String,Number> lineChart = new LineChart<String,Number>(xAxis,yAxis);
+        lineChart.setTitle("Cpu Utilization");
+        lineChart.setMinHeight(WindowHeight / 2);
+        lineChart.setLegendVisible(false);
+
+        XYChart.Series series = new XYChart.Series();
+        for (Pair<Timestamp, Double> cpuUtilTimestampPair : aggregatedCpuUtilsForTimestamps)
         {
-            CategoryAxis xAxis = new CategoryAxis();
-            xAxis.setLabel("Timestamp");
-            NumberAxis yAxis = new NumberAxis();
-            yAxis.setLabel("Percentage usage");
-
-            final LineChart<String,Number> lineChart = new LineChart<String,Number>(xAxis,yAxis);
-            lineChart.setMinHeight(WindowHeight / 2);
-            lineChart.setLegendVisible(false);
-
-            String title = null;
-            switch (i)
-            {
-                case 1:
-                    title = "Average CPU Util from 1m";
-                    break;
-                case 2:
-                    title = "Average CPU Util from 5m";
-                    break;
-                case 3:
-                    title = "Average CPU Util from 15m";
-                    break;
-            }
-            lineChart.setTitle(title);
-
-            List<Pair<Timestamp, Double>> pairsTimestampCpuUtilAvg = null;
-            switch (i)
-            {
-                case 1:
-                    pairsTimestampCpuUtilAvg = LogsGetter.GetCpuTimestamp1CpuUtilAvgList(cpuLogs);
-                    break;
-
-                case 2:
-                    pairsTimestampCpuUtilAvg = LogsGetter.GetCpuTimestamp5CpuUtilAvgList(cpuLogs);
-                    break;
-                case 3:
-                    pairsTimestampCpuUtilAvg = LogsGetter.GetCpuTimestamp15CpuUtilAvgList(cpuLogs);
-                    break;
-            }
-
-            XYChart.Series series = new XYChart.Series();
-            for (Pair<Timestamp, Double> pairTimestampCpuUtilAvg : pairsTimestampCpuUtilAvg)
-            {
-                series.getData().add(new XYChart.Data(
-                        simpleDateFormat.format(pairTimestampCpuUtilAvg.getKey()),
-                        pairTimestampCpuUtilAvg.getValue())
-                );
-            }
-
-            lineChart.getData().add(series);
-            cpuVBox.getChildren().add(lineChart);
+            series.getData().add(new XYChart.Data(
+                    simpleDateFormat.format(cpuUtilTimestampPair.getKey()),
+                    cpuUtilTimestampPair.getValue())
+            );
         }
+
+        lineChart.getData().add(series);
+        cpuVBox.getChildren().add(lineChart);
     }
 
     public void CreateDisksCharts(Computer computer, Timestamp from, Timestamp to)
