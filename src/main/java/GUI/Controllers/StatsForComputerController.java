@@ -213,9 +213,11 @@ public class StatsForComputerController implements Initializable
         for (String fileSystem : disksLogsGroupedByFileSystems.keySet())
         {
             List<Pair<Timestamp, Long>> pairsTimestampAvailable = LogsGetter.GetDisksAvailableForFileSystem(
-                    disksLogsGroupedByFileSystems,fileSystem);
+                    disksLogsGroupedByFileSystems,fileSystem)
+                    .stream().sorted(Comparator.comparing(Pair::getKey)).collect(Collectors.toList());
             List<Pair<Timestamp, Long>> pairsTimestampUsed = LogsGetter.GetDisksUsedForFileSystem(
-                    disksLogsGroupedByFileSystems, fileSystem);
+                    disksLogsGroupedByFileSystems, fileSystem)
+                    .stream().sorted(Comparator.comparing(Pair::getKey)).collect(Collectors.toList());
 
             CategoryAxis xAxis = new CategoryAxis();
             xAxis.setLabel("Timestamp");
@@ -311,7 +313,8 @@ public class StatsForComputerController implements Initializable
         List<RamLog> ramLogs = LogsGetter.GetGivenTypeLogsForComputer(
                 computer, Preferences.PreferenceNameMap.get("RamInfoPreference"),from, to)
                 .stream().map(l -> (RamLog) l).collect(Collectors.toList());
-        var quartetsTimestampUsedFreeBuffersCached = LogsGetter.GetRamTimestampUsedFreeBuffersCachedQuartetList(ramLogs);
+        var quartetsTimestampUsedFreeBuffersCached = LogsGetter.GetRamTimestampUsedFreeBuffersCachedQuartetList(ramLogs)
+                .stream().sorted(Comparator.comparing(Quartet::getValue0)).collect(Collectors.toList());
 
         CategoryAxis xAxis = new CategoryAxis();
         xAxis.setLabel("Timestamp");
@@ -428,7 +431,8 @@ public class StatsForComputerController implements Initializable
         List<SwapLog> swapLogs = LogsGetter.GetGivenTypeLogsForComputer(
                 computer, Preferences.PreferenceNameMap.get("SwapInfoPreference"),from, to)
                 .stream().map(l -> (SwapLog) l).collect(Collectors.toList());
-        var tripletsTimestampUsedFree = LogsGetter.GetSwapTimestampUsedFreeTripletList(swapLogs);
+        var tripletsTimestampUsedFree = LogsGetter.GetSwapTimestampUsedFreeTripletList(swapLogs)
+                .stream().sorted(Comparator.comparing(Triplet::getValue0)).collect(Collectors.toList());
 
         CategoryAxis xAxis = new CategoryAxis();
         xAxis.setLabel("Timestamp");
@@ -491,7 +495,9 @@ public class StatsForComputerController implements Initializable
             return;
         }
 
-        List<Pair<Timestamp, Integer>> pairsTimestampLoggedUsersNum = LogsGetter.GetUsersTimestampNumOfLogged(usersLogs);
+        List<Pair<Timestamp, Integer>> pairsTimestampLoggedUsersNum =
+                LogsGetter.GetUsersTimestampNumOfLogged(usersLogs)
+                        .stream().sorted(Comparator.comparing(Pair::getKey)).collect(Collectors.toList());
 
         CategoryAxis xAxis = new CategoryAxis();
         xAxis.setLabel("Datetime");
