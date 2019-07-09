@@ -157,7 +157,8 @@ public class StatsForComputerController implements Initializable
                 .stream().map(l -> (CpuLog) l).collect(Collectors.toList());
 
         List<Pair<Timestamp, Double>> aggregatedCpuUtilsForTimestamps =
-                LogsGetter.GetAggregatedCpuUtilsForTimestampsFromCpuLogs(cpuLogs);
+                LogsGetter.GetAggregatedCpuUtilsForTimestampsFromCpuLogs(cpuLogs)
+                        .stream().sorted(Comparator.comparing(Pair::getKey)).collect(Collectors.toList());
 
         CategoryAxis xAxis = new CategoryAxis();
         xAxis.setLabel("Timestamp");
