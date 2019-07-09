@@ -156,6 +156,8 @@ public class MainWindowController implements Initializable
 
         LoadComputersToListView();
         LoadSshConfigsToListView();
+
+        GenerateGeneralCharts();
     }
 
     private void InitializeStartOrStopGatheringLogs()
@@ -349,8 +351,8 @@ public class MainWindowController implements Initializable
             GenerateGeneralStatsTitleAndNumOfComputersLabels(computers, "Classroom: " + selectedScope);
         }
 
+        GenerateLatestAvgCpuUtilForComputers(computers);
         GenerateLatestAvgNumOfLoggedUsersForComputers(computers);
-        GenerateLatestAvgOfAvgCpuUtilForComputers(computers);
 
         HBox swapAndRamHBox = new HBox();
         swapAndRamHBox.setAlignment(Pos.CENTER);
@@ -489,79 +491,53 @@ public class MainWindowController implements Initializable
         generalStatsVBox.getChildren().add(vbox);
     }
 
-    private void GenerateLatestAvgOfAvgCpuUtilForComputers(List<Computer> computers)
+    private void GenerateLatestAvgCpuUtilForComputers(List<Computer> computers)
     {
-        HBox hbox = new HBox();
-        String[] fromPeriod = {"1m", "5m", "15m"};
-
-        for (String from : fromPeriod)
+        List<Double> latestCpuUtilsForComputers = new ArrayList<>();
+        for (Computer computer : computers)
         {
-            List<Double> percentageCpuUtils = new ArrayList<>();
-            for (Computer computer : computers)
+            List<CpuLog> latestCpuLogsForComputer = LogsGetter.GetLatestCpuLogsForComputer(computer);
+            if(latestCpuLogsForComputer.isEmpty())
             {
-                List<CpuLog> latestCpuLogsForComputer = LogsGetter.GetLatestCpuLogsForComputer(computer);
-                if(latestCpuLogsForComputer.size() == 0)
-                {
-                    continue;
-                }
-
-                double percentageCpuUsage = 0;
-                if(from.equals("1m"))
-                {
-                    percentageCpuUsage = latestCpuLogsForComputer.get(0).CpuInfo.Last1MinuteAvgCpuUtil;
-                }
-                else if(from.equals("5m"))
-                {
-                    percentageCpuUsage = latestCpuLogsForComputer.get(0).CpuInfo.Last5MinutesAvgCpuUtil;
-                }
-                else if(from.equals("15m"))
-                {
-                    percentageCpuUsage = latestCpuLogsForComputer.get(0).CpuInfo.Last15MinutesAvgCpuUtil;
-                }
-
-                percentageCpuUtils.add(percentageCpuUsage);
+                continue;
             }
 
-            if(percentageCpuUtils.isEmpty())
-            {
-                VBox vBox = new VBox();
-                vBox.setAlignment(Pos.CENTER);
-                vBox.setPadding(new Insets(10, 0, 0, 0));
-
-                Label noChartsLabel = new Label();
-                noChartsLabel.setText("Average of average CPU utils chart cannot be generated.");
-                noChartsLabel.setFont(new Font(20));
-
-                Label noLogsGatheredLabel = new Label();
-                noLogsGatheredLabel.setText("No logs gathered.");
-
-                vBox.getChildren().add(noChartsLabel);
-                vBox.getChildren().add(noLogsGatheredLabel);
-
-                generalStatsVBox.getChildren().add(vBox);
-                return;
-            }
-
-            double percentageCpuUsage = percentageCpuUtils.stream()
-                    .mapToDouble(Double::doubleValue).sum() / percentageCpuUtils.size();
-            if(percentageCpuUsage > 100)
-            {
-                percentageCpuUsage = 100;
-            }
-
-            PieChart chart = new PieChart();
-            chart.setTitle("Latest avg of avgs CPU util from " + from);
-            ObservableList<PieChart.Data> pieChartData =
-                    FXCollections.observableArrayList(
-                            new PieChart.Data("Free CPU - " + String.format("%.2f", 100 - percentageCpuUsage) + "%",
-                                    100 - percentageCpuUsage),
-                            new PieChart.Data("Used CPU - " + String.format("%.2f", percentageCpuUsage) + "%",
-                                    percentageCpuUsage));
-            chart.setData(pieChartData);
-            hbox.getChildren().add(chart);
-
+            latestCpuUtilsForComputers.add(
+                    LogsGetter.GetAggregatedCpuUtilsForTimestampsFromCpuLogs(latestCpuLogsForComputer).get(0).getValue());
         }
-        generalStatsVBox.getChildren().add(hbox);
+
+        if(latestCpuUtilsForComputers.isEmpty())
+        {
+            VBox vBox = new VBox();
+            vBox.setAlignment(Pos.CENTER);
+            vBox.setPadding(new Insets(10, 0, 0, 0));
+
+            Label noChartsLabel = new Label();
+            noChartsLabel.setText("Average cpu utilization is not available.");
+            noChartsLabel.setFont(new Font(16));
+
+            Label noLogsGatheredLabel = new Label();
+            noLogsGatheredLabel.setText("No logs gathered.");
+
+            vBox.getChildren().add(noChartsLabel);
+            vBox.getChildren().add(noLogsGatheredLabel);
+
+            generalStatsVBox.getChildren().add(vBox);
+            return;
+        }
+
+        double avgCpuUtilForComputers = latestCpuUtilsForComputers.stream()
+                .mapToDouble(Double::doubleValue).sum() / latestCpuUtilsForComputers.size();
+
+        VBox vBox = new VBox();
+        vBox.setAlignment(Pos.CENTER);
+        vBox.setPadding(new Insets(10, 0, 0, 0));
+
+        Label latestCpuUtilLabel = new Label();
+        latestCpuUtilLabel.setText("Average Latest Cpu Utilization - " + avgCpuUtilForComputers + "%");
+        latestCpuUtilLabel.setFont(new Font(16));
+        vBox.getChildren().add(latestCpuUtilLabel);
+        generalStatsVBox.getChildren().add(vBox);
     }
 
     private PieChart GetLatestAvgOfSwapUsageForComputers(List<Computer> computers)
@@ -690,6 +666,7 @@ public class MainWindowController implements Initializable
 
         Label numOfLoggedUsersLabel = new Label();
         numOfLoggedUsersLabel.setText("Average number of logged users: " + String.format("%.2f", avgLoggedUsersNum));
+        numOfLoggedUsersLabel.setFont(new Font(16));
 
         HBox hBox = new HBox();
         hBox.setAlignment(Pos.CENTER);
