@@ -282,6 +282,25 @@ public class StatsForComputerController implements Initializable
             ramVBox.getChildren().add(vBox);
             return;
         }
+        else if(latestRamLogs.get(0).RamInfo.Total == 0)
+        {
+            VBox vBox = new VBox();
+            vBox.setAlignment(Pos.CENTER);
+            vBox.setPadding(new Insets(10, 0, 0, 0));
+
+            Label noChartsLabel = new Label();
+            noChartsLabel.setText("No charts to generate.");
+            noChartsLabel.setFont(new Font(20));
+
+            Label zeroTotalSwapLabel = new Label();
+            zeroTotalSwapLabel.setText("Total ram is 0.");
+
+            vBox.getChildren().add(noChartsLabel);
+            vBox.getChildren().add(zeroTotalSwapLabel);
+
+            ramVBox.getChildren().add(vBox);
+            return;
+        }
 
         long used = latestRamLogs.get(0).RamInfo.Used;
         long free = latestRamLogs.get(0).RamInfo.Free;
@@ -384,6 +403,25 @@ public class StatsForComputerController implements Initializable
 
             Label zeroTotalSwapLabel = new Label();
             zeroTotalSwapLabel.setText("No logs gathered.");
+
+            vBox.getChildren().add(noChartsLabel);
+            vBox.getChildren().add(zeroTotalSwapLabel);
+
+            swapVBox.getChildren().add(vBox);
+            return;
+        }
+        else if(latestSwapLogs.get(0).SwapInfo.Total == 0)
+        {
+            VBox vBox = new VBox();
+            vBox.setAlignment(Pos.CENTER);
+            vBox.setPadding(new Insets(10, 0, 0, 0));
+
+            Label noChartsLabel = new Label();
+            noChartsLabel.setText("No charts to generate.");
+            noChartsLabel.setFont(new Font(20));
+
+            Label zeroTotalSwapLabel = new Label();
+            zeroTotalSwapLabel.setText("Total swap is 0.");
 
             vBox.getChildren().add(noChartsLabel);
             vBox.getChildren().add(zeroTotalSwapLabel);
