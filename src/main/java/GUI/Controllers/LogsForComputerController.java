@@ -520,13 +520,21 @@ public class LogsForComputerController implements Initializable
     {
         removeCurrentTabLogsButton.setOnAction(event ->
         {
-            LocalDate fromLocalDate = fromDatePicker.getValue();
-            LocalDate toLocalDate = toDatePicker.getValue();
+            LocalDate fromDate = fromDatePicker.getValue();
+            LocalDate toDate = toDatePicker.getValue();
+            String fromTime = fromTimeTextField.getText();
+            String toTime = toTimeTextField.getText();
 
-            if(fromLocalDate == null || toLocalDate == null)
+            if(fromDate == null || toDate == null
+                    || Utilities.TimeMatchesToTimePattern(fromTime, Utilities.TimePattern) == false
+                    || Utilities.TimeMatchesToTimePattern(toTime, Utilities.TimePattern) == false)
             {
+                Utilities.ShowErrorDialog("Unable to remove logs. Enter valid period of time.");
                 return;
             }
+
+            Timestamp fromTimestamp = Utilities.ConvertDateAndTimeToTimestamp(Utilities.DateFormat, fromDate, fromTime);
+            Timestamp toTimestamp = Utilities.ConvertDateAndTimeToTimestamp(Utilities.DateFormat, toDate, toTime);
 
             IPreference preference = null;
             if(usersTab.isSelected())
@@ -554,16 +562,11 @@ public class LogsForComputerController implements Initializable
                 preference = Preferences.ProcessesInfoPreference;
             }
 
-            Timestamp from = Utilities.ConvertDateAndTimeToTimestamp(
-                    simpleDateFormat, fromLocalDate, fromTimeTextField.getText());
-            Timestamp to = Utilities.ConvertDateAndTimeToTimestamp(
-                    simpleDateFormat, toLocalDate, toTimeTextField.getText());
-
             String logType = preference.GetClassName().replace("Log", "");
             boolean response = Utilities.ShowYesNoDialog("Remove " + logType + " logs?",
                     "Do you want remove " + logType + " logs from db \n" +
-                            "from " + simpleDateFormat.format(from) +
-                            "to " + simpleDateFormat.format(to) + "?");
+                            "from " + simpleDateFormat.format(fromTimestamp) +
+                            "to " + simpleDateFormat.format(toTimestamp) + "?");
             if(response == false)
             {
                 return;
@@ -572,7 +575,7 @@ public class LogsForComputerController implements Initializable
             Timestamp now = new Timestamp(new Date().getTime());
             try
             {
-                LogsMaintainer.RemoveGivenTypeLogsForComputer(_computer, preference, from, now);
+                LogsMaintainer.RemoveGivenTypeLogsForComputer(_computer, preference, fromTimestamp, toTimestamp);
 
                 clearButton.fire();
             }
