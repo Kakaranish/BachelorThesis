@@ -30,12 +30,18 @@
                   <TableView fx:id="cpuTableView" prefHeight="605.0" prefWidth="1223.0">
                     <columns>
                       <TableColumn fx:id="cpu_datetimeColumn" prefWidth="147.0" text="Datetime" />
-                      <TableColumn fx:id="cpu_last1MinuteAvgCpuUtil" prefWidth="176.0" text="Last1MinuteAvgCpuUtil" />
-                        <TableColumn fx:id="cpu_last5MinutesAvgCpuUtilColumn" prefWidth="171.0" text="Last5MinutesAvgCpuUtil" />
-                        <TableColumn fx:id="cpu_last15MinutesAvgCpuUtilColumn" minWidth="2.0" prefWidth="204.0" text="Last15MinutesAvgCpuUtil" />
-                        <TableColumn fx:id="cpu_executingKernelSchedulingEntitiesNumColumn" prefWidth="273.0" text="ExecutingKernelSchedulingEntitiesNum" />
-                        <TableColumn fx:id="cpu_existingKernelSchedulingEntitiesNumColumn" prefWidth="241.0" text="ExistingKernelSchedulingEntitiesNum" />
-                        <TableColumn fx:id="cpu_recentlyCreatedProcessPIDColumn" prefWidth="98.0" text="RecentlyCreatedProcessPID" />
+                        <TableColumn fx:id="cpu_firstBatchColumn" prefWidth="78.0" text="FirstBatch" />
+                        <TableColumn fx:id="cpu_cpuNameColumn" prefWidth="106.0" text="CpuName" />
+                      <TableColumn fx:id="cpu_userColumn" prefWidth="93.0" text="User" />
+                        <TableColumn fx:id="cpu_niceColumn" prefWidth="87.0" text="Nice" />
+                        <TableColumn fx:id="cpu_systemColumn" minWidth="2.0" prefWidth="97.0" text="System" />
+                        <TableColumn fx:id="cpu_idleColumn" prefWidth="90.0" text="Idle" />
+                        <TableColumn fx:id="cpu_iowaitColumn" prefWidth="111.0" text="Iowait" />
+                        <TableColumn fx:id="cpu_irqColumn" prefWidth="97.0" text="Irq" />
+                        <TableColumn fx:id="cpu_softIrqColumn" prefWidth="98.0" text="Softirq" />
+                        <TableColumn fx:id="cpu_stealColumn" prefWidth="99.0" text="Steal" />
+                        <TableColumn fx:id="cpu_guestColumn" prefWidth="99.0" text="Guest" />
+                        <TableColumn fx:id="cpu_guestNiceColumn" prefWidth="109.0" text="GuestNice" />
                     </columns>
                   </TableView>
             </content>

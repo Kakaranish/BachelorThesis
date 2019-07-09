@@ -14,8 +14,8 @@ public class CpuInfo
     public long Irq;
     public long Softirq;
     public long Steal;
-    public long Quest;
-    public long QuestNice;
+    public long Guest;
+    public long GuestNice;
     public boolean FirstBatch;
 
     /*
@@ -54,7 +54,7 @@ public class CpuInfo
         Irq = Long.parseLong(commandExecutionResultSplit[6]);
         Softirq = Long.parseLong(commandExecutionResultSplit[7]);
         Steal = Long.parseLong(commandExecutionResultSplit[8]);
-        Quest = Long.parseLong(commandExecutionResultSplit[9]);
-        QuestNice = Long.parseLong(commandExecutionResultSplit[10]);
+        Guest = Long.parseLong(commandExecutionResultSplit[9]);
+        GuestNice = Long.parseLong(commandExecutionResultSplit[10]);
     }
 }

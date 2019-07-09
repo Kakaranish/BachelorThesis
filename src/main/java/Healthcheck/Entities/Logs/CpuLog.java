@@ -63,8 +63,8 @@ public class CpuLog extends LogBase
             Irq = new SimpleLongProperty(CpuInfo.Irq);
             Softirq = new SimpleLongProperty(CpuInfo.Softirq);
             Steal = new SimpleLongProperty(CpuInfo.Steal);
-            Quest = new SimpleLongProperty(CpuInfo.Quest);
-            QuestNice = new SimpleLongProperty(CpuInfo.QuestNice);
+            Guest = new SimpleLongProperty(CpuInfo.Guest);
+            GuestNice = new SimpleLongProperty(CpuInfo.GuestNice);
             FirstBatch = new SimpleBooleanProperty(CpuInfo.FirstBatch);
         }};
     }

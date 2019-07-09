@@ -101,38 +101,56 @@ public class LogsForComputerController implements Initializable
     private TableColumn<CpuEntry, String> cpu_datetimeColumn;
 
     @FXML
-    private TableColumn<CpuEntry, Double> cpu_last1MinuteAvgCpuUtil;
+    private TableColumn<CpuEntry, Boolean> cpu_firstBatchColumn;
 
     @FXML
-    private TableColumn<CpuEntry, Double> cpu_last5MinutesAvgCpuUtilColumn;
+    private TableColumn<CpuEntry, String> cpu_cpuNameColumn;
 
     @FXML
-    private TableColumn<CpuEntry, Double> cpu_last15MinutesAvgCpuUtilColumn;
+    private TableColumn<CpuEntry, Long> cpu_userColumn;
 
     @FXML
-    private TableColumn<CpuEntry, Integer> cpu_executingKernelSchedulingEntitiesNumColumn;
+    private TableColumn<CpuEntry, Long> cpu_niceColumn;
 
     @FXML
-    private TableColumn<CpuEntry, Integer> cpu_existingKernelSchedulingEntitiesNumColumn;
+    private TableColumn<CpuEntry, Long> cpu_systemColumn;
 
     @FXML
-    private TableColumn<CpuEntry, Integer> cpu_recentlyCreatedProcessPIDColumn;
+    private TableColumn<CpuEntry, Long> cpu_idleColumn;
+
+    @FXML
+    private TableColumn<CpuEntry, Long> cpu_iowaitColumn;
+
+    @FXML
+    private TableColumn<CpuEntry, Long> cpu_irqColumn;
+
+    @FXML
+    private TableColumn<CpuEntry, Long> cpu_softIrqColumn;
+
+    @FXML
+    private TableColumn<CpuEntry, Long> cpu_stealColumn;
+
+    @FXML
+    private TableColumn<CpuEntry, Long> cpu_guestColumn;
+
+    @FXML
+    private TableColumn<CpuEntry, Long> cpu_guestNiceColumn;
 
     private void InitializeCpuLogsTableView()
     {
         cpu_datetimeColumn.setCellValueFactory(new PropertyValueFactory<CpuEntry, String>("Datetime"));
-        cpu_last1MinuteAvgCpuUtil.
-                setCellValueFactory(new PropertyValueFactory<CpuEntry, Double>("Last1MinuteAvgCpuUtil"));
-        cpu_last5MinutesAvgCpuUtilColumn.
-                setCellValueFactory(new PropertyValueFactory<CpuEntry, Double>("Last5MinutesAvgCpuUtil"));
-        cpu_last15MinutesAvgCpuUtilColumn
-                .setCellValueFactory(new PropertyValueFactory<CpuEntry, Double>("Last15MinutesAvgCpuUtil"));
-        cpu_executingKernelSchedulingEntitiesNumColumn
-                .setCellValueFactory(new PropertyValueFactory<CpuEntry, Integer>("ExecutingKernelSchedulingEntitiesNum"));
-        cpu_existingKernelSchedulingEntitiesNumColumn
-                .setCellValueFactory(new PropertyValueFactory<CpuEntry, Integer>("ExistingKernelSchedulingEntitiesNum"));
-        cpu_recentlyCreatedProcessPIDColumn
-                .setCellValueFactory(new PropertyValueFactory<CpuEntry, Integer>("RecentlyCreatedProcessPID"));
+        cpu_firstBatchColumn.setCellValueFactory(new PropertyValueFactory<CpuEntry, Boolean>("FirstBatch"));
+        cpu_cpuNameColumn.setCellValueFactory(new PropertyValueFactory<CpuEntry, String>("CpuName"));
+        cpu_userColumn.setCellValueFactory(new PropertyValueFactory<CpuEntry, Long>("User"));
+        cpu_niceColumn.setCellValueFactory(new PropertyValueFactory<CpuEntry, Long>("Nice"));
+        cpu_systemColumn.setCellValueFactory(new PropertyValueFactory<CpuEntry, Long>("System"));
+        cpu_idleColumn.setCellValueFactory(new PropertyValueFactory<CpuEntry, Long>("Idle"));
+        cpu_iowaitColumn.setCellValueFactory(new PropertyValueFactory<CpuEntry, Long>("Iowait"));
+        cpu_irqColumn.setCellValueFactory(new PropertyValueFactory<CpuEntry, Long>("Irq"));
+        cpu_softIrqColumn.setCellValueFactory(new PropertyValueFactory<CpuEntry, Long>("Softirq"));
+        cpu_stealColumn.setCellValueFactory(new PropertyValueFactory<CpuEntry, Long>("Steal"));
+        cpu_guestColumn.setCellValueFactory(new PropertyValueFactory<CpuEntry, Long>("Guest"));
+        cpu_guestNiceColumn.setCellValueFactory(new PropertyValueFactory<CpuEntry, Long>("GuestNice"));
 
         cpuTableView.setItems(cpuEntries);
     }

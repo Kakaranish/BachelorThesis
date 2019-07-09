@@ -6,6 +6,7 @@ import javafx.beans.property.SimpleStringProperty;
 
 public class CpuEntry extends LogEntry
 {
+    public SimpleBooleanProperty FirstBatch;
     public SimpleStringProperty CpuName;
     public SimpleLongProperty User;
     public SimpleLongProperty Nice;
@@ -15,9 +16,8 @@ public class CpuEntry extends LogEntry
     public SimpleLongProperty Irq;
     public SimpleLongProperty Softirq;
     public SimpleLongProperty Steal;
-    public SimpleLongProperty Quest;
-    public SimpleLongProperty QuestNice;
-    public SimpleBooleanProperty FirstBatch;
+    public SimpleLongProperty Guest;
+    public SimpleLongProperty GuestNice;
 
     public long getUser()
     {
@@ -139,34 +139,34 @@ public class CpuEntry extends LogEntry
         this.Steal.set(steal);
     }
 
-    public long getQuest()
+    public long getGuest()
     {
-        return Quest.get();
+        return Guest.get();
     }
 
-    public SimpleLongProperty questProperty()
+    public SimpleLongProperty guestProperty()
     {
-        return Quest;
+        return Guest;
     }
 
-    public void setQuest(long quest)
+    public void setGuest(long guest)
     {
-        this.Quest.set(quest);
+        this.Guest.set(guest);
     }
 
-    public long getQuestNice()
+    public long getGuestNice()
     {
-        return QuestNice.get();
+        return GuestNice.get();
     }
 
-    public SimpleLongProperty questNiceProperty()
+    public SimpleLongProperty guestNiceProperty()
     {
-        return QuestNice;
+        return GuestNice;
     }
 
-    public void setQuestNice(long questNice)
+    public void setGuestNice(long guestNice)
     {
-        this.QuestNice.set(questNice);
+        this.GuestNice.set(guestNice);
     }
 
     public String getCpuName()
