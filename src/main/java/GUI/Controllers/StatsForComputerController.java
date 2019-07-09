@@ -183,12 +183,12 @@ public class StatsForComputerController implements Initializable
             xAxis.setLabel("Timestamp");
 
             NumberAxis yAxis = new NumberAxis();
-            yAxis.setLabel("Used");
+            yAxis.setLabel("Memory (KB)");
 
             StackedBarChart stackedBarChart = new StackedBarChart(xAxis, yAxis);
             stackedBarChart.setTitle(fileSystem + " space");
             stackedBarChart.setMinHeight(WindowHeight / 2);
-            stackedBarChart.setLegendVisible(false);
+            stackedBarChart.setLegendVisible(true);
 
             XYChart.Series usedDataSeries = new XYChart.Series();
             for (Pair<Timestamp, Long> pairTimestampUsed : pairsTimestampUsed)
@@ -198,6 +198,7 @@ public class StatsForComputerController implements Initializable
                         Utilities.KilobytesToMegabytes(pairTimestampUsed.getValue()))
                 );
             }
+            usedDataSeries.setName("Used");
             stackedBarChart.getData().add(usedDataSeries);
 
             XYChart.Series availableDataSeries = new XYChart.Series();
@@ -208,7 +209,7 @@ public class StatsForComputerController implements Initializable
                         Utilities.KilobytesToMegabytes(pairTimestampAvailable.getValue()))
                 );
             }
-
+            availableDataSeries.setName("Available");
             stackedBarChart.getData().add(availableDataSeries);
             disksVBox.getChildren().add(stackedBarChart);
         }

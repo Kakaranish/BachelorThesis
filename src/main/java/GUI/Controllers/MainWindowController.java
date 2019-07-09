@@ -165,7 +165,7 @@ public class MainWindowController implements Initializable
         statsScopeChoiceBox.setItems(statsScopeObservableList);
         statsScopeChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) ->
         {
-            if(oldValue.equals(newValue))
+            if(Utilities.AreEqual(oldValue, newValue))
             {
                 return;
             }
