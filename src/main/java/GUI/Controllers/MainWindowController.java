@@ -108,7 +108,7 @@ public class MainWindowController implements Initializable
     private ChoiceBox statsScopeChoiceBox;
 
     @FXML
-    public Button generateChartsButton;
+    public Button refreshChartsButton;
 
     @FXML
     private VBox generalStatsVBox;
@@ -418,7 +418,7 @@ public class MainWindowController implements Initializable
 
     private void InitializeGenerateChartsButton()
     {
-        generateChartsButton.setOnAction(event -> GenerateGeneralCharts());
+        refreshChartsButton.setOnAction(event -> GenerateGeneralCharts());
     }
 
     // ---  ADD ACTIONS  -----------------------------------------------------------------------------------------------
@@ -535,7 +535,7 @@ public class MainWindowController implements Initializable
         vBox.setPadding(new Insets(10, 0, 0, 0));
 
         Label latestCpuUtilLabel = new Label();
-        latestCpuUtilLabel.setText("Average Latest Cpu Utilization - " + avgCpuUtilForComputers + "%");
+        latestCpuUtilLabel.setText("Latest average cpu utilization - " + avgCpuUtilForComputers + "%");
         latestCpuUtilLabel.setFont(new Font(16));
         vBox.getChildren().add(latestCpuUtilLabel);
         generalStatsVBox.getChildren().add(vBox);
@@ -671,7 +671,7 @@ public class MainWindowController implements Initializable
                     .mapToInt(Integer::intValue).sum() / (double) computers.size();
 
             Label numOfLoggedUsersLabel = new Label();
-            numOfLoggedUsersLabel.setText("Average number of logged users: " + String.format("%.2f", avgLoggedUsersNum));
+            numOfLoggedUsersLabel.setText("Latest average number of logged users: " + String.format("%.2f", avgLoggedUsersNum));
             numOfLoggedUsersLabel.setFont(new Font(16));
 
             HBox hBox = new HBox();

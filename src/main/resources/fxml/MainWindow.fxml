@@ -53,12 +53,12 @@
                   <AnchorPane prefHeight="200.0" prefWidth="200.0">
                      <children>
                         <ChoiceBox fx:id="statsScopeChoiceBox" layoutX="16.0" layoutY="20.0" prefWidth="150.0" />
-                        <Button fx:id="generateChartsHelperButton" layoutX="303.0" layoutY="27.0" minHeight="16.0" minWidth="16.0" mnemonicParsing="false" prefHeight="16.0" prefWidth="16.0">
+                        <Button fx:id="generateChartsHelperButton" layoutX="295.0" layoutY="27.0" minHeight="16.0" minWidth="16.0" mnemonicParsing="false" prefHeight="16.0" prefWidth="16.0">
                            <padding>
                               <Insets right="20.0" />
                            </padding>
                         </Button>
-                        <Button fx:id="generateChartsButton" layoutX="176.0" layoutY="20.0" mnemonicParsing="false" text="Generate Charts" />
+                        <Button fx:id="refreshChartsButton" layoutX="176.0" layoutY="20.0" mnemonicParsing="false" text="Refresh Charts" />
                         <ScrollPane fx:id="statsScrollPane" layoutX="16.0" layoutY="69.0" prefHeight="517.0" prefWidth="1052.0">
                            <content>
                               <VBox fx:id="generalStatsVBox" prefHeight="65.0" prefWidth="1051.0" />
