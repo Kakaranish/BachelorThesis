@@ -181,9 +181,23 @@ public class LogsGetter
                 .collect(Collectors.toList());
     }
 
-    public static int GetLatestNumberOfLoggedUsersForComputer(Computer computer)
+    public static Integer GetLatestNumberOfLoggedUsersForComputer(Computer computer)
     {
-        return LogsGetter.GetLatestGivenTypeLogsForComputer(computer, Preferences.UsersInfoPreference).size();
+        List<UserLog> userLogs = LogsGetter.GetLatestGivenTypeLogsForComputer(computer, Preferences.UsersInfoPreference)
+                .stream().map(l -> (UserLog) l).collect(Collectors.toList());
+
+        if(userLogs.isEmpty())
+        {
+            return null;
+        }
+        else if(userLogs.get(0).UserInfo == null || userLogs.get(0).UserInfo.IsEmpty())
+        {
+            return 0;
+        }
+        else
+        {
+            return userLogs.size();
+        }
     }
 
     // --- DISKS LOGS  -------------------------------------------------------------------------------------------------

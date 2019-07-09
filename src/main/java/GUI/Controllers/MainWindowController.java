@@ -368,17 +368,12 @@ public class MainWindowController implements Initializable
             vBox.setAlignment(Pos.CENTER);
             vBox.setPadding(new Insets(10, 0, 0, 0));
 
-            Label noChartsLabel = new Label();
-            noChartsLabel.setText("Average swap usage chart cannot be generated.");
-            noChartsLabel.setFont(new Font(20));
+            Label noChartLabel = new Label();
+            noChartLabel.setText("No logs to generate average swap usage chart.");
+            noChartLabel.setFont(new Font(16));
+            vBox.getChildren().add(noChartLabel);
 
-            Label noLogsGatheredLabel = new Label();
-            noLogsGatheredLabel.setText("No logs gathered.");
-
-            vBox.getChildren().add(noChartsLabel);
-            vBox.getChildren().add(noLogsGatheredLabel);
-
-            swapAndRamHBox.getChildren().add(vBox);
+            generalStatsVBox.getChildren().add(vBox);
         }
 
         PieChart latestAvgOfRamUsageChart = GenerateLatestAvgOfRamUsageForComputers(computers);
@@ -392,17 +387,12 @@ public class MainWindowController implements Initializable
             vBox.setAlignment(Pos.CENTER);
             vBox.setPadding(new Insets(10, 0, 0, 0));
 
-            Label noChartsLabel = new Label();
-            noChartsLabel.setText("Average ram usage chart cannot be generated.");
-            noChartsLabel.setFont(new Font(20));
+            Label noChartLabel = new Label();
+            noChartLabel.setText("No logs to generate average ram usage chart.");
+            noChartLabel.setFont(new Font(16));
+            vBox.getChildren().add(noChartLabel);
 
-            Label noLogsGatheredLabel = new Label();
-            noLogsGatheredLabel.setText("No logs gathered.");
-
-            vBox.getChildren().add(noChartsLabel);
-            vBox.getChildren().add(noLogsGatheredLabel);
-
-            swapAndRamHBox.getChildren().add(vBox);
+            generalStatsVBox.getChildren().add(vBox);
         }
 
         generalStatsVBox.getChildren().add(swapAndRamHBox);
@@ -515,12 +505,7 @@ public class MainWindowController implements Initializable
             Label noChartsLabel = new Label();
             noChartsLabel.setText("Average cpu utilization is not available.");
             noChartsLabel.setFont(new Font(16));
-
-            Label noLogsGatheredLabel = new Label();
-            noLogsGatheredLabel.setText("No logs gathered.");
-
             vBox.getChildren().add(noChartsLabel);
-            vBox.getChildren().add(noLogsGatheredLabel);
 
             generalStatsVBox.getChildren().add(vBox);
             return;
@@ -657,21 +642,40 @@ public class MainWindowController implements Initializable
 
         for (Computer computer : computers)
         {
-            int latestNumOfUsersForComputer = LogsGetter.GetLatestNumberOfLoggedUsersForComputer(computer);
-            loggedUsersNumList.add(latestNumOfUsersForComputer);
+            Integer latestNumOfUsersForComputer = LogsGetter.GetLatestNumberOfLoggedUsersForComputer(computer);
+            if(latestNumOfUsersForComputer != null)
+            {
+                loggedUsersNumList.add(latestNumOfUsersForComputer);
+            }
         }
 
-        double avgLoggedUsersNum = loggedUsersNumList.stream()
-                .mapToInt(Integer::intValue).sum() / (double) computers.size();
+        if(loggedUsersNumList.isEmpty() == false)
+        {
+            double avgLoggedUsersNum = loggedUsersNumList.stream()
+                    .mapToInt(Integer::intValue).sum() / (double) computers.size();
 
-        Label numOfLoggedUsersLabel = new Label();
-        numOfLoggedUsersLabel.setText("Average number of logged users: " + String.format("%.2f", avgLoggedUsersNum));
-        numOfLoggedUsersLabel.setFont(new Font(16));
+            Label numOfLoggedUsersLabel = new Label();
+            numOfLoggedUsersLabel.setText("Average number of logged users: " + String.format("%.2f", avgLoggedUsersNum));
+            numOfLoggedUsersLabel.setFont(new Font(16));
 
-        HBox hBox = new HBox();
-        hBox.setAlignment(Pos.CENTER);
-        hBox.getChildren().add(numOfLoggedUsersLabel);
-        generalStatsVBox.getChildren().add(hBox);
+            HBox hBox = new HBox();
+            hBox.setAlignment(Pos.CENTER);
+            hBox.getChildren().add(numOfLoggedUsersLabel);
+            generalStatsVBox.getChildren().add(hBox);
+        }
+        else
+        {
+            VBox vBox = new VBox();
+            vBox.setAlignment(Pos.CENTER);
+            vBox.setPadding(new Insets(10, 0, 0, 0));
+
+            Label noChartsLabel = new Label();
+            noChartsLabel.setText("Average number of logged users is not available.");
+            noChartsLabel.setFont(new Font(16));
+            vBox.getChildren().add(noChartsLabel);
+
+            generalStatsVBox.getChildren().add(vBox);
+        }
     }
 
     // ---  LogsManager CALLBACKS  -------------------------------------------------------------------------------------

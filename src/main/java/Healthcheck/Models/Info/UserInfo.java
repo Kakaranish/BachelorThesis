@@ -74,4 +74,10 @@ public class UserInfo
         PCPU = commandExecutionResultSplit.get(6);
         What = commandExecutionResultSplit.get(7);
     }
+
+    public boolean IsEmpty()
+    {
+        return User == null && TTY == null && FromWhere == null && LoginAt == null && Idle == null
+                && JCPU == null && PCPU == null && What == null;
+    }
 }
