@@ -1,5 +1,6 @@
 package GUI.Controllers;
 
+import GUI.ListItems.ComputerListCell;
 import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.Logs.*;
 import Healthcheck.LogsManagement.LogsGetter;
@@ -12,8 +13,12 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
+import javafx.scene.Cursor;
 import javafx.scene.chart.*;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
@@ -44,6 +49,10 @@ public class StatsForComputerController implements Initializable
     @FXML
     private VBox usersVBox;
 
+    @FXML
+    private Button refreshButton;
+
+    private static Image refreshIcon = new Image(ComputerListCell.class.getResource("/pics/refresh.png").toString());
     public final static int WindowHeight = 720;
     public final static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy' 'HH:mm:ss");
 
@@ -67,11 +76,39 @@ public class StatsForComputerController implements Initializable
                 .map(l -> (DiskLog) l).collect(Collectors.toList())
         );
 
+        InitializeRefreshButton();
+
         CreateDisksCharts(_computer, _from, _to);
         CreateCpuCharts(_computer, _from, _to);
         CreateRamCharts(_computer, _from, _to);
         CreateSwapCharts(_computer, _from, _to);
         CreateUsersCharts(_computer, _from, _to);
+    }
+
+    private void InitializeRefreshButton()
+    {
+        ImageView imageView = new ImageView(refreshIcon);
+        imageView.setFitHeight(16);
+        imageView.setFitWidth(16);
+        imageView.setSmooth(true);
+
+        refreshButton.setGraphic(imageView);
+        refreshButton.getStyleClass().add("interactive-menu-button");
+        refreshButton.setCursor(Cursor.HAND);
+        refreshButton.setOnAction(event ->
+        {
+            cpuVBox.getChildren().clear();
+            usersVBox.getChildren().clear();
+            ramVBox.getChildren().clear();
+            swapVBox.getChildren().clear();
+            disksVBox.getChildren().clear();
+
+            CreateDisksCharts(_computer, _from, _to);
+            CreateCpuCharts(_computer, _from, _to);
+            CreateRamCharts(_computer, _from, _to);
+            CreateSwapCharts(_computer, _from, _to);
+            CreateUsersCharts(_computer, _from, _to);
+        });
     }
 
     private void CreateCpuCharts(Computer computer, Timestamp from, Timestamp to)

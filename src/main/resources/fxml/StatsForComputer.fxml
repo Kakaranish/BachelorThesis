@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.*?>
 <?import javafx.scene.chart.*?>
 <?import java.lang.*?>
 <?import java.util.*?>
@@ -8,52 +9,65 @@
 <?import javafx.scene.layout.*?>
 
 
-<TabPane prefHeight="720.0" prefWidth="1399.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
-   <tabs>
-      <Tab closable="false" text="Disks">
-         <content>
-            <ScrollPane prefHeight="200.0" prefWidth="200.0">
+<AnchorPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <TabPane prefHeight="720.0" prefWidth="1399.0">
+         <tabs>
+            <Tab closable="false" text="Disks">
                <content>
-                  <VBox fx:id="disksVBox" prefHeight="95.0" prefWidth="1395.0" />
+                  <ScrollPane prefHeight="200.0" prefWidth="200.0">
+                     <content>
+                        <VBox fx:id="disksVBox" prefHeight="95.0" prefWidth="1395.0" />
+                     </content>
+                  </ScrollPane>
                </content>
-            </ScrollPane>
-         </content>
-      </Tab>
-      <Tab closable="false" text="CPU">
-         <content>
-            <ScrollPane prefHeight="200.0" prefWidth="200.0">
+            </Tab>
+            <Tab closable="false" text="CPU">
                <content>
-                  <VBox fx:id="cpuVBox" prefHeight="95.0" prefWidth="1395.0" />
+                  <ScrollPane prefHeight="200.0" prefWidth="200.0">
+                     <content>
+                        <VBox fx:id="cpuVBox" prefHeight="95.0" prefWidth="1395.0" />
+                     </content>
+                  </ScrollPane>
                </content>
-            </ScrollPane>
-         </content>
-      </Tab>
-      <Tab closable="false" text="Ram">
-         <content>
-            <ScrollPane prefHeight="200.0" prefWidth="200.0">
+            </Tab>
+            <Tab closable="false" text="Ram">
                <content>
-                  <VBox fx:id="ramVBox" prefHeight="95.0" prefWidth="1395.0" />
+                  <ScrollPane prefHeight="200.0" prefWidth="200.0">
+                     <content>
+                        <VBox fx:id="ramVBox" prefHeight="95.0" prefWidth="1395.0" />
+                     </content>
+                  </ScrollPane>
                </content>
-            </ScrollPane>
-         </content>
-      </Tab>
-      <Tab closable="false" text="Swap">
-         <content>
-            <ScrollPane prefHeight="200.0" prefWidth="200.0">
+            </Tab>
+            <Tab closable="false" text="Swap">
                <content>
-                  <VBox fx:id="swapVBox" prefHeight="95.0" prefWidth="1395.0" />
+                  <ScrollPane prefHeight="200.0" prefWidth="200.0">
+                     <content>
+                        <VBox fx:id="swapVBox" prefHeight="95.0" prefWidth="1395.0" />
+                     </content>
+                  </ScrollPane>
                </content>
-            </ScrollPane>
-         </content>
-      </Tab>
-      <Tab closable="false" text="Users">
-         <content>
-            <ScrollPane prefHeight="200.0" prefWidth="200.0">
+            </Tab>
+            <Tab closable="false" text="Users">
                <content>
-                  <VBox fx:id="usersVBox" prefHeight="95.0" prefWidth="1395.0" />
+                  <ScrollPane prefHeight="200.0" prefWidth="200.0">
+                     <content>
+                        <VBox fx:id="usersVBox" prefHeight="95.0" prefWidth="1395.0" />
+                     </content>
+                  </ScrollPane>
                </content>
-            </ScrollPane>
-         </content>
-      </Tab>
-   </tabs>
-</TabPane>
+            </Tab>
+         </tabs>
+      </TabPane>
+      <HBox alignment="CENTER" layoutX="1366.0" layoutY="9.0" prefHeight="21.0" prefWidth="30.0">
+         <children>
+            <Button fx:id="refreshButton" minHeight="16.0" minWidth="16.0" mnemonicParsing="false" prefHeight="16.0" prefWidth="16.0">
+               <padding>
+                  <Insets right="20.0" />
+               </padding>
+            </Button>
+         </children>
+      </HBox>
+   </children>
+</AnchorPane>
