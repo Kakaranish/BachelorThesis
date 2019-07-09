@@ -150,14 +150,30 @@ public class MainWindowController implements Initializable
         InitializeGenerateChartsButton();
         InitializeGroupSettingsButton();
         InitializeGenerateChartsHelperButton();
+        InitializeStatsScopeChoiceBox();
 
-        statsScopeChoiceBox.setItems(statsScopeObservableList);
         RefreshStatsChoiceBox();
 
         LoadComputersToListView();
         LoadSshConfigsToListView();
 
         GenerateGeneralCharts();
+    }
+
+    private void InitializeStatsScopeChoiceBox()
+    {
+        statsScopeChoiceBox.setItems(statsScopeObservableList);
+        statsScopeChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) ->
+        {
+            if(oldValue.equals(newValue))
+            {
+                return;
+            }
+            else
+            {
+                GenerateGeneralCharts();
+            }
+        });
     }
 
     private void InitializeStartOrStopGatheringLogs()
