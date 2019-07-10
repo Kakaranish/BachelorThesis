@@ -126,6 +126,7 @@ public class MainWindowController implements Initializable
     private boolean _isGenerating = false;
 
     private boolean _logsManagerIsNotWorking = true;
+    private boolean _statsChoiceBoxIsRefreshing = false;
 
     // ---  INITIALIZATION  --------------------------------------------------------------------------------------------
 
@@ -164,6 +165,11 @@ public class MainWindowController implements Initializable
         statsScopeChoiceBox.setItems(statsScopeObservableList);
         statsScopeChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) ->
         {
+            if(_statsChoiceBoxIsRefreshing)
+            {
+                return;
+            }
+
             if(Utilities.AreEqual(oldValue, newValue))
             {
                 return;
@@ -764,6 +770,7 @@ public class MainWindowController implements Initializable
     public void RefreshStatsChoiceBox()
     {
         List<String> classroomNames = _computersAndSshConfigsManager.GetAvailableClassrooms();
+        _statsChoiceBoxIsRefreshing = true;
 
         statsScopeObservableList.clear();
         statsScopeObservableList.add(AllComputersString);
@@ -772,6 +779,8 @@ public class MainWindowController implements Initializable
 
         statsScopeChoiceBox.setItems(statsScopeObservableList);
         statsScopeChoiceBox.getSelectionModel().select(0);
+
+        _statsChoiceBoxIsRefreshing = false;
     }
 
     private void CleanUpGuiComponents()
