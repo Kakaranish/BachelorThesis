@@ -534,7 +534,8 @@ public class MainWindowController implements Initializable
         vBox.setPadding(new Insets(10, 0, 0, 0));
 
         Label latestCpuUtilLabel = new Label();
-        latestCpuUtilLabel.setText("Latest average cpu utilization - " + avgCpuUtilForComputers + "%");
+        latestCpuUtilLabel.setText("Latest average cpu utilization - " +
+                String.format("%.2f", avgCpuUtilForComputers) + "%");
         latestCpuUtilLabel.setFont(new Font(16));
         vBox.getChildren().add(latestCpuUtilLabel);
         generalStatsVBox.getChildren().add(vBox);

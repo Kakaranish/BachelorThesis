@@ -146,7 +146,7 @@ public class StatsForComputerController implements Initializable
         Label latestCpuUtilLabel = new Label();
         latestCpuUtilLabel.setText("Latest Cpu Utilization - "
                 + simpleDateFormat.format(latestCpuUtilization.getKey())
-                + " - " + latestCpuUtilization.getValue() + "%"
+                + " - " + String.format("%.2f", latestCpuUtilization.getValue()) + "%"
         );
         latestCpuUtilLabel.setFont(new Font(20));
         latestCpuUtilVBox.getChildren().add(latestCpuUtilLabel);
@@ -280,6 +280,7 @@ public class StatsForComputerController implements Initializable
             vBox.getChildren().add(zeroTotalSwapLabel);
 
             ramVBox.getChildren().add(vBox);
+
             return;
         }
         else if(latestRamLogs.get(0).RamInfo.Total == 0)
