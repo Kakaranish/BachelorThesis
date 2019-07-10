@@ -41,9 +41,6 @@ import java.util.stream.Collectors;
 public class AddOrUpdateComputerController implements Initializable
 {
     @FXML
-    private CheckBox isSelectedCheckBox;
-
-    @FXML
     private TextField displayedNameTextField;
 
     @FXML
@@ -304,7 +301,6 @@ public class AddOrUpdateComputerController implements Initializable
             saveOrUpdateButton.setText("Update");
             removeButton.setDisable(false);
 
-            isSelectedCheckBox.setSelected(_computer.IsSelected());
             displayedNameTextField.setText(_computer.GetDisplayedName());
             hostTextField.setText(_computer.GetHost());
             classroomTextField.setText(_computer.GetClassroom());
@@ -325,8 +321,6 @@ public class AddOrUpdateComputerController implements Initializable
 
             saveOrUpdateButton.setText("Add");
             removeButton.setDisable(true);
-
-            isSelectedCheckBox.setSelected(true);
         }
 
         if(StartedInSaveMode())
@@ -805,7 +799,7 @@ public class AddOrUpdateComputerController implements Initializable
                 requestIntervalDuration,
                 maintainPeriodDuration,
                 logExpirationDuration,
-                isSelectedCheckBox.isSelected()
+                true
         );
 
         _computer.SetPreferences(GetSelectedPreferences());
@@ -845,7 +839,7 @@ public class AddOrUpdateComputerController implements Initializable
             }
         }
 
-        _computer.SetSelected(isSelectedCheckBox.isSelected());
+        _computer.SetSelected(_computer.IsSelected());
         _computer.SetDisplayedName(displayedNameTextField.getText());
         _computer.SetHost(hostTextField.getText());
         _computer.SetClassroom(classroomTextField.getText());
@@ -1111,7 +1105,6 @@ public class AddOrUpdateComputerController implements Initializable
 
         if(IsInSaveMode())
         {
-            isSelectedCheckBox.setSelected(true);
             displayedNameTextField.setText(null);
             hostTextField.setText(null);
             classroomTextField.setText(null);
@@ -1135,7 +1128,6 @@ public class AddOrUpdateComputerController implements Initializable
         }
         else
         {
-            isSelectedCheckBox.setSelected(_computer.IsSelected());
             displayedNameTextField.setText(_computer.GetDisplayedName());
             hostTextField.setText(_computer.GetHost());
             classroomTextField.setText(_computer.GetClassroom());
