@@ -101,7 +101,27 @@ public class LogsMaintainer
                 a) computers that are ready for maintain
                 b) computer with lowest time to maintain
              */
-            for (Computer computer : _logsManager.GetConnectedComputers())
+
+            List<Computer> connectedComputers = _logsManager.GetConnectedComputers();
+            if(connectedComputers.isEmpty())
+            {
+                try
+                {
+                    Thread.sleep(1000);
+                    Platform.runLater(() -> AppLogger.Log(LogType.INFO, ModuleName, "No computers to maintain.")                    );
+
+                    continue;
+                }
+                catch (InterruptedException e)
+                {
+                    _interruptionIntended = false;
+                    _isMaintaining = false;
+
+                    return;
+                }
+            }
+
+            for (Computer computer : connectedComputers)
             {
                 long computerTimeToMaintenance = GetComputerTimeToMaintenance(computer);
 

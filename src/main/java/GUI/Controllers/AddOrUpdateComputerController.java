@@ -1013,9 +1013,9 @@ public class AddOrUpdateComputerController implements Initializable
             selectedCheckboxesBeforeChanges = GetSelectedPreferenceCheckboxes();
             _prevLocalSshFieldsState = null;
 
-             Utilities.ShowInfoDialog("Computer update has succeed.");
+            Utilities.ShowInfoDialog("Computer update has succeed.");
 
-             return true;
+            return true;
         }
         catch (NothingToDoException e)
         {

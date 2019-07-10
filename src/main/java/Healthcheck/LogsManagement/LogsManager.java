@@ -22,7 +22,11 @@ public class LogsManager
     private LogsMaintainer _logsMaintainer;
     private ComputersAndSshConfigsManager _computersAndSshConfigsManager;
     private List<ComputerLogger> _connectedComputerLoggers;
+    private List<ComputerLogger> _notConnectedComputerLoggers;
+
+    private Thread _establishingConnectionThread;
     private boolean _isWorking = false;
+    private boolean _startingComputerLoggerRequiresRestartLogsMaintainer = true;
 
     public LogsManager(ComputersAndSshConfigsManager computersAndSshConfigsManager, MainWindowController parentController)
     {
@@ -46,15 +50,17 @@ public class LogsManager
             _isWorking = true;
         }
 
+        _connectedComputerLoggers = new ArrayList<>();
+        _notConnectedComputerLoggers = new ArrayList<>();
         _logsGatherer = new LogsGatherer(this);
         _logsMaintainer = new LogsMaintainer(this);
 
-        AppLogger.Log(LogType.INFO, ModuleName, "Started work.");
-
         _parentController.Callback_LogsManager_StartedWork();
 
-        _connectedComputerLoggers = GetReachableComputerLoggers(_computersAndSshConfigsManager.GetSelectedComputers());
-        if(_connectedComputerLoggers.isEmpty())
+        _notConnectedComputerLoggers = _computersAndSshConfigsManager.GetSelectedComputers()
+                .stream().map(computer -> new ComputerLogger(_logsGatherer, computer))
+                .filter(ComputerLogger::ValidateHasPreferences).collect(Collectors.toList());
+        if(_notConnectedComputerLoggers.isEmpty())
         {
             _isWorking = false;
 
@@ -67,18 +73,8 @@ public class LogsManager
             return;
         }
 
-        try
-        {
-            _logsGatherer.StartGatheringLogs();
-            _logsMaintainer.StartMaintainingLogs();
-        }
-        catch(LogsException e)
-        {
-            AppLogger.Log(LogType.WARNING, ModuleName, e.getMessage());
-            Utilities.ShowErrorDialog(e.getMessage());
-        }
-
-        _parentController.Callback_LogsManager_ComputersConnected(GetConnectedComputers());
+        _establishingConnectionThread = new Thread(this::EstablishConnectionWithComputerLoggers);
+        _establishingConnectionThread.start();
     }
 
     public void StopWork() throws LogsException
@@ -91,13 +87,19 @@ public class LogsManager
             return;
         }
 
-        StopGatheringLogsSafely();
-        StopMaintainingLogsSafely();
+        if(_establishingConnectionThread != null)
+        {
+             _establishingConnectionThread.interrupt();
+        }
+        else
+        {
+            StopMaintainingLogsSafely();
+        }
 
+        StopGatheringLogsSafely();
         EndWorkCleanup();
 
-        AppLogger.Log(LogType.INFO, ModuleName, "Stopped work.");
-
+        Platform.runLater(() -> AppLogger.Log(LogType.INFO, ModuleName, "Stopped work."));
         _parentController.Callback_LogsManager_StoppedWork();
     }
 
@@ -120,11 +122,57 @@ public class LogsManager
         }
     }
 
+    private void EstablishConnectionWithComputerLoggers()
+    {
+        _startingComputerLoggerRequiresRestartLogsMaintainer = false;
+
+        _logsGatherer.StartWork();
+
+        for (ComputerLogger computerLogger: _notConnectedComputerLoggers)
+        {
+            computerLogger.StartEstablishingSSHConnection();
+        }
+
+        try // LogsMaintainer is started with delay
+        {
+            Thread.sleep((long)(Utilities.SSHTimeout
+                    + _notConnectedComputerLoggers.size() * Utilities.GatheringStartDelay
+                    + 500));  /* 500ms is safe time offset when delay
+                                 related with making connections occurs */
+        }
+        catch (InterruptedException e)
+        {
+            AppLogger.Log(LogType.INFO, ModuleName, "Stopped work.");
+            return;
+        }
+
+        // Every new connection with computer will require restart of LogsMaintainer
+        _startingComputerLoggerRequiresRestartLogsMaintainer = true;
+
+        try
+        {
+            _logsMaintainer.StartMaintainingLogs();
+        }
+        catch(LogsException e)
+        {
+            AppLogger.Log(LogType.WARNING, ModuleName, e.getMessage());
+        }
+
+        if(_establishingConnectionThread == null)
+        {
+            _logsMaintainer.StopMaintainingLogs();
+        }
+
+        // Information for LogsManager that first wave of establishing connections with computers is finished
+        _establishingConnectionThread = null;
+        _parentController.Callback_LogsManager_ComputersConnected(GetConnectedComputers());
+    }
+
     private void StopGatheringLogsSafely()
     {
         try
         {
-            _logsGatherer.StopGatheringLogs();
+            _logsGatherer.StopWork();
         }
         catch(LogsException e)
         {
@@ -161,6 +209,13 @@ public class LogsManager
     public void Callback_Gatherer_LogsGatheredSuccessfully()
     {
         _parentController.Callback_LogsManager_LogsGatheredSuccessfully();
+    }
+
+    public void Callback_Gatherer_ConnectedWithComputerLogger(ComputerLogger computerLogger)
+    {
+        _connectedComputerLoggers.add(computerLogger);
+
+        _parentController.Callback_LogsManager_ConnectedWithComputerLogger(computerLogger);
     }
 
     public void Callback_Gatherer_ReconnectedWithComputerLogger(ComputerLogger computerLogger)
@@ -221,7 +276,7 @@ public class LogsManager
     {
         try
         {
-            _logsGatherer.StopGatheringLogsForComputerLogger(computerLogger);
+            _logsGatherer.StopWorkForComputerLogger(computerLogger);
         }
         catch (LogsException e)
         {
@@ -250,39 +305,44 @@ public class LogsManager
 
     // ---  GETTERS  ---------------------------------------------------------------------------------------------------
 
-    private List<ComputerLogger> GetReachableComputerLoggers(List<Computer> selectedComputerEntities) throws LogsException
-    {
-        List<ComputerLogger> reachableComputerLoggers = new ArrayList<>();
-        for (Computer selectedComputer : selectedComputerEntities)
-        {
-            ComputerLogger computerLogger = new ComputerLogger(_logsGatherer, selectedComputer);
-            computerLogger.ConnectWithComputerThroughSSH();
-
-            reachableComputerLoggers.add(computerLogger);
-        }
-
-        try
-        {
-            Thread.sleep((long)(Utilities.SSHTimeout + 500));  /* 500ms is safe time offset when delay
-                                                                   related with making connections occurs */
-        }
-        catch (InterruptedException e)
-        {
-            EndWorkCleanup();
-            throw new LogsException("[FATAL WARNING] Thread sleep was interrupted in LogsManager.");
-        }
-
-        reachableComputerLoggers = reachableComputerLoggers.stream()
-                .filter(c -> c.IsConnectedUsingSSH() == true &&
-                        c.GetComputer().GetPreferences().isEmpty() == false)
-                .collect(Collectors.toList());
-
-        return reachableComputerLoggers;
-    }
+//    private List<ComputerLogger> GetReachableComputerLoggers(List<Computer> selectedComputerEntities) throws LogsException
+//    {
+//        List<ComputerLogger> reachableComputerLoggers = new ArrayList<>();
+//        for (Computer selectedComputer : selectedComputerEntities)
+//        {
+//            ComputerLogger computerLogger = new ComputerLogger(_logsGatherer, selectedComputer);
+//            computerLogger.ConnectWithComputerThroughSSH();
+//
+//            reachableComputerLoggers.add(computerLogger);
+//        }
+//
+//        try
+//        {
+//            Thread.sleep((long)(Utilities.SSHTimeout + 500));  /* 500ms is safe time offset when delay
+//                                                                   related with making connections occurs */
+//        }
+//        catch (InterruptedException e)
+//        {
+//            EndWorkCleanup();
+//            throw new LogsException("[FATAL WARNING] Thread sleep was interrupted in LogsManager.");
+//        }
+//
+//        reachableComputerLoggers = reachableComputerLoggers.stream()
+//                .filter(c -> c.IsConnectedUsingSSH() == true &&
+//                        c.GetComputer().GetPreferences().isEmpty() == false)
+//                .collect(Collectors.toList());
+//
+//        return reachableComputerLoggers;
+//    }
 
     public List<ComputerLogger> GetConnectedComputerLoggers()
     {
         return _connectedComputerLoggers;
+    }
+
+    public List<ComputerLogger> GetNotConnectedComputerLoggers()
+    {
+        return _notConnectedComputerLoggers;
     }
 
     public List<Computer> GetConnectedComputers()
@@ -327,6 +387,8 @@ public class LogsManager
         _logsGatherer = null;
         _logsMaintainer = null;
         _connectedComputerLoggers = null;
+        _notConnectedComputerLoggers = null;
         _isWorking = false;
+        _startingComputerLoggerRequiresRestartLogsMaintainer = true;
     }
 }

@@ -6,6 +6,7 @@ import GUI.ListItems.*;
 import Healthcheck.*;
 import Healthcheck.AppLogging.AppLogger;
 import Healthcheck.AppLogging.AppLoggerEntry;
+import Healthcheck.AppLogging.LogType;
 import Healthcheck.Entities.Computer;
 import Healthcheck.Entities.Logs.CpuLog;
 import Healthcheck.Entities.Logs.RamLog;
@@ -318,7 +319,8 @@ public class MainWindowController implements Initializable
 
         computerItemsListView.setItems(computerItemsObservableList);
         computerItemsListView.setCellFactory(
-                listCell -> new ComputerListCell(_computersAndSshConfigsManager, thisController));
+                listCell -> new ComputerListCell(_computersAndSshConfigsManager, thisController)
+        );
     }
 
     private void LoadSshConfigsToListView()
@@ -710,6 +712,8 @@ public class MainWindowController implements Initializable
 
     public void Callback_LogsManager_StartedWork()
     {
+        AppLogger.Log(LogType.INFO, "LogsManager", "Started work.");
+
         _logsManagerIsNotWorking = false;
         startOrStopGatheringLogsButton.setText("Stop Gathering Logs");
         startOrStopGatheringLogsButton.setOnAction(event -> _logsManager.StopWork());
@@ -732,6 +736,17 @@ public class MainWindowController implements Initializable
                         selectedComputer.GetSshConfig().GetUsername() + "@" + selectedComputer.GetHost());
             }});
         }
+        connectedComputersTableView.refresh();
+    }
+
+    public void Callback_LogsManager_ConnectedWithComputerLogger(ComputerLogger computerLogger)
+    {
+        connectedComputers.add(new ConnectedComputerEntry()
+        {{
+            UsernameAndHost = new SimpleStringProperty(
+                    computerLogger.GetComputer().GetSshConfig().GetUsername()
+                            + "@" + computerLogger.GetComputer().GetHost());
+        }});
         connectedComputersTableView.refresh();
     }
 

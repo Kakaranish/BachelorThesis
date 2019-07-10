@@ -33,6 +33,8 @@ public class ComputerLogger extends Thread
     private SSHConnection _sshConnection;
     private boolean _isGathering = false;
 
+    private Thread _establishingConnectionThread;
+
     public ComputerLogger(LogsGatherer logsGatherer, Computer computer)
     {
         _logsGatherer = logsGatherer;
@@ -41,7 +43,7 @@ public class ComputerLogger extends Thread
         _iPreferences = _computer.GetIPreferences();
     }
 
-    public boolean StartGatheringLogs()
+    public boolean StartWork()
     {
         if(_isGathering == true || _sshConnection == null)
         {
@@ -55,11 +57,17 @@ public class ComputerLogger extends Thread
         return true;
     }
 
-    // Once Stopped ComputerLogger cannot be started again
-    public boolean StopGatheringLogs()
+    // Once stopped ComputerLogger cannot be started again
+    public boolean StopWork()
     {
         if(_isGathering == false)
         {
+            if(_establishingConnectionThread != null)
+            {
+                StopEstablishingSSHConnection();
+                return true;
+            }
+
             return false;
         }
 
@@ -73,6 +81,11 @@ public class ComputerLogger extends Thread
 
     public void run()
     {
+        if(ThreadInterrupted())
+        {
+            return;
+        }
+
         while(_isGathering)
         {
             boolean gatheringLogsSucceed = GatherAndSaveLogsForAllPreferenceTypes();
@@ -139,9 +152,17 @@ public class ComputerLogger extends Thread
             List<LogBase> logsToSave;
             if(preference instanceof CpusInfoPreference)
             {
-                List<CpuLog> cpuLogs = GatherLogsForGivenPreferenceTypeWithRetryPolicy(preference, now)
-                        .stream().map(l -> (CpuLog)l).collect(Collectors.toList());
-                cpuLogs.forEach(c -> c.CpuInfo.FirstBatch = true);
+                List<CpuLog> cpuLogs = new ArrayList<>();
+
+                List<LogBase> logBaseFirstBatch = GatherLogsForGivenPreferenceTypeWithRetryPolicy(preference, now);
+                if(logBaseFirstBatch == null)
+                {
+                    return false;
+                }
+                List<CpuLog> cpuLogsFirstBatch = logBaseFirstBatch.stream().map(l -> (CpuLog)l).collect(Collectors.toList());
+                cpuLogsFirstBatch.forEach(c -> c.CpuInfo.FirstBatch = true);
+
+                cpuLogs.addAll(cpuLogsFirstBatch);
 
                 try
                 {
@@ -154,9 +175,15 @@ public class ComputerLogger extends Thread
                     return false;
                 }
 
-                cpuLogs.addAll(GatherLogsForGivenPreferenceTypeWithRetryPolicy(preference, now)
-                        .stream().map(l -> (CpuLog) l).collect(Collectors.toList()));
+                List<LogBase> logBaseSecondBatch = GatherLogsForGivenPreferenceTypeWithRetryPolicy(preference, now);
+                if(logBaseSecondBatch == null)
+                {
+                    return false;
+                }
+                List<CpuLog> cpuLogsSecondBatch
+                        = logBaseSecondBatch.stream().map(l -> (CpuLog) l).collect(Collectors.toList());
 
+                cpuLogs.addAll(cpuLogsSecondBatch);
                 logsToSave = cpuLogs.stream().map(c -> (LogBase) c).collect(Collectors.toList());
             }
             else
@@ -364,7 +391,7 @@ public class ComputerLogger extends Thread
         {
             try
             {
-                _sshConnection = GetSSHConnectionWithComputer();
+                _sshConnection = ConnectWithComputerUsingSSH();
                 if(_sshConnection != null)
                 {
                     _logsGatherer.Callback_RenewedConnectionWithComputer(this);
@@ -382,19 +409,66 @@ public class ComputerLogger extends Thread
         }
     }
 
-    public void ConnectWithComputerThroughSSH()
+    public boolean ValidateHasPreferences()
     {
         if(_iPreferences.isEmpty())
         {
             _logsGatherer.Callback_InfoMessage("'" + _usernameAndHost + "' has no preferences. " +
                     "No need to establish SSH connection with computer.");
-            return;
+            return false;
         }
 
-        new Thread(() -> _sshConnection = GetSSHConnectionWithComputer()).start();
+        return true;
     }
 
-    private SSHConnection GetSSHConnectionWithComputer()
+    public void StartEstablishingSSHConnection()
+    {
+        _establishingConnectionThread = new Thread(() ->
+        {
+            while(true)
+            {
+                if(_logsGatherer == null || (_logsGatherer.IsWorking() == false && InterruptionIntended() == false))
+                {
+                    return;
+                }
+
+                _sshConnection = ConnectWithComputerUsingSSH();
+                if(_sshConnection != null)
+                {
+                    break;
+                }
+
+                _logsGatherer.Callback_ErrorMessage("Connection with '" + _computer.GetUsernameAndHost() +
+                        "' was not established. Next attempt in " + _computer.GetRequestInterval().toSeconds() + "s.");
+                try
+                {
+                    Thread.sleep(_computer.GetRequestInterval().toMillis());
+                }
+                catch (InterruptedException e)
+                {
+                    return;
+                }
+            }
+
+            _establishingConnectionThread = null;
+            _logsGatherer.Callback_ConnectedComputerLogger(this);
+
+            StartWork();
+        });
+
+        _establishingConnectionThread.start();
+    }
+
+    public void StopEstablishingSSHConnection()
+    {
+        if(_establishingConnectionThread != null)
+        {
+            _establishingConnectionThread.interrupt();
+            _establishingConnectionThread = null;
+        }
+    }
+
+    private SSHConnection ConnectWithComputerUsingSSH()
     {
         try
         {
@@ -412,7 +486,7 @@ public class ComputerLogger extends Thread
         catch (SSHConnectionException e)
         {
             _logsGatherer.Callback_FatalErrorWithoutAction(
-                    "SSH connection with '" + _usernameAndHost + "' failed because of timeout.");
+                    "Unable to establish connection with '" + _usernameAndHost + "' - timeout.");
         }
         return null;
     }

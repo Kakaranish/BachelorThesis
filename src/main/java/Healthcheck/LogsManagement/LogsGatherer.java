@@ -1,11 +1,8 @@
 package Healthcheck.LogsManagement;
 
-import Healthcheck.App;
 import Healthcheck.AppLogging.AppLogger;
 import Healthcheck.AppLogging.LogType;
-import Healthcheck.Utilities;
 import javafx.application.Platform;
-import java.util.ArrayList;
 import java.util.List;
 
 public class LogsGatherer
@@ -15,74 +12,25 @@ public class LogsGatherer
     private LogsManager _logsManager;
     private boolean _isGathering = false;
     private boolean _interruptionIntended = false;
-    private Thread _runnerThread;
 
     public LogsGatherer(LogsManager logsManager)
     {
         _logsManager = logsManager;
     }
 
-    private void RunnerThreadAction()
-    {
-        _isGathering = true;
-
-        List<ComputerLogger> gatheredComputerLoggers = new ArrayList<>();
-        for (ComputerLogger computerLogger : _logsManager.GetConnectedComputerLoggers())
-        {
-            try
-            {
-                Thread.sleep(Utilities.GatheringStartDelay);
-            }
-            catch (InterruptedException e)
-            {
-                Callback_StartGatheringLogsFailed(gatheredComputerLoggers);
-
-                Platform.runLater(() -> AppLogger.Log(LogType.FATAL_ERROR, ModuleName,
-                        "Unable to start gathering logs. Sleep interrupted.")
-                );
-
-                _runnerThread = null;
-                _isGathering = false;
-
-                return;
-            }
-
-            boolean startSucceed = computerLogger.StartGatheringLogs();
-            if(startSucceed == false)
-            {
-                Platform.runLater(() ->
-                    AppLogger.Log(LogType.FATAL_ERROR, ModuleName,
-                            "Unable to start gathering logs due to some ComputerLogger.")
-                );
-
-                Callback_StartGatheringLogsFailed(gatheredComputerLoggers);
-
-                _runnerThread = null;
-                _isGathering = false;
-
-                return;
-            }
-
-            gatheredComputerLoggers.add(computerLogger);
-        }
-
-        _runnerThread = null;
-    }
-
-    public void StartGatheringLogs() throws LogsException
+    public void StartWork() throws LogsException
     {
         if(_isGathering)
         {
             throw new LogsException("Unable to start gathering logs. Other gatherer currently is working.");
         }
 
-        _runnerThread = new Thread(this::RunnerThreadAction);
-        _runnerThread.start();
+        _isGathering = true;
 
         Platform.runLater(() -> AppLogger.Log(LogType.INFO, ModuleName, "Started work"));
     }
 
-    public void StopGatheringLogs() throws LogsException
+    public void StopWork() throws LogsException
     {
         if(_isGathering == false)
         {
@@ -91,24 +39,23 @@ public class LogsGatherer
 
         _interruptionIntended = true;
 
-        if(_runnerThread != null)
+        for (ComputerLogger computerLogger : _logsManager.GetConnectedComputerLoggers())
         {
-            _runnerThread.interrupt();
-            _runnerThread = null;
-            return;
+            computerLogger.StopWork();
         }
 
-        for (ComputerLogger gatheredComputer : _logsManager.GetConnectedComputerLoggers())
+        for (ComputerLogger computerLogger : _logsManager.GetNotConnectedComputerLoggers())
         {
-            gatheredComputer.StopGatheringLogs();
+            computerLogger.StopWork();
         }
 
         _isGathering = false;
+        _interruptionIntended = false;
 
         Platform.runLater(() -> AppLogger.Log(LogType.INFO, ModuleName,"Stopped work."));
     }
 
-    public void StopGatheringLogsForComputerLogger(ComputerLogger computerLogger) throws LogsException
+    public void StopWorkForComputerLogger(ComputerLogger computerLogger) throws LogsException
     {
         String host = computerLogger.GetComputer().GetHost();
 
@@ -117,7 +64,7 @@ public class LogsGatherer
             throw new LogsException("Unable to stop gathering logs '" + host + "'. LogsGatherer is not working.");
         }
 
-        boolean stopSucceed = computerLogger.StopGatheringLogs();
+        boolean stopSucceed = computerLogger.StopWork();
         if(stopSucceed == false)
         {
             throw new LogsException("Unable to stop gathering logs '" + host + "'.");
@@ -155,7 +102,7 @@ public class LogsGatherer
     {
         for (ComputerLogger startedComputerLogger : gatheredComputerLoggers)
         {
-            StopGatheringLogsForComputerLogger(startedComputerLogger);
+            StopWorkForComputerLogger(startedComputerLogger);
         }
 
         _logsManager.Callback_Gatherer_StartGatheringLogsFailed();
@@ -170,6 +117,11 @@ public class LogsGatherer
         Platform.runLater(() -> AppLogger.Log(LogType.INFO, ModuleName,
                 "Gathering logs stopped for '" + usernameAndHost + "'.")
         );
+    }
+
+    public void Callback_ConnectedComputerLogger(ComputerLogger computerLogger)
+    {
+        _logsManager.Callback_Gatherer_ConnectedWithComputerLogger(computerLogger);
     }
 
     public void Callback_StoppedComputerLogger_InterruptionNotIntended(ComputerLogger computerLogger)
@@ -204,5 +156,10 @@ public class LogsGatherer
     public final boolean InterruptionIntended()
     {
         return _interruptionIntended;
+    }
+
+    public boolean IsWorking()
+    {
+        return _isGathering;
     }
 }
