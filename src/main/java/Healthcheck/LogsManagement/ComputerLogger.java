@@ -341,7 +341,8 @@ public class ComputerLogger extends Thread
                         return false;
                     }
 
-                    int perturbation = new Random().ints(0,100).findFirst().getAsInt();
+                    int perturbation = new Random()
+                            .ints(0, Utilities.CooldownPerturbation).findFirst().getAsInt();
                     Thread.sleep(Utilities.PersistCooldown +  perturbation);
 
                     session.beginTransaction();

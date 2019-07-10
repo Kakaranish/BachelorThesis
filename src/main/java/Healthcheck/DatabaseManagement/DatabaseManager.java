@@ -37,7 +37,8 @@ public abstract class DatabaseManager
             int retryNum = 1;
             while (retryNum <= Utilities.PersistNumOfRetries)
             {
-                int randomFactor = new Random().ints(0,100).findFirst().getAsInt();
+                int randomFactor = new Random()
+                        .ints(0, Utilities.CooldownPerturbation).findFirst().getAsInt();
                 try
                 {
                     Thread.sleep(Utilities.PersistCooldown + randomFactor);
@@ -90,7 +91,8 @@ public abstract class DatabaseManager
             int retryNum = 1;
             while (retryNum <= Utilities.PersistNumOfRetries)
             {
-                int randomFactor = new Random().ints(0,100).findFirst().getAsInt();
+                int randomFactor = new Random()
+                        .ints(0, Utilities.CooldownPerturbation).findFirst().getAsInt();
                 try
                 {
                     Thread.sleep(Utilities.PersistCooldown + randomFactor);
@@ -143,7 +145,8 @@ public abstract class DatabaseManager
             int retryNum = 1;
             while (retryNum <= Utilities.UpdateNumOfRetries)
             {
-                int randomFactor = new Random().ints(0,100).findFirst().getAsInt();
+                int randomFactor = new Random()
+                        .ints(0, Utilities.CooldownPerturbation).findFirst().getAsInt();
                 try
                 {
                     Thread.sleep(Utilities.UpdateCooldown + randomFactor);
@@ -196,7 +199,8 @@ public abstract class DatabaseManager
             int retryNum = 1;
             while (retryNum <= Utilities.RemoveNumOfRetries)
             {
-                int randomFactor = new Random().ints(0,100).findFirst().getAsInt();
+                int randomFactor = new Random()
+                        .ints(0, Utilities.CooldownPerturbation).findFirst().getAsInt();
                 try
                 {
                     Thread.sleep(Utilities.RemoveCooldown + randomFactor);
@@ -256,7 +260,8 @@ public abstract class DatabaseManager
             int retryNum = 1;
             while (retryNum <= Utilities.SelectNumOfRetries)
             {
-                int randomFactor = new Random().ints(0,100).findFirst().getAsInt();
+                int randomFactor = new Random()
+                        .ints(0, Utilities.CooldownPerturbation).findFirst().getAsInt();
                 try
                 {
                     Thread.sleep(Utilities.SelectCooldown + randomFactor);
@@ -316,7 +321,8 @@ public abstract class DatabaseManager
             int retryNum = 1;
             while (retryNum <= Utilities.DeleteNumOfRetries)
             {
-                int randomFactor = new Random().ints(0,100).findFirst().getAsInt();
+                int randomFactor = new Random()
+                        .ints(0, Utilities.CooldownPerturbation).findFirst().getAsInt();
                 try
                 {
                     Thread.sleep(Utilities.DeleteCooldown + randomFactor);

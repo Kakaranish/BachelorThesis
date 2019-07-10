@@ -63,6 +63,8 @@ public class Utilities
             Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("MaxLogsNum"));
     public static final int ProcStatGapCooldown =
             Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("ProcStatGapCooldown"));
+    public static final int CooldownPerturbation =
+            Integer.parseInt(AppProperties.GetInstance().Properties.getProperty("CooldownPerturbation"));
 
     public static final List<Preference> AvailablePreferences = GetAvailablePreferencesFromDb();
 
